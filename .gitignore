@@ -7,3 +7,4 @@ dist
 .env
 .env.local
 implementation_plan
+deploy_plan
