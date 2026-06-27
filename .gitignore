@@ -6,5 +6,5 @@ dist
 .output
 .env
 .env.local
-implementation_plan
-deploy_plan
+implementation_plan.md
+deploy_plan.md
