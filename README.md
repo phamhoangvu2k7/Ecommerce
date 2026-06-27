@@ -1,139 +1,148 @@
-# ⚡ Hệ thống Quản lý Cửa hàng & Sản phẩm E-Commerce
+# ⚡ Website Bán Hàng & Quản Lý Sản Phẩm (E-Commerce)
 
-Hệ thống E-Commerce hoàn chỉnh tích hợp giữa **Backend API Server (Nitro v3)** và **Frontend Storefront/Admin Portal (Vue 3 SPA)**. Ứng dụng được xây dựng theo mô hình kiến trúc Nuxt gọn nhẹ, hiệu năng cao và có thể triển khai đóng gói (self-contained) ở môi trường production chỉ với một câu lệnh.
+Đây là một dự án website bán hàng hoàn chỉnh gồm hai phần:
+- **Phần xử lý dữ liệu (Backend)**: Chạy bằng **Nitro v3** (nhanh và nhẹ).
+- **Phần giao diện hiển thị (Frontend)**: Chạy bằng **Vue 3** (mượt mà, tốc độ tải trang nhanh như Nuxt).
+
+Dự án đã được thiết lập sẵn cấu hình để chạy chung trên một cổng ở môi trường phát triển, và dễ dàng đóng gói để chạy thực tế chỉ với một câu lệnh.
 
 ---
 
-## 🚀 Tính năng nổi bật
+## 🚀 Các tính năng chính
 
-### 🛒 Dành cho Khách hàng (Client Storefront)
-- **Đồng bộ giỏ hàng thông minh (Cart Merging)**: Tự động gộp giỏ hàng vãng lai (guest cart lưu ở cookie) vào giỏ hàng thành viên của người dùng ngay khi đăng nhập.
-- **Thanh toán an toàn chống Race Condition**: Sử dụng MongoDB Transactions (hoặc cơ chế Fallback nguyên tử) để kiểm tra tồn kho và trừ số lượng sản phẩm chính xác, tự động rollback (hoàn kho) nếu xảy ra lỗi.
-- **Hủy đơn & Hoàn kho**: Hỗ trợ hủy các đơn hàng đang chờ duyệt và tự động cộng trả số lượng sản phẩm lại kho.
-- **Khôi phục mật khẩu qua Email OTP**: Sinh OTP ngẫu nhiên gửi tới Email, tự động hết hạn sau 3 phút nhờ cơ chế TTL Index trong MongoDB.
-- **Lọc & Tìm kiếm**: Tìm kiếm an toàn chống SQL/Regex Injection, bộ lọc khoảng giá hoạt động chính xác dựa trên giá bán thực tế sau khi đã tính phần trăm khuyến mãi.
+### 🛒 Dành cho Khách mua hàng (Giao diện Cửa hàng)
+- **Tự động gộp giỏ hàng**: Khi khách hàng đăng nhập, những sản phẩm họ đã thêm vào giỏ hàng trước đó (lúc chưa đăng nhập) sẽ tự động được gộp chung vào tài khoản cá nhân.
+- **Mua hàng an toàn, không lo lệch kho**: Hệ thống tự động kiểm tra số lượng hàng trong kho trước khi xác nhận đơn. Nếu nhiều người cùng mua một sản phẩm tại một thời điểm, hệ thống sẽ xử lý tuần tự để không bị bán quá số lượng thực tế. Nếu quá trình đặt hàng bị lỗi giữa chừng, số lượng hàng sẽ tự động được trả lại kho.
+- **Hủy đơn hàng chờ duyệt**: Khách hàng có thể hủy đơn khi chưa được admin xác nhận, số lượng sản phẩm trong đơn hủy sẽ tự động được cộng trả lại vào kho.
+- **Quên mật khẩu bằng mã OTP**: Gửi mã OTP xác nhận về email của khách hàng. Mã OTP này chỉ có hiệu lực trong vòng 3 phút rồi tự động tự xóa.
+- **Tìm kiếm và bộ lọc tiện lợi**: Tìm kiếm sản phẩm theo tên, lọc sản phẩm theo danh mục và lọc theo giá bán thực tế (giá sau khi đã trừ đi phần trăm giảm giá).
 
-### ⚙️ Dành cho Quản trị viên (Admin Portal)
-- **Dashboard phân tích tổng hợp**: Thống kê doanh thu thực tế, số lượng đơn hàng, số khách đăng ký, tỷ lệ sản phẩm đang hoạt động trực quan bằng MongoDB Aggregation.
-- **Quản lý danh mục dạng Cây (Category Tree)**: Hiển thị phân cấp danh mục đệ quy không giới hạn, hỗ trợ kéo thả thứ tự sắp xếp và cơ chế chống xóa (cascade protection) khi danh mục vẫn chứa sản phẩm hoạt động.
-- **Tải ảnh trực tiếp lên Cloudinary**: Tích hợp sẵn nút upload ảnh trong form CRUD sản phẩm. Ảnh tải lên từ máy tính được lưu trữ trực tiếp trên đám mây Cloudinary và trả về URL tự động điền vào form.
-- **Thùng rác tập trung & Khôi phục thông minh**: Khôi phục sản phẩm sẽ tự động khôi phục cả danh mục cha liên quan nếu danh mục đó cũng bị xóa.
+### ⚙️ Dành cho Quản trị viên (Trang Quản lý - Admin)
+- **Trang thống kê tổng quan**: Xem nhanh tổng doanh thu thực tế, số lượng đơn hàng đã bán, số lượng khách hàng đăng ký và số lượng sản phẩm đang hiển thị trên web.
+- **Quản lý danh mục cha - con**: Tạo và quản lý danh mục sản phẩm theo nhiều cấp. Hệ thống sẽ chặn không cho xóa danh mục cha nếu bên trong vẫn còn danh mục con hoặc sản phẩm đang hoạt động (tránh lỗi hiển thị ngoài trang chủ).
+- **Tải ảnh trực tiếp lên đám mây Cloudinary**: Tích hợp sẵn nút upload ảnh khi thêm mới hoặc chỉnh sửa sản phẩm. Bạn chỉ cần chọn file ảnh từ máy tính, ảnh sẽ được tự động tải lên tài khoản Cloudinary của bạn và điền link ảnh vào ô nhập liệu.
+- **Thùng rác & Khôi phục dữ liệu**: Sản phẩm hoặc danh mục bị xóa sẽ được đưa vào thùng rác để tránh xóa nhầm. Khi khôi phục một sản phẩm, hệ thống tự động khôi phục cả danh mục cha của sản phẩm đó nếu danh mục cha cũng đang nằm trong thùng rác.
 
 ---
 
 ## 🛠️ Công nghệ sử dụng
 
-- **Backend Core**: [Nitro v3](https://nitro.build/), [h3](https://h3.dev/)
-- **Frontend Core**: [Vue 3](https://vuejs.org/) (Composition API), [Vite 8](https://vite.dev/), [Vue Router](https://router.vuejs.org/), [Pinia](https://pinia.vuejs.org/)
-- **Database & ODM**: [MongoDB](https://www.mongodb.com/) & [Mongoose](https://mongoosejs.com/)
-- **Xác thực & Mã hóa**: JWT (JSON Web Token), Bcrypt
-- **Xác thực Dữ liệu (Validation)**: Zod Schema Validation
-- **Dịch vụ đám mây & Tiện ích**: Cloudinary SDK (Upload hình ảnh), Nodemailer (Gửi mail OTP)
+- **Server (Backend)**: Nitro v3, h3
+- **Giao diện (Frontend)**: Vue 3, Vite, Pinia (quản lý trạng thái), Vue Router (chuyển trang)
+- **Cơ sở dữ liệu**: MongoDB (thông qua thư viện Mongoose)
+- **Bảo mật**: JWT (tạo token đăng nhập), Bcrypt (mã hóa mật khẩu người dùng trước khi lưu vào database)
+- **Gửi mail**: Nodemailer
+- **Lưu trữ ảnh**: Cloudinary
 
 ---
 
-## 📁 Cấu trúc Thư mục Dự án
+## 📁 Cấu trúc thư mục dự án
 
 ```text
-├── .env                              # Cấu hình môi trường CSDL & Secrets
-├── index.html                        # Điểm neo gắn kết (mount) ứng dụng Vue 3
-├── package.json                      # Danh sách dependencies & kịch bản chạy
-├── tsconfig.json                     # Cấu hình TypeScript & Path Alias (~/*)
-├── vite.config.ts                    # Tích hợp Vue plugin & Nitro plugin trong Vite
-├── server/                           # Backend (Nitro v3 API & Services)
+├── .env                              # Cấu hình kết nối CSDL, Email, Cloudinary
+├── index.html                        # File HTML chính của ứng dụng
+├── package.json                      # Các thư viện đã cài đặt và lệnh chạy dự án
+├── tsconfig.json                     # Cấu hình TypeScript
+├── vite.config.ts                    # File cấu hình Vite (gộp chung cả Vue và Nitro)
+├── server/                           # Thư mục Backend (API Server)
 │   ├── middleware/
-│   │   └── auth.ts                   # Global middleware xác thực JWT & kiểm tra quyền (RBAC)
+│   │   └── auth.ts                   # Kiểm tra đăng nhập và phân quyền (Admin / Khách hàng)
 │   ├── plugins/
-│   │   └── db.ts                     # Plugin khởi tạo Mongoose và cấu hình DNS dự phòng
+│   │   └── db.ts                     # Tự động kết nối cơ sở dữ liệu MongoDB khi chạy server
 │   ├── utils/
-│   │   ├── helpers.ts                # Mã hóa, Mailer, Cloudinary, Slugify
-│   │   ├── models.ts                 # Định nghĩa các Mongoose Schemas & Soft Delete plugin
-│   │   ├── services.ts               # Core Logic (Checkout, Cart Merge, Category constraints)
-│   │   └── validation.ts             # Zod validation schemas đầu vào
-│   └── api/                          # Định tuyến API
-│       ├── seed.get.ts               # Route seed dữ liệu mẫu
-│       ├── admin/                    # Nhóm API quản trị (Dashboard, Products, Categories, Trash, Upload)
-│       └── client/                   # Nhóm API khách hàng (Products, Cart, Checkout, Profile, Orders)
-├── src/                              # Frontend (Vue 3 Client)
-│   ├── main.ts                       # Entrypoint ứng dụng Vue 3
-│   ├── router.ts                     # Cấu hình Route khách hàng & Quản trị kèm Route Guards
-│   ├── style.css                     # Thiết kế Premium Dark-mode, HSL, Glassmorphism, Animations
-│   ├── App.vue                       # Root Component của ứng dụng
+│   │   ├── helpers.ts                # Các hàm phụ trợ (gửi mail, mã hóa mật khẩu, upload ảnh)
+│   │   ├── models.ts                 # Cấu trúc bảng dữ liệu (Sản phẩm, Danh mục, Đơn hàng, Giỏ hàng,...)
+│   │   ├── services.ts               # Logic xử lý chính (Đặt hàng, đồng bộ giỏ hàng)
+│   │   └── validation.ts             # Kiểm tra định dạng dữ liệu đầu vào (tên, email, số điện thoại)
+│   └── api/                          # Các đường dẫn API gọi dữ liệu
+│       ├── seed.get.ts               # API tạo nhanh dữ liệu mẫu để chạy thử
+│       ├── admin/                    # Các API phục vụ cho trang quản lý
+│       └── client/                   # Các API phục vụ cho trang bán hàng
+├── src/                              # Thư mục Frontend (Giao diện Vue 3)
+│   ├── main.ts                       # File khởi tạo ứng dụng Vue
+│   ├── router.ts                     # Cài đặt chuyển trang và chặn truy cập nếu chưa đăng nhập
+│   ├── style.css                     # File CSS thiết kế giao diện (Dark-mode, hiệu ứng mượt)
+│   ├── App.vue                       # File giao diện gốc
 │   ├── components/
-│   │   └── CategoryNode.vue          # Component đệ quy hiển thị danh mục dạng cây
+│   │   └── CategoryNode.vue          # Hiển thị danh mục dạng cây cha - con
 │   ├── layouts/
-│   │   ├── ClientLayout.vue          # Layout storefront bán hàng
-│   │   └── AdminLayout.vue           # Layout dashboard quản lý của admin
+│   │   ├── ClientLayout.vue          # Khung giao diện trang bán hàng
+│   │   └── AdminLayout.vue           # Khung giao diện trang quản trị admin
 │   ├── stores/
-│   │   ├── auth.ts                   # Store quản lý trạng thái tài khoản
-│   │   └── cart.ts                   # Store quản lý giỏ hàng và đồng bộ API
-│   └── pages/                        # Toàn bộ view trang Client & Admin
+│   │   ├── auth.ts                   # Lưu thông tin đăng nhập tạm thời
+│   │   └── cart.ts                   # Lưu thông tin giỏ hàng tạm thời
+│   └── pages/                        # Các trang giao diện chi tiết (Home, Cart, Products, Admin,...)
 ```
 
 ---
 
-## 💻 Hướng dẫn Cài đặt & Chạy ứng dụng
+## 💻 Hướng dẫn Cài đặt & Chạy thử
 
-### 1. Yêu cầu Hệ thống
-- Đã cài đặt **Node.js** (Khuyên dùng bản LTS từ `v20.x` trở lên).
-- Đã cài đặt hoặc có liên kết tới cơ sở dữ liệu **MongoDB** (Local hoặc Atlas).
+### 1. Chuẩn bị
+- Máy tính đã cài đặt **Node.js** (khuyên dùng bản v20 trở lên).
+- Có tài khoản hoặc đã cài đặt **MongoDB** (chạy trên máy hoặc dùng đám mây Atlas).
 
-### 2. Cấu hình Biến môi trường
-Tạo tệp `.env` tại thư mục gốc của dự án với các nội dung sau:
+### 2. Cấu hình file `.env`
+Tạo một file tên là `.env` ở thư mục gốc của dự án và điền các thông tin sau:
 ```env
 PORT=3000
 
-# Cấu hình kết nối MongoDB
-MONGO_URL=your_mongodb_connection_string
+# Đường dẫn kết nối CSDL MongoDB
+MONGO_URL=đường_dẫn_kết_nối_mongodb_của_bạn
 MONGO_NAME=product-management
 
-# Cấu hình gửi mail OTP (Gmail)
-EMAIL_USER=your_gmail_address@gmail.com
-EMAIL_PASSWORD=your_gmail_app_password
+# Cấu hình gửi mail OTP bằng Gmail
+EMAIL_USER=địa_chỉ_gmail_của_bạn@gmail.com
+EMAIL_PASSWORD=mật_khẩu_ứng_dụng_gmail_của_bạn
 
-# Cấu hình tải ảnh lên Cloudinary
-CLOUD_NAME=your_cloudinary_cloud_name
-CLOUD_KEY=your_cloudinary_api_key
-CLOUD_SECRET=your_cloudinary_api_secret
+# Cấu hình tài khoản Cloudinary để tải ảnh lên
+CLOUD_NAME=tên_cloudinary_của_bạn
+CLOUD_KEY=mã_key_cloudinary_của_bạn
+CLOUD_SECRET=mã_secret_cloudinary_của_bạn
 
-# Secrets
-SESSION_SECRET=a_very_secret_session_key_123456
-JWT_SECRET=a_very_secret_jwt_key_123456
+# Chuỗi ký tự bảo mật (để chạy JWT)
+SESSION_SECRET=chuỗi_kí_tự_ngẫu_nhiên_bất_kì
+JWT_SECRET=chuỗi_kí_tự_ngẫu_nhiên_bất_kì
 ```
 
-### 3. Khởi chạy Chế độ Phát triển (Development)
-Chạy lệnh cài đặt các thư viện liên quan:
-```bash
-npm install --legacy-peer-deps
-```
+### 3. Cài đặt và khởi chạy (Chế độ Dev)
+Mở terminal tại thư mục dự án và chạy các lệnh sau:
 
-Chạy dev server:
-```bash
-npm run dev
-```
-Mở trình duyệt truy cập: `http://localhost:5173`. 
-*Mẹo: Nếu VS Code của bạn hiển thị gạch đỏ ở các hàm auto-import, hãy bấm `Ctrl + Shift + P` -> Chọn `TypeScript: Restart TS Server` để tải lại định nghĩa types.*
+1. Cài đặt các thư viện:
+   ```bash
+   npm install --legacy-peer-deps
+   ```
+2. Khởi chạy dự án:
+   ```bash
+   npm run dev
+   ```
+Mở trình duyệt truy cập: `http://localhost:5173` để xem giao diện web.
 
-### 4. Nạp Dữ liệu mẫu (Seed Data)
-Truy cập đường dẫn sau trên trình duyệt để khởi tạo nhanh các tài khoản và danh mục, sản phẩm mẫu:
+*Lưu ý: Nếu VS Code báo gạch đỏ lỗi ở các hàm như `defineEventHandler`, bạn hãy nhấn phím `Ctrl + Shift + P` -> gõ chọn `TypeScript: Restart TS Server` là sẽ hết.*
+
+### 4. Tạo nhanh dữ liệu mẫu để dùng thử
+Truy cập đường dẫn sau trên trình duyệt để hệ thống tự động tạo các tài khoản test và sản phẩm mẫu vào database:
 `http://localhost:5173/api/seed`
 
-**Tài khoản mẫu được tạo sẵn:**
+**Các tài khoản đăng nhập mẫu sau khi tạo:**
 - **Tài khoản Admin**: `admin@example.com` / Mật khẩu: `admin123`
-- **Tài khoản Editor**: `editor@example.com` / Mật khẩu: `editor123`
-- **Tài khoản Khách hàng**: `customer@example.com` / Mật khẩu: `customer123`
+- **Tài khoản Biên tập viên (Editor)**: `editor@example.com` / Mật khẩu: `editor123`
+- **Tài khoản Khách mua hàng**: `customer@example.com` / Mật khẩu: `customer123`
 
 ---
 
-## 📦 Triển khai Đóng gói (Production Build)
+## 📦 Đóng gói chạy thực tế (Production Build)
 
-Khi cần chạy ứng dụng ở môi trường production thực tế, chạy lệnh build để đóng gói toàn bộ Frontend tĩnh và Backend API:
-```bash
-npm run build
-```
+Khi muốn chạy website ở môi trường thực tế (không phải môi trường lập trình):
 
-Sau khi biên dịch hoàn tất, thư mục `.output/` sẽ được sinh ra ở gốc dự án. Để chạy máy chủ độc lập mà không cần môi trường dev:
-```bash
-node .output/server/index.mjs
-```
-Hệ thống sẽ chạy gọn gàng trên cổng bạn đã cấu hình trong tệp `.env` (mặc định là `3000`).
+1. Chạy lệnh biên dịch và đóng gói:
+   ```bash
+   npm run build
+   ```
+Hệ thống sẽ tạo ra một thư mục tên là `.output/` ở ngoài cùng.
+
+2. Khởi chạy máy chủ độc lập:
+   ```bash
+   node .output/server/index.mjs
+   ```
+Website sẽ hoạt động trên cổng bạn đã cấu hình trong tệp `.env` (mặc định là `3000`).
