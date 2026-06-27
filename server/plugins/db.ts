@@ -1,0 +1,32 @@
+import { definePlugin } from "nitro";
+import mongoose from "mongoose";
+import dns from "node:dns";
+
+// Force public DNS to resolve MongoDB Atlas SRV records correctly on local machines
+try {
+  dns.setServers(["8.8.8.8", "1.1.1.1"]);
+} catch (e) {
+  console.warn("[DNS] Failed to configure custom DNS servers:", e);
+}
+
+export default definePlugin((nitroApp) => {
+  const uri = process.env.MONGO_URL || process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/product-management";
+  const dbName = process.env.MONGO_NAME || "product-management";
+
+  console.log(`[MongoDB] Connecting to database "${dbName}"...`);
+
+  mongoose.connect(uri, { dbName })
+    .then(() => {
+      console.log("[MongoDB] Connection established successfully.");
+    })
+    .catch((err) => {
+      console.error("[MongoDB] Connection error:", err);
+    });
+
+  // Handle server shutdown hook
+  nitroApp.hooks.hook("close", async () => {
+    console.log("[MongoDB] Disconnecting...");
+    await mongoose.disconnect();
+    console.log("[MongoDB] Disconnected.");
+  });
+});
