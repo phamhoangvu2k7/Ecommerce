@@ -27,12 +27,10 @@ onMounted(async () => {
 
 async function fetchCategories() {
   try {
-    const res = await fetch("/api/client/products"); // We can fetch categories by parsing list
-    // Let's get categories tree
-    const resCat = await fetch("/api/admin/categories"); // Bypass auth for client or just load flat categories
-    const dataCat = await resCat.json();
-    if (dataCat.success) {
-      categories.value = flattenTree(dataCat.tree);
+    const res = await fetch("/api/client/categories");
+    const data = await res.json();
+    if (data.success) {
+      categories.value = flattenTree(data.tree);
     }
   } catch (err) {
     console.error("Error fetching categories:", err);

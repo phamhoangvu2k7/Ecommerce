@@ -1,13 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
 
-// Helper to check cookies in Client JS
-function getCookie(name: string) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop()?.split(";").shift();
-  return null;
-}
-
 const routes = [
   // Client Pages
   {
@@ -57,7 +49,7 @@ const router = createRouter({
 
 // Navigation Guards
 router.beforeEach((to, from, next) => {
-  const token = getCookie("token") || localStorage.getItem("token");
+  const token = localStorage.getItem("token");
   const adminToken = localStorage.getItem("adminToken");
 
   if (to.meta.requiresAdmin) {

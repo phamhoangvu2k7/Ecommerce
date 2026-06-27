@@ -35,6 +35,17 @@ async function handleCheckout() {
     return;
   }
 
+  if (!cartStore.cartId) {
+    errorMsg.value = "Giỏ hàng không hợp lệ. Vui lòng quay lại giỏ hàng và thử lại.";
+    return;
+  }
+
+  if (cartStore.products.length === 0) {
+    errorMsg.value = "Giỏ hàng của bạn đang trống.";
+    router.push("/cart");
+    return;
+  }
+
   loading.value = true;
   errorMsg.value = "";
   successMsg.value = "";
