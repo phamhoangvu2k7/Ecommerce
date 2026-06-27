@@ -1,9 +1,9 @@
 <h1 align="center">
-  <a href="https://nitro.build/" target="blank"><img src="https://nitro.build/icon.svg" height="100" alt="Nitro logo" /></a>
-  <a href="https://vuejs.org/" target="blank"><img src="https://vuejs.org/images/logo.png" height="100" alt="Vue logo" /></a>
-  <a href="https://www.typescriptlang.org/" target="blank"><img src="https://raw.githubusercontent.com/remojansen/logo.ts/master/ts.png" height="100" alt="TypeScript logo" /></a>
-  <a href="https://www.mongodb.com/" target="blank"><img src="https://cdn.iconscout.com/icon/free/png-256/free-mongodb-5-1175140.png" height="100" alt="MongoDB logo" /></a>
-  <a href="https://cloudinary.com/" target="blank"><img src="https://cdn.worldvectorlogo.com/logos/cloudinary-2.svg" height="100" alt="Cloudinary logo" /></a>
+  <a href="https://nitro.build/" target="blank"><img src="https://nitro.build/icon.svg" alt="Nitro logo" /></a>
+  <a href="https://vuejs.org/" target="blank"><img src="https://vuejs.org/images/logo.png" height="40" alt="Vue logo" /></a>
+  <a href="https://www.typescriptlang.org/" target="blank"><img src="https://raw.githubusercontent.com/remojansen/logo.ts/master/ts.png" height="40" alt="TypeScript logo" /></a>
+  <a href="https://www.mongodb.com/" target="blank"><img src="https://cdn.iconscout.com/icon/free/png-256/free-mongodb-5-1175140.png" height="40" alt="MongoDB logo" /></a>
+  <a href="https://cloudinary.com/" target="blank"><img src="https://cdn.worldvectorlogo.com/logos/cloudinary-2.svg" height="40" alt="Cloudinary logo" /></a>
 </h1>
 
 <p align="center">Hệ thống website bán hàng hoàn chỉnh tích hợp giữa <b>Backend Nitro v3</b> và <b>Frontend Vue 3 SPA (Vite 8)</b> chuyên nghiệp, mượt mà và trực quan.</p>
