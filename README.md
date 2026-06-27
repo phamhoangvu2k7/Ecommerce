@@ -277,4 +277,4 @@ Hệ thống phân quyền truy cập thông qua mã JWT được chia làm 3 nh
 Dự án này được cấp phép theo các điều khoản của **MIT License**. Xem file LICENSE để biết thêm chi tiết.
 
 ---
-<p align="center">Được hoàn thiện với ❤️ bởi Antigravity</p>
+<p align="center">Được hoàn thiện với ❤️ bởi Phạm Hoàng Vũ</p>
