@@ -1,148 +1,280 @@
-# ⚡ Website Bán Hàng & Quản Lý Sản Phẩm (E-Commerce)
+<h1 align="center">
+  <a href="https://nitro.build/" target="blank"><img src="https://nitro.build/assets/icon.svg" height="100" alt="Nitro logo" /></a>
+  <a href="https://vuejs.org/" target="blank"><img src="https://vuejs.org/images/logo.png" height="100" alt="Vue logo" /></a>
+  <a href="https://www.typescriptlang.org/" target="blank"><img src="https://raw.githubusercontent.com/remojansen/logo.ts/master/ts.png" height="100" alt="TypeScript logo" /></a>
+  <a href="https://www.mongodb.com/" target="blank"><img src="https://cdn.iconscout.com/icon/free/png-256/free-mongodb-5-1175140.png" height="100" alt="MongoDB logo" /></a>
+  <a href="https://cloudinary.com/" target="blank"><img src="https://cdn.worldvectorlogo.com/logos/cloudinary-2.svg" height="100" alt="Cloudinary logo" /></a>
+</h1>
 
-Đây là một dự án website bán hàng hoàn chỉnh gồm hai phần:
-- **Phần xử lý dữ liệu (Backend)**: Chạy bằng **Nitro v3** (nhanh và nhẹ).
-- **Phần giao diện hiển thị (Frontend)**: Chạy bằng **Vue 3** (mượt mà, tốc độ tải trang nhanh như Nuxt).
+<p align="center">Hệ thống website bán hàng hoàn chỉnh tích hợp giữa <b>Backend Nitro v3</b> và <b>Frontend Vue 3 SPA (Vite 8)</b> chuyên nghiệp, mượt mà và trực quan.</p>
 
-Dự án đã được thiết lập sẵn cấu hình để chạy chung trên một cổng ở môi trường phát triển, và dễ dàng đóng gói để chạy thực tế chỉ với một câu lệnh.
+<p align="center">
+  <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License MIT" />
+  <img src="https://img.shields.io/badge/Node.js-%3E%3D20.0.0-green" alt="Node version" />
+  <img src="https://img.shields.io/badge/TypeScript-5.x-blue" alt="TypeScript version" />
+</p>
 
----
+## Giới thiệu
 
-## 🚀 Các tính năng chính
+Một dự án e-commerce hoàn chỉnh từ giao diện khách mua hàng (Storefront) đến trang quản trị (Admin Dashboard). Sử dụng cấu trúc phân tách rõ ràng, các nghiệp vụ đặt hàng an toàn chống lệch kho, tự động gộp giỏ hàng khi đăng nhập, cùng các tính năng lưu trữ hình ảnh trên đám mây Cloudinary và xác thực tài khoản qua Email OTP.
 
-### 🛒 Dành cho Khách mua hàng (Giao diện Cửa hàng)
-- **Tự động gộp giỏ hàng**: Khi khách hàng đăng nhập, những sản phẩm họ đã thêm vào giỏ hàng trước đó (lúc chưa đăng nhập) sẽ tự động được gộp chung vào tài khoản cá nhân.
-- **Mua hàng an toàn, không lo lệch kho**: Hệ thống tự động kiểm tra số lượng hàng trong kho trước khi xác nhận đơn. Nếu nhiều người cùng mua một sản phẩm tại một thời điểm, hệ thống sẽ xử lý tuần tự để không bị bán quá số lượng thực tế. Nếu quá trình đặt hàng bị lỗi giữa chừng, số lượng hàng sẽ tự động được trả lại kho.
-- **Hủy đơn hàng chờ duyệt**: Khách hàng có thể hủy đơn khi chưa được admin xác nhận, số lượng sản phẩm trong đơn hủy sẽ tự động được cộng trả lại vào kho.
-- **Quên mật khẩu bằng mã OTP**: Gửi mã OTP xác nhận về email của khách hàng. Mã OTP này chỉ có hiệu lực trong vòng 3 phút rồi tự động tự xóa.
-- **Tìm kiếm và bộ lọc tiện lợi**: Tìm kiếm sản phẩm theo tên, lọc sản phẩm theo danh mục và lọc theo giá bán thực tế (giá sau khi đã trừ đi phần trăm giảm giá).
+**Link Test API**: [http://localhost:3000/api/seed](http://localhost:3000/api/seed) (Dùng để khởi tạo dữ liệu mẫu khi chạy dưới local)
 
-### ⚙️ Dành cho Quản trị viên (Trang Quản lý - Admin)
-- **Trang thống kê tổng quan**: Xem nhanh tổng doanh thu thực tế, số lượng đơn hàng đã bán, số lượng khách hàng đăng ký và số lượng sản phẩm đang hiển thị trên web.
-- **Quản lý danh mục cha - con**: Tạo và quản lý danh mục sản phẩm theo nhiều cấp. Hệ thống sẽ chặn không cho xóa danh mục cha nếu bên trong vẫn còn danh mục con hoặc sản phẩm đang hoạt động (tránh lỗi hiển thị ngoài trang chủ).
-- **Tải ảnh trực tiếp lên đám mây Cloudinary**: Tích hợp sẵn nút upload ảnh khi thêm mới hoặc chỉnh sửa sản phẩm. Bạn chỉ cần chọn file ảnh từ máy tính, ảnh sẽ được tự động tải lên tài khoản Cloudinary của bạn và điền link ảnh vào ô nhập liệu.
-- **Thùng rác & Khôi phục dữ liệu**: Sản phẩm hoặc danh mục bị xóa sẽ được đưa vào thùng rác để tránh xóa nhầm. Khi khôi phục một sản phẩm, hệ thống tự động khôi phục cả danh mục cha của sản phẩm đó nếu danh mục cha cũng đang nằm trong thùng rác.
+## Mục lục
 
----
-
-## 🛠️ Công nghệ sử dụng
-
-- **Server (Backend)**: Nitro v3, h3
-- **Giao diện (Frontend)**: Vue 3, Vite, Pinia (quản lý trạng thái), Vue Router (chuyển trang)
-- **Cơ sở dữ liệu**: MongoDB (thông qua thư viện Mongoose)
-- **Bảo mật**: JWT (tạo token đăng nhập), Bcrypt (mã hóa mật khẩu người dùng trước khi lưu vào database)
-- **Gửi mail**: Nodemailer
-- **Lưu trữ ảnh**: Cloudinary
+- [Tính năng](#tính-năng)
+- [Công nghệ sử dụng](#công-nghệ-sử-dụng)
+- [Bắt đầu chạy thử](#bắt-đầu-chạy-thử)
+- [Cấu trúc thư mục](#cấu-trúc-thư-mục)
+- [Sơ đồ Cơ sở Dữ liệu](#sơ-đồ-cơ-sở-dữ-liệu)
+- [Phân quyền hệ thống](#phân-quyền-hệ-thống)
+- [Đóng gói chạy thực tế](#đóng-gói-chạy-thực-tế)
+- [Giấy phép](#giấy-phép)
 
 ---
 
-## 📁 Cấu trúc thư mục dự án
+## Tính năng
 
-```text
-├── .env                              # Cấu hình kết nối CSDL, Email, Cloudinary
-├── index.html                        # File HTML chính của ứng dụng
-├── package.json                      # Các thư viện đã cài đặt và lệnh chạy dự án
-├── tsconfig.json                     # Cấu hình TypeScript
-├── vite.config.ts                    # File cấu hình Vite (gộp chung cả Vue và Nitro)
-├── server/                           # Thư mục Backend (API Server)
-│   ├── middleware/
-│   │   └── auth.ts                   # Kiểm tra đăng nhập và phân quyền (Admin / Khách hàng)
-│   ├── plugins/
-│   │   └── db.ts                     # Tự động kết nối cơ sở dữ liệu MongoDB khi chạy server
-│   ├── utils/
-│   │   ├── helpers.ts                # Các hàm phụ trợ (gửi mail, mã hóa mật khẩu, upload ảnh)
-│   │   ├── models.ts                 # Cấu trúc bảng dữ liệu (Sản phẩm, Danh mục, Đơn hàng, Giỏ hàng,...)
-│   │   ├── services.ts               # Logic xử lý chính (Đặt hàng, đồng bộ giỏ hàng)
-│   │   └── validation.ts             # Kiểm tra định dạng dữ liệu đầu vào (tên, email, số điện thoại)
-│   └── api/                          # Các đường dẫn API gọi dữ liệu
-│       ├── seed.get.ts               # API tạo nhanh dữ liệu mẫu để chạy thử
-│       ├── admin/                    # Các API phục vụ cho trang quản lý
-│       └── client/                   # Các API phục vụ cho trang bán hàng
-├── src/                              # Thư mục Frontend (Giao diện Vue 3)
-│   ├── main.ts                       # File khởi tạo ứng dụng Vue
-│   ├── router.ts                     # Cài đặt chuyển trang và chặn truy cập nếu chưa đăng nhập
-│   ├── style.css                     # File CSS thiết kế giao diện (Dark-mode, hiệu ứng mượt)
-│   ├── App.vue                       # File giao diện gốc
-│   ├── components/
-│   │   └── CategoryNode.vue          # Hiển thị danh mục dạng cây cha - con
-│   ├── layouts/
-│   │   ├── ClientLayout.vue          # Khung giao diện trang bán hàng
-│   │   └── AdminLayout.vue           # Khung giao diện trang quản trị admin
-│   ├── stores/
-│   │   ├── auth.ts                   # Lưu thông tin đăng nhập tạm thời
-│   │   └── cart.ts                   # Lưu thông tin giỏ hàng tạm thời
-│   └── pages/                        # Các trang giao diện chi tiết (Home, Cart, Products, Admin,...)
-```
+- [x] **Giao diện Vue 3 mượt mà** - Trải nghiệm chuyển trang nhanh, hiệu ứng premium, thiết kế tối (Dark Mode) thời thượng.
+- [x] **Tự động gộp giỏ hàng** - Khi khách đăng nhập, sản phẩm ở giỏ hàng tạm (Guest) tự động gộp vào tài khoản thành viên.
+- [x] **Đặt hàng an toàn tuyệt đối** - Kiểm tra kho và trừ sản phẩm trực tiếp ở database. Hỗ trợ tự động hoàn trả hàng vào kho nếu thanh toán gặp lỗi.
+- [x] **Hủy đơn hoàn kho** - Khách hàng tự hủy đơn chờ duyệt sẽ tự động cộng trả số lượng sản phẩm lại cửa hàng.
+- [x] **Tải ảnh lên Cloudinary** - Nút bấm tải ảnh trực tiếp từ máy tính lên đám mây Cloudinary trong trang quản lý sản phẩm.
+- [x] **Quản lý danh mục cha-con** - Cấu trúc thư mục phân cấp nhiều cấp, có khóa bảo vệ tránh xóa danh mục khi vẫn còn sản phẩm đang bán.
+- [x] **Thùng rác & Khôi phục** - Xóa mềm sản phẩm/danh mục để phục hồi lại bất cứ lúc nào. Khôi phục sản phẩm tự động khôi phục cả danh mục cha.
+- [x] **Bảo mật & Phân quyền** - Đăng nhập tài khoản bằng cơ chế Token JWT tự động, phân quyền truy cập chặt chẽ giữa Admin, Editor và Khách hàng.
+- [x] **Mã OTP lấy lại mật khẩu** - Sinh mã OTP ngẫu nhiên gửi về email khách hàng và tự động hủy hiệu lực sau 3 phút.
+- [x] **Seed dữ liệu mẫu** - Khởi tạo toàn bộ dữ liệu kiểm thử (tài khoản, sản phẩm, phân quyền) chỉ với một click.
 
 ---
 
-## 💻 Hướng dẫn Cài đặt & Chạy thử
+## Công nghệ sử dụng
 
-### 1. Chuẩn bị
-- Máy tính đã cài đặt **Node.js** (khuyên dùng bản v20 trở lên).
-- Có tài khoản hoặc đã cài đặt **MongoDB** (chạy trên máy hoặc dùng đám mây Atlas).
+### Backend (Server)
+- **Runtime**: Node.js (>=20.0.0)
+- **Framework**: Nitro v3 & h3
+- **Ngôn ngữ**: TypeScript 5.x
+- **Cơ sở dữ liệu**: MongoDB (thông qua Mongoose 8.x)
+- **Mã hóa mật khẩu**: Bcrypt 5.x
+- **Token bảo mật**: JsonWebToken 9.x
+- **Gửi mail**: Nodemailer 6.x
 
-### 2. Cấu hình file `.env`
-Tạo một file tên là `.env` ở thư mục gốc của dự án và điền các thông tin sau:
-```env
-PORT=3000
+### Frontend (Giao diện)
+- **Core**: Vue 3 (Composition API)
+- **Build Tool**: Vite 8.x (Tích hợp liền quy trình chạy với Nitro)
+- **Quản lý trạng thái**: Pinia 2.x
+- **Chuyển trang**: Vue Router 4.x
+- **Giao diện**: CSS Vanilla (Hệ màu HSL, hiệu ứng Glassmorphism)
 
-# Đường dẫn kết nối CSDL MongoDB
-MONGO_URL=đường_dẫn_kết_nối_mongodb_của_bạn
-MONGO_NAME=product-management
+---
 
-# Cấu hình gửi mail OTP bằng Gmail
-EMAIL_USER=địa_chỉ_gmail_của_bạn@gmail.com
-EMAIL_PASSWORD=mật_khẩu_ứng_dụng_gmail_của_bạn
+## Bắt đầu chạy thử
 
-# Cấu hình tài khoản Cloudinary để tải ảnh lên
-CLOUD_NAME=tên_cloudinary_của_bạn
-CLOUD_KEY=mã_key_cloudinary_của_bạn
-CLOUD_SECRET=mã_secret_cloudinary_của_bạn
+### Chuẩn bị trước
+- Đã cài đặt Node.js (bản 20 trở lên).
+- Đã có cơ sở dữ liệu MongoDB (Chạy local trên máy hoặc MongoDB Atlas trên đám mây).
+- Tài khoản Cloudinary (để upload ảnh sản phẩm).
 
-# Chuỗi ký tự bảo mật (để chạy JWT)
-SESSION_SECRET=chuỗi_kí_tự_ngẫu_nhiên_bất_kì
-JWT_SECRET=chuỗi_kí_tự_ngẫu_nhiên_bất_kì
-```
+### Các bước cài đặt
 
-### 3. Cài đặt và khởi chạy (Chế độ Dev)
-Mở terminal tại thư mục dự án và chạy các lệnh sau:
+1. **Tải mã nguồn và truy cập thư mục**
+   ```bash
+   git clone https://github.com/phamhoangvu2k7/Ecommerce.git
+   cd Ecommerce
+   ```
 
-1. Cài đặt các thư viện:
+2. **Cài đặt thư viện**
    ```bash
    npm install --legacy-peer-deps
    ```
-2. Khởi chạy dự án:
+
+3. **Cấu hình file môi trường**
+   Tạo tệp `.env` tại thư mục gốc của dự án:
+   ```env
+   PORT=3000
+
+   # Kết nối MongoDB
+   MONGO_URL=đường_dẫn_kết_nối_mongodb_atlas_hoặc_local
+   MONGO_NAME=product-management
+
+   # Gửi mail OTP bằng Gmail
+   EMAIL_USER=địa_chỉ_email_gửi_otp@gmail.com
+   EMAIL_PASSWORD=mật_khẩu_ứng_dụng_gmail
+
+   # Lưu trữ ảnh Cloudinary
+   CLOUD_NAME=tên_tài_khoản_cloudinary
+   CLOUD_KEY=mã_key_cloudinary
+   CLOUD_SECRET=mã_secret_cloudinary
+
+   # Chuỗi khóa bảo mật chạy JWT
+   SESSION_SECRET=chuỗi_kí_tự_bí_mật_bất_kỳ
+   JWT_SECRET=chuỗi_kí_tự_bí_mật_bất_kỳ
+   ```
+
+4. **Khởi chạy ứng dụng (Chế độ phát triển)**
    ```bash
    npm run dev
    ```
-Mở trình duyệt truy cập: `http://localhost:5173` để xem giao diện web.
+   Sau khi chạy, truy cập giao diện tại: [http://localhost:5173](http://localhost:5173)
 
-*Lưu ý: Nếu VS Code báo gạch đỏ lỗi ở các hàm như `defineEventHandler`, bạn hãy nhấn phím `Ctrl + Shift + P` -> gõ chọn `TypeScript: Restart TS Server` là sẽ hết.*
+5. **Tạo dữ liệu thử nghiệm (Seed Data)**
+   Truy cập đường dẫn sau trên trình duyệt để khởi tạo nhanh các tài khoản và sản phẩm mẫu:
+   [http://localhost:5173/api/seed](http://localhost:5173/api/seed)
 
-### 4. Tạo nhanh dữ liệu mẫu để dùng thử
-Truy cập đường dẫn sau trên trình duyệt để hệ thống tự động tạo các tài khoản test và sản phẩm mẫu vào database:
-`http://localhost:5173/api/seed`
-
-**Các tài khoản đăng nhập mẫu sau khi tạo:**
-- **Tài khoản Admin**: `admin@example.com` / Mật khẩu: `admin123`
-- **Tài khoản Biên tập viên (Editor)**: `editor@example.com` / Mật khẩu: `editor123`
-- **Tài khoản Khách mua hàng**: `customer@example.com` / Mật khẩu: `customer123`
+   *Thông tin đăng nhập mẫu sau khi tạo:*
+   - **Tài khoản Admin**: `admin@example.com` / Mật khẩu: `admin123`
+   - **Tài khoản Biên tập viên (Editor)**: `editor@example.com` / Mật khẩu: `editor123`
+   - **Tài khoản Khách hàng**: `customer@example.com` / Mật khẩu: `customer123`
 
 ---
 
-## 📦 Đóng gói chạy thực tế (Production Build)
+## Cấu trúc thư mục
 
-Khi muốn chạy website ở môi trường thực tế (không phải môi trường lập trình):
+```
+server/                     # Thư mục xử lý Backend (Nitro v3)
+├── middleware/
+│   └── auth.ts             # Middleware xác thực đăng nhập & quyền truy cập (RBAC)
+├── plugins/
+│   └── db.ts               # Plugin kết nối database & sửa lỗi phân giải DNS SRV
+├── utils/
+│   ├── helpers.ts          # Các hàm phụ trợ (Mã hóa bcrypt, OTP, Mailer, Cloudinary)
+│   ├── models.ts           # Cấu trúc các bảng dữ liệu MongoDB (Mongoose Schemas)
+│   ├── services.ts         # Logic xử lý chính (Đặt hàng, giỏ hàng, xóa danh mục)
+│   └── validation.ts       # Kiểm tra hợp lệ dữ liệu đầu vào bằng Zod
+└── api/                    # Các đầu API tương tác dữ liệu
+    ├── seed.get.ts         # API tạo nhanh dữ liệu mẫu
+    ├── admin/              # Nhóm API quản lý (Dashboard, CRUD, Trash, Upload)
+    └── client/             # Nhóm API bán hàng (Sản phẩm, Cart, Checkout, Profile)
 
-1. Chạy lệnh biên dịch và đóng gói:
+src/                        # Thư mục giao diện Frontend (Vue 3)
+├── components/
+│   └── CategoryNode.vue    # Hiển thị cây danh mục cha-con đệ quy
+├── layouts/
+│   ├── ClientLayout.vue    # Khung giao diện bán hàng storefront
+│   └── AdminLayout.vue     # Khung giao diện trang quản lý admin
+├── stores/
+│   ├── auth.ts             # Quản lý đăng nhập tạm thời
+│   └── cart.ts             # Quản lý và đồng bộ giỏ hàng
+├── pages/                  # Các trang chi tiết (Home, Product, Cart, Admin CRUD,...)
+├── router.ts               # Cài đặt chuyển trang & chặn truy cập trái phép
+└── main.ts                 # Điểm khởi tạo và chạy ứng dụng Vue 3
+```
+
+---
+
+## Sơ đồ Cơ sở Dữ liệu
+
+Dưới đây là mô hình liên kết dữ liệu thực tế giữa các thực thể chính trong hệ thống:
+
+```mermaid
+erDiagram
+    Role {
+        ObjectId id PK
+        string title
+        string description
+        string[] permissions
+    }
+    Account {
+        ObjectId id PK
+        string fullName
+        string email
+        string password
+        ObjectId role_id FK
+        string phone
+        string status
+        boolean deleted
+    }
+    User {
+        ObjectId id PK
+        string fullName
+        string email
+        string password
+        string phone
+        string status
+        boolean deleted
+    }
+    ProductCategory {
+        ObjectId id PK
+        string title
+        ObjectId parent_id FK
+        string slug
+        string description
+        string status
+        int position
+        boolean deleted
+    }
+    Product {
+        ObjectId id PK
+        string title
+        ObjectId product_category_id FK
+        string slug
+        string description
+        decimal price
+        decimal discountPercentage
+        int stock
+        string thumbnail
+        string status
+        int position
+        boolean deleted
+    }
+    Cart {
+        ObjectId id PK
+        ObjectId user_id FK
+        array products
+    }
+    Order {
+        ObjectId id PK
+        ObjectId user_id FK
+        string status
+        array products
+        object userInfo
+    }
+    ForgotPassword {
+        ObjectId id PK
+        string email
+        string otp
+        date expireAt
+    }
+
+    Account }o--|| Role : "gắn với quyền"
+    Product }o--|| ProductCategory : "thuộc danh mục"
+    ProductCategory }o--|| ProductCategory : "quan hệ cha-con"
+    Cart ||--o| User : "sở hữu bởi"
+    Order }o--|| User : "được đặt bởi"
+```
+
+---
+
+## Phân quyền hệ thống
+
+Hệ thống phân quyền truy cập thông qua mã JWT được chia làm 3 nhóm chính:
+1. **Admin (Quản trị viên tối cao)**: Sở hữu toàn bộ các quyền quản lý sản phẩm, danh mục, cấu trúc phân cấp, xem thống kê doanh thu và phục hồi dữ liệu trong thùng rác.
+2. **Editor (Biên tập viên)**: Chỉ có quyền xem thống kê, tạo/chỉnh sửa sản phẩm và danh mục (không có quyền xóa cứng hoặc quản lý tài khoản).
+3. **Customer (Khách mua hàng)**: Chỉ truy cập được trang storefront, quản lý giỏ hàng cá nhân, đặt hàng và xem lịch sử đơn hàng của chính mình.
+
+---
+
+## Đóng gói chạy thực tế
+
+Để tối ưu hiệu năng và đóng gói ứng dụng để chạy thực tế trên máy chủ:
+
+1. **Biên dịch và đóng gói**
    ```bash
    npm run build
    ```
-Hệ thống sẽ tạo ra một thư mục tên là `.output/` ở ngoài cùng.
+   Lệnh này sẽ tạo ra thư mục `.output/` chứa toàn bộ frontend đã nén và server backend đã đóng gói.
 
-2. Khởi chạy máy chủ độc lập:
+2. **Khởi chạy độc lập**
    ```bash
    node .output/server/index.mjs
    ```
-Website sẽ hoạt động trên cổng bạn đã cấu hình trong tệp `.env` (mặc định là `3000`).
+   Hệ thống sẽ chạy ổn định trên cổng bạn cấu hình (mặc định là cổng `3000`).
+
+---
+
+## Giấy phép
+
+Dự án này được cấp phép theo các điều khoản của **MIT License**. Xem file LICENSE để biết thêm chi tiết.
+
+---
+<p align="center">Được hoàn thiện với ❤️ bởi Antigravity</p>
