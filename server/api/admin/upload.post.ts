@@ -3,13 +3,15 @@ import { uploadToCloudinary } from "../../utils/helpers.ts";
 
 export default defineEventHandler(async (event) => {
   // Verify admin permissions (context set by global auth middleware)
-  const user = event.context.user;
-  if (!user || (user.role !== "admin" && user.role !== "editor")) {
+  const admin = event.context.admin;
+  const permissions = admin?.role_id?.permissions || [];
+  if (!admin || (!permissions.includes("products_create") && !permissions.includes("products_edit"))) {
     throw createError({
       statusCode: 403,
       statusMessage: "Bạn không có quyền tải ảnh lên hệ thống."
     });
   }
+
 
   const parts = await readMultipartFormData(event);
   if (!parts || parts.length === 0) {
