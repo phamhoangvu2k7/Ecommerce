@@ -1,12 +1,19 @@
 <script setup lang="ts">
-import { onMounted, computed } from "vue";
-import { RouterLink, RouterView, useRouter } from "vue-router";
+import { onMounted, computed, ref, watch } from "vue";
+import { RouterLink, RouterView, useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "../stores/auth.ts";
 import { useCartStore } from "../stores/cart.ts";
 
 const authStore = useAuthStore();
 const cartStore = useCartStore();
 const router = useRouter();
+const route = useRoute();
+
+const isMenuOpen = ref(false);
+
+watch(() => route.path, () => {
+  isMenuOpen.value = false;
+});
 
 onMounted(() => {
   cartStore.fetchCart();
@@ -21,6 +28,7 @@ function handleLogout() {
   cartStore.clearCart();
   router.push("/login");
 }
+
 </script>
 
 <template>
@@ -28,7 +36,21 @@ function handleLogout() {
     <header class="premium-nav">
       <div class="container nav-container">
         <RouterLink to="/" class="nav-logo">⚡ Premium Store</RouterLink>
-        <nav class="nav-links">
+
+        <!-- Mobile Menu Toggle Button -->
+        <button 
+          @click="isMenuOpen = !isMenuOpen" 
+          class="mobile-toggle" 
+          :class="{ 'toggle-active': isMenuOpen }"
+          aria-label="Toggle navigation"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
+        <nav class="nav-links" :class="{ 'menu-active': isMenuOpen }">
+
           <RouterLink to="/" class="nav-link">Trang chủ</RouterLink>
           <RouterLink to="/products" class="nav-link">Sản phẩm</RouterLink>
           <RouterLink to="/cart" class="nav-link style-cart-link">
@@ -116,5 +138,79 @@ function handleLogout() {
   color: var(--text-muted);
   font-size: 0.875rem;
   background-color: rgba(11, 15, 25, 0.5);
+}
+
+/* Mobile Toggle (Hamburger) */
+.mobile-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 24px;
+  height: 18px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 101;
+}
+
+.mobile-toggle span {
+  width: 100%;
+  height: 2px;
+  background-color: var(--text-main);
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+/* Transform Hamburger to X when active */
+.mobile-toggle.toggle-active span:nth-child(1) {
+  transform: translateY(8px) rotate(45deg);
+}
+
+.mobile-toggle.toggle-active span:nth-child(2) {
+  opacity: 0;
+}
+
+.mobile-toggle.toggle-active span:nth-child(3) {
+  transform: translateY(-8px) rotate(-45deg);
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .mobile-toggle {
+    display: flex;
+  }
+
+  .nav-links {
+    position: fixed;
+    top: 70px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(11, 15, 25, 0.96);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid var(--border-color);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    padding: 2rem;
+    z-index: 99;
+    transform: translateY(-100%);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+  }
+
+  .nav-links.menu-active {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .nav-link {
+    font-size: 1.25rem;
+  }
 }
 </style>

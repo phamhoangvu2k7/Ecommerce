@@ -1,20 +1,36 @@
 <script setup lang="ts">
-import { RouterLink, RouterView, useRouter } from "vue-router";
+import { ref, watch } from "vue";
+import { RouterLink, RouterView, useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "../stores/auth.ts";
 
 const authStore = useAuthStore();
 const router = useRouter();
+const route = useRoute();
+
+const isSidebarOpen = ref(false);
+
+watch(() => route.path, () => {
+  isSidebarOpen.value = false;
+});
 
 function handleLogout() {
   authStore.logoutAdmin();
   router.push("/admin/login");
 }
+
 </script>
 
 <template>
   <div class="admin-layout">
+    <!-- Sidebar Overlay for mobile -->
+    <div 
+      v-if="isSidebarOpen" 
+      @click="isSidebarOpen = false" 
+      class="sidebar-overlay"
+    ></div>
+
     <!-- Sidebar -->
-    <aside class="admin-sidebar">
+    <aside class="admin-sidebar" :class="{ 'sidebar-open': isSidebarOpen }">
       <div class="sidebar-brand">
         ⚡ Control Panel
       </div>
@@ -61,7 +77,16 @@ function handleLogout() {
     <!-- Main Content -->
     <main class="admin-main">
       <header class="admin-header">
-        <div class="header-title">Hệ thống Quản lý</div>
+        <div class="header-left">
+          <button 
+            @click="isSidebarOpen = !isSidebarOpen" 
+            class="admin-toggle" 
+            aria-label="Toggle sidebar"
+          >
+            ☰
+          </button>
+          <div class="header-title">Hệ thống Quản lý</div>
+        </div>
         <div class="header-status">
           <span class="badge badge-active">Hệ thống Đang Chạy</span>
         </div>
@@ -197,6 +222,23 @@ function handleLogout() {
   background-color: #0e1626;
 }
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.admin-toggle {
+  display: none;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
 .header-title {
   font-weight: 600;
   font-size: 1.1rem;
@@ -207,5 +249,47 @@ function handleLogout() {
   flex: 1;
   padding: 2rem;
   background-color: #0b0f19;
+}
+
+/* Sidebar Overlay */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 998;
+}
+
+/* Responsive styles */
+@media (max-width: 992px) {
+  .admin-toggle {
+    display: block;
+  }
+
+  .admin-sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 999;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .admin-sidebar.sidebar-open {
+    transform: translateX(0);
+  }
+
+  .admin-header {
+    padding: 0 1.25rem;
+  }
+
+  .admin-content {
+    padding: 1.25rem;
+  }
 }
 </style>
