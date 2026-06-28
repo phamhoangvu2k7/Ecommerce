@@ -51,6 +51,7 @@ Một dự án e-commerce hoàn chỉnh từ giao diện khách mua hàng (Store
 ## Công nghệ sử dụng
 
 ### Backend (Server)
+
 - **Runtime**: Node.js (>=20.0.0)
 - **Framework**: Nitro v3 & h3
 - **Ngôn ngữ**: TypeScript 5.x
@@ -60,6 +61,7 @@ Một dự án e-commerce hoàn chỉnh từ giao diện khách mua hàng (Store
 - **Gửi mail**: Nodemailer 6.x
 
 ### Frontend (Giao diện)
+
 - **Core**: Vue 3 (Composition API)
 - **Build Tool**: Vite 8.x (Tích hợp liền quy trình chạy với Nitro)
 - **Quản lý trạng thái**: Pinia 2.x
@@ -71,6 +73,7 @@ Một dự án e-commerce hoàn chỉnh từ giao diện khách mua hàng (Store
 ## Bắt đầu chạy thử
 
 ### Chuẩn bị trước
+
 - Đã cài đặt Node.js (bản 20 trở lên).
 - Đã có cơ sở dữ liệu MongoDB (Chạy local trên máy hoặc MongoDB Atlas trên đám mây).
 - Tài khoản Cloudinary (để upload ảnh sản phẩm).
@@ -78,18 +81,21 @@ Một dự án e-commerce hoàn chỉnh từ giao diện khách mua hàng (Store
 ### Các bước cài đặt
 
 1. **Tải mã nguồn và truy cập thư mục**
+
    ```bash
    git clone https://github.com/phamhoangvu2k7/Ecommerce.git
    cd Ecommerce
    ```
 
 2. **Cài đặt thư viện**
+
    ```bash
    npm install --legacy-peer-deps
    ```
 
 3. **Cấu hình file môi trường**
    Tạo tệp `.env` tại thư mục gốc của dự án:
+
    ```env
    PORT=3000
 
@@ -237,33 +243,11 @@ erDiagram
 ## Phân quyền hệ thống
 
 Hệ thống phân quyền truy cập thông qua mã JWT được chia làm 3 nhóm chính:
+
 1. **Admin (Quản trị viên tối cao)**: Sở hữu toàn bộ các quyền quản lý sản phẩm, danh mục, cấu trúc phân cấp, xem thống kê doanh thu và phục hồi dữ liệu trong thùng rác.
 2. **Editor (Biên tập viên)**: Chỉ có quyền xem thống kê, tạo/chỉnh sửa sản phẩm và danh mục (không có quyền xóa cứng hoặc quản lý tài khoản).
 3. **Customer (Khách mua hàng)**: Chỉ truy cập được trang storefront, quản lý giỏ hàng cá nhân, đặt hàng và xem lịch sử đơn hàng của chính mình.
 
 ---
 
-## Đóng gói chạy thực tế
-
-Để tối ưu hiệu năng và đóng gói ứng dụng để chạy thực tế trên máy chủ:
-
-1. **Biên dịch và đóng gói**
-   ```bash
-   npm run build
-   ```
-   Lệnh này sẽ tạo ra thư mục `.output/` chứa toàn bộ frontend đã nén và server backend đã đóng gói.
-
-2. **Khởi chạy độc lập**
-   ```bash
-   node .output/server/index.mjs
-   ```
-   Hệ thống sẽ chạy ổn định trên cổng bạn cấu hình (mặc định là cổng `3000`).
-
----
-
-## Giấy phép
-
-Dự án này được cấp phép theo các điều khoản của **MIT License**. Xem file LICENSE để biết thêm chi tiết.
-
----
 <p align="center">Được hoàn thiện với ❤️ bởi Phạm Hoàng Vũ</p>

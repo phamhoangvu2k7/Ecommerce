@@ -76,7 +76,7 @@ async function handleCheckout() {
         router.push("/orders");
       }, 3000);
     } else {
-      errorMsg.value = data.statusMessage || "Lỗi đặt hàng, vui lòng kiểm tra tồn kho.";
+      errorMsg.value = data.message || data.statusMessage || "Lỗi đặt hàng, vui lòng kiểm tra tồn kho.";
     }
   } catch (err: any) {
     errorMsg.value = "Có lỗi xảy ra trong quá trình đặt hàng.";

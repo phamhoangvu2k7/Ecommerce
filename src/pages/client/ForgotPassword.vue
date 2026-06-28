@@ -38,7 +38,7 @@ async function handleSendOTP() {
       successMsg.value = data.message;
       step.value = 2;
     } else {
-      errorMsg.value = data.statusMessage || "Lỗi gửi mã OTP.";
+      errorMsg.value = data.message || data.statusMessage || "Lỗi gửi mã OTP.";
     }
   } catch (err: any) {
     errorMsg.value = "Có lỗi xảy ra khi kết nối máy chủ.";
@@ -70,7 +70,7 @@ async function handleVerifyOTP() {
       successMsg.value = data.message;
       step.value = 3;
     } else {
-      errorMsg.value = data.statusMessage || "Mã OTP không hợp lệ.";
+      errorMsg.value = data.message || data.statusMessage || "Mã OTP không hợp lệ.";
     }
   } catch (err: any) {
     errorMsg.value = "Có lỗi xảy ra khi kết nối máy chủ.";
@@ -108,7 +108,7 @@ async function handleResetPassword() {
         router.push("/login");
       }, 2500);
     } else {
-      errorMsg.value = data.statusMessage || "Lỗi khôi phục mật khẩu.";
+      errorMsg.value = data.message || data.statusMessage || "Lỗi khôi phục mật khẩu.";
     }
   } catch (err: any) {
     errorMsg.value = "Có lỗi xảy ra khi kết nối máy chủ.";

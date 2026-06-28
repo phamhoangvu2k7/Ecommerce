@@ -43,6 +43,12 @@ function handleLogout() {
         <RouterLink to="/admin/trash" class="menu-item">
           🗑️ Thùng rác
         </RouterLink>
+        <RouterLink to="/admin/roles" class="menu-item">
+          🔑 Nhóm quyền
+        </RouterLink>
+        <RouterLink to="/admin/accounts" class="menu-item">
+          👥 Tài khoản Admin
+        </RouterLink>
       </nav>
 
       <div class="sidebar-footer">

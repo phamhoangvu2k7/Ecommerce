@@ -23,7 +23,7 @@ onMounted(async () => {
     if (data.success) {
       product.value = data.product;
     } else {
-      errorMsg.value = data.statusMessage || "Lỗi tải chi tiết sản phẩm.";
+      errorMsg.value = data.message || data.statusMessage || "Lỗi tải chi tiết sản phẩm.";
     }
   } catch (err) {
     errorMsg.value = "Không thể kết nối đến máy chủ.";

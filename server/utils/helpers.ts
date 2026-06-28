@@ -34,7 +34,7 @@ export async function sendMail(to: string, subject: string, htmlContent: string)
   const mailUser = process.env.EMAIL_USER || process.env.MAIL_USER || "test@example.com";
   const mailPass = process.env.EMAIL_PASSWORD || process.env.MAIL_PASS || "password123";
 
-  const transporter = nodemailer.createTransport({
+  let transporterOptions: any = {
     host: "smtp.ethereal.email", // Default host for testing if Gmail is not set up
     port: 587,
     secure: false,
@@ -42,11 +42,11 @@ export async function sendMail(to: string, subject: string, htmlContent: string)
       user: mailUser,
       pass: mailPass
     }
-  });
+  };
 
   // If gmail user/pass is configured, use gmail service
   if (mailUser.includes("gmail.com")) {
-    (transporter as any).options = {
+    transporterOptions = {
       service: "gmail",
       auth: {
         user: mailUser,
@@ -55,14 +55,56 @@ export async function sendMail(to: string, subject: string, htmlContent: string)
     };
   }
 
-  const mailOptions = {
-    from: `"Product Management" <${mailUser}>`,
-    to,
-    subject,
-    html: htmlContent
-  };
+  try {
+    const transporter = nodemailer.createTransport(transporterOptions);
+    const mailOptions = {
+      from: `"Product Management" <${mailUser}>`,
+      to,
+      subject,
+      html: htmlContent
+    };
+    return await transporter.sendMail(mailOptions);
+  } catch (err: any) {
+    // If it's a Gmail authentication error or failure, fallback to Ethereal test account dynamically
+    if (mailUser.includes("gmail.com")) {
+      console.warn("[Mail] Gmail authentication failed (likely needs Google App Password). Falling back to dynamic ethereal.email test account...");
+      try {
+        const testAccount = await nodemailer.createTestAccount();
+        const fallbackTransporter = nodemailer.createTransport({
+          host: "smtp.ethereal.email",
+          port: 587,
+          secure: false,
+          auth: {
+            user: testAccount.user,
+            pass: testAccount.pass
+          }
+        });
 
-  return transporter.sendMail(mailOptions);
+        const mailOptions = {
+          from: `"Product Management (Fallback)" <${testAccount.user}>`,
+          to,
+          subject,
+          html: htmlContent
+        };
+
+        const result = await fallbackTransporter.sendMail(mailOptions);
+        
+        // Print the OTP details clearly to the server console
+        console.log(`\n==================================================`);
+        console.log(`[OTP FALLBACK PREVIEW] To: ${to}`);
+        console.log(`Subject: ${subject}`);
+        console.log(`Content Preview:`);
+        console.log(htmlContent.replace(/<[^>]*>/g, '').trim()); // Strip HTML tags to show text OTP
+        console.log(`Ethereal Preview URL: ${nodemailer.getTestMessageUrl(result)}`);
+        console.log(`==================================================\n`);
+
+        return result;
+      } catch (fallbackErr) {
+        console.error("[Mail] Fallback email sending failed:", fallbackErr);
+      }
+    }
+    throw err;
+  }
 }
 
 export async function uploadToCloudinary(fileBuffer: Buffer, folder: string = "products"): Promise<string> {

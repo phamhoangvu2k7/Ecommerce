@@ -134,7 +134,7 @@ function formatPrice(value: number) {
 
         <!-- Price Range Filter -->
         <div class="filter-group">
-          <label class="input-label">Khoảng giá (VND)</label>
+          <label class="input-label">Khoảng giá (Triệu VND)</label>
           <div class="price-range-inputs">
             <input v-model="priceMin" type="number" placeholder="Từ" class="premium-input price-input" />
             <span class="price-sep">-</span>

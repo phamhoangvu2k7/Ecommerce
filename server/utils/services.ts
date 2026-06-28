@@ -87,13 +87,17 @@ export const ProductService = {
 
     // Min / Max Price Filter (based on actual priceNew)
     let filteredProducts = productsWithNewPrice;
-    if (query.price_min !== undefined) {
-      const min = parseFloat(query.price_min);
-      filteredProducts = filteredProducts.filter((p) => p.priceNew >= min);
+    if (query.price_min !== undefined && query.price_min !== "") {
+      const min = parseFloat(query.price_min) * 1000000;
+      if (!isNaN(min)) {
+        filteredProducts = filteredProducts.filter((p) => p.priceNew >= min);
+      }
     }
-    if (query.price_max !== undefined) {
-      const max = parseFloat(query.price_max);
-      filteredProducts = filteredProducts.filter((p) => p.priceNew <= max);
+    if (query.price_max !== undefined && query.price_max !== "") {
+      const max = parseFloat(query.price_max) * 1000000;
+      if (!isNaN(max)) {
+        filteredProducts = filteredProducts.filter((p) => p.priceNew <= max);
+      }
     }
 
     const total = filteredProducts.length;
@@ -144,7 +148,7 @@ export const ProductService = {
       }
     }
 
-    return Product.updateOne({ _id: id }, { deleted: false, deletedAt: null, deletedBy: null });
+    return Product.updateOne({ _id: id, deleted: true }, { deleted: false, deletedAt: null, deletedBy: null });
   },
 
   // Categories Tree construction
@@ -200,7 +204,7 @@ export const ProductService = {
       }
     }
 
-    return ProductCategory.updateOne({ _id: id }, { deleted: false, deletedAt: null, deletedBy: null });
+    return ProductCategory.updateOne({ _id: id, deleted: true }, { deleted: false, deletedAt: null, deletedBy: null });
   },
 
   // Automatically update and arrange positions of categories

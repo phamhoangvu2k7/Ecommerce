@@ -5,15 +5,16 @@ import { Account, User } from "../utils/models.ts";
 export default defineEventHandler(async (event) => {
   const path = event.path || "";
 
-  // 1. Extract token from Cookie or Authorization header
-  const cookies = parseCookies(event);
-  let token = cookies.token;
+  // 1. Extract token from Authorization header or Cookie (prioritizing header)
+  let token = "";
+  const authHeader = getHeader(event, "authorization");
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    token = authHeader.substring(7);
+  }
 
   if (!token) {
-    const authHeader = getHeader(event, "authorization");
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      token = authHeader.substring(7);
-    }
+    const cookies = parseCookies(event);
+    token = cookies.token;
   }
 
   // 2. Decode token and inject user/admin context

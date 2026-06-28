@@ -121,7 +121,7 @@ async function handleSaveCategory() {
       await fetchCategories();
       setTimeout(() => (successMsg.value = ""), 4000);
     } else {
-      alert(data.statusMessage || "Lỗi lưu danh mục.");
+      alert(data.message || data.statusMessage || "Lỗi lưu danh mục.");
     }
   } catch (err) {
     alert("Không thể lưu danh mục.");
@@ -147,7 +147,7 @@ async function handleDeleteCategory(id: string) {
       await fetchCategories();
       setTimeout(() => (successMsg.value = ""), 4000);
     } else {
-      alert(data.statusMessage || "Lỗi xóa danh mục.");
+      alert(data.message || data.statusMessage || "Lỗi xóa danh mục.");
     }
   } catch (err) {
     alert("Lỗi kết nối máy chủ.");

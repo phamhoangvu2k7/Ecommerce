@@ -12,7 +12,12 @@ onMounted(() => {
   cartStore.fetchCart();
 });
 
-async function handleUpdateQty(productId: string, currentQty: number, offset: number, maxStock: number) {
+async function handleUpdateQty(
+  productId: string,
+  currentQty: number,
+  offset: number,
+  maxStock: number,
+) {
   const newQty = currentQty + offset;
   if (newQty < 0 || newQty > maxStock) return;
 
@@ -39,7 +44,10 @@ async function handleRemoveItem(productId: string) {
 }
 
 function formatPrice(value: number) {
-  return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  }).format(value);
 }
 
 function proceedToCheckout() {
@@ -51,18 +59,34 @@ function proceedToCheckout() {
   <div class="cart-page container">
     <h1 class="h1-title mb-8">Giỏ hàng của bạn</h1>
 
-    <div v-if="cartStore.products.length === 0" class="empty-cart-state glass-panel fade-in-item">
+    <div
+      v-if="cartStore.products.length === 0"
+      class="empty-cart-state glass-panel fade-in-item"
+    >
       <div class="empty-icon">🛒</div>
       <p class="empty-text">Giỏ hàng của bạn đang trống.</p>
-      <RouterLink to="/products" class="btn btn-primary">Khám phá sản phẩm ngay</RouterLink>
+      <RouterLink to="/products" class="btn btn-primary"
+        >Khám phá sản phẩm ngay</RouterLink
+      >
     </div>
 
     <div v-else class="cart-layout">
       <!-- Items List -->
       <div class="cart-items-section">
-        <div v-for="item in cartStore.products" :key="item.product_id" class="premium-card cart-item fade-in-item">
-          <img :src="item.thumbnail || 'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=500'" :alt="item.title" class="item-img" />
-          
+        <div
+          v-for="item in cartStore.products"
+          :key="item.product_id"
+          class="premium-card cart-item fade-in-item"
+        >
+          <img
+            :src="
+              item.thumbnail ||
+              'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=500'
+            "
+            :alt="item.title"
+            class="item-img"
+          />
+
           <div class="item-details">
             <h3 class="item-title">{{ item.title }}</h3>
             <div class="item-prices">
@@ -80,7 +104,14 @@ function proceedToCheckout() {
           <div class="item-qty-actions">
             <div class="qty-selector">
               <button
-                @click="handleUpdateQty(item.product_id, item.quantity, -1, item.stock)"
+                @click="
+                  handleUpdateQty(
+                    item.product_id,
+                    item.quantity,
+                    -1,
+                    item.stock,
+                  )
+                "
                 :disabled="updatingId === item.product_id || item.quantity <= 1"
                 class="btn btn-secondary btn-qty"
               >
@@ -88,8 +119,12 @@ function proceedToCheckout() {
               </button>
               <span class="qty-display">{{ item.quantity }}</span>
               <button
-                @click="handleUpdateQty(item.product_id, item.quantity, 1, item.stock)"
-                :disabled="updatingId === item.product_id || item.quantity >= item.stock"
+                @click="
+                  handleUpdateQty(item.product_id, item.quantity, 1, item.stock)
+                "
+                :disabled="
+                  updatingId === item.product_id || item.quantity >= item.stock
+                "
                 class="btn btn-secondary btn-qty"
               >
                 +
@@ -116,7 +151,7 @@ function proceedToCheckout() {
       <aside class="summary-section">
         <div class="premium-card summary-card">
           <h3 class="summary-title">Tóm tắt đơn hàng</h3>
-          
+
           <div class="summary-row">
             <span>Tạm tính</span>
             <span>{{ formatPrice(cartStore.totalAmount) }}</span>
@@ -128,14 +163,22 @@ function proceedToCheckout() {
           <div class="summary-divider"></div>
           <div class="summary-row total-row">
             <span>Tổng cộng</span>
-            <span class="total-price">{{ formatPrice(cartStore.totalAmount) }}</span>
+            <span class="total-price">{{
+              formatPrice(cartStore.totalAmount)
+            }}</span>
           </div>
 
-          <button @click="proceedToCheckout" class="btn btn-primary btn-checkout w-full mt-6">
+          <button
+            @click="proceedToCheckout"
+            class="btn btn-primary btn-checkout w-full mt-6"
+          >
             Tiến hành thanh toán 💳
           </button>
-          
-          <RouterLink to="/products" class="btn btn-secondary w-full mt-3 text-center block-nav">
+
+          <RouterLink
+            to="/products"
+            class="btn btn-secondary w-full mt-3 text-center"
+          >
             Tiếp tục mua hàng
           </RouterLink>
         </div>

@@ -5,9 +5,9 @@ export function softDeletePlugin(schema: Schema) {
   schema.add({
     deleted: { type: Boolean, default: false },
     deletedAt: { type: Date, default: null },
-    deletedBy: { type: Schema.Types.ObjectId, ref: "Account", default: null },
-    createdBy: { type: Schema.Types.ObjectId, ref: "Account", default: null },
-    updatedBy: { type: Schema.Types.ObjectId, ref: "Account", default: null }
+    deletedBy: { type: String, ref: "Account", default: null },
+    createdBy: { type: String, ref: "Account", default: null },
+    updatedBy: { type: String, ref: "Account", default: null }
   });
 
   // Query middleware to automatically filter out deleted documents
@@ -54,7 +54,7 @@ const RoleSchema = new Schema(
   { timestamps: true }
 );
 RoleSchema.plugin(softDeletePlugin);
-export const Role = mongoose.models.Role || mongoose.model("Role", RoleSchema);
+export const Role = mongoose.models.Role || mongoose.model("Role", RoleSchema, "role");
 
 // --- 2. Account Model (Admin users) ---
 const AccountSchema = new Schema(
@@ -62,7 +62,7 @@ const AccountSchema = new Schema(
     fullName: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    role_id: { type: Schema.Types.ObjectId, ref: "Role", default: null },
+    role_id: { type: String, ref: "Role", default: null },
     phone: { type: String, default: "" },
     avatar: { type: String, default: "" },
     status: { type: String, enum: ["active", "inactive"], default: "active" }
@@ -70,7 +70,7 @@ const AccountSchema = new Schema(
   { timestamps: true }
 );
 AccountSchema.plugin(softDeletePlugin);
-export const Account = mongoose.models.Account || mongoose.model("Account", AccountSchema);
+export const Account = mongoose.models.Account || mongoose.model("Account", AccountSchema, "account");
 
 // --- 3. User Model (Client users) ---
 const UserSchema = new Schema(
@@ -85,13 +85,13 @@ const UserSchema = new Schema(
   { timestamps: true }
 );
 UserSchema.plugin(softDeletePlugin);
-export const User = mongoose.models.User || mongoose.model("User", UserSchema);
+export const User = mongoose.models.User || mongoose.model("User", UserSchema, "user");
 
 // --- 4. ProductCategory Model ---
 const ProductCategorySchema = new Schema(
   {
     title: { type: String, required: true },
-    parent_id: { type: Schema.Types.ObjectId, ref: "ProductCategory", default: null },
+    parent_id: { type: String, ref: "ProductCategory", default: null },
     slug: { type: String, required: true },
     description: { type: String, default: "" },
     status: { type: String, enum: ["active", "inactive"], default: "active" },
@@ -101,14 +101,14 @@ const ProductCategorySchema = new Schema(
 );
 ProductCategorySchema.plugin(softDeletePlugin);
 export const ProductCategory =
-  mongoose.models.ProductCategory || mongoose.model("ProductCategory", ProductCategorySchema);
+  mongoose.models.ProductCategory || mongoose.model("ProductCategory", ProductCategorySchema, "product_category");
 
 // --- 5. Product Model ---
 const ProductSchema = new Schema(
   {
     title: { type: String, required: true },
     slug: { type: String, required: true },
-    product_category_id: { type: Schema.Types.ObjectId, ref: "ProductCategory", default: null },
+    product_category_id: { type: String, ref: "ProductCategory", default: null },
     description: { type: String, default: "" },
     price: { type: Number, required: true, default: 0 },
     discountPercentage: { type: Number, default: 0 },
@@ -125,10 +125,10 @@ export const Product = mongoose.models.Product || mongoose.model("Product", Prod
 // --- 6. Cart Model ---
 const CartSchema = new Schema(
   {
-    user_id: { type: Schema.Types.ObjectId, ref: "User", default: null },
+    user_id: { type: String, ref: "User", default: null },
     products: [
       {
-        product_id: { type: Schema.Types.ObjectId, ref: "Product", required: true },
+        product_id: { type: String, ref: "Product", required: true },
         quantity: { type: Number, required: true, default: 1 }
       }
     ]
@@ -141,7 +141,7 @@ export const Cart = mongoose.models.Cart || mongoose.model("Cart", CartSchema);
 // --- 7. Order Model ---
 const OrderSchema = new Schema(
   {
-    user_id: { type: Schema.Types.ObjectId, ref: "User", default: null },
+    user_id: { type: String, ref: "User", default: null },
     cart_id: { type: String, required: true },
     userInfo: {
       fullName: { type: String, required: true },
@@ -150,7 +150,7 @@ const OrderSchema = new Schema(
     },
     products: [
       {
-        product_id: { type: Schema.Types.ObjectId, ref: "Product", required: true },
+        product_id: { type: String, ref: "Product", required: true },
         price: { type: Number, required: true },
         discountPercentage: { type: Number, default: 0 },
         quantity: { type: Number, required: true }
@@ -179,11 +179,11 @@ const ForgotPasswordSchema = new Schema(
 // MongoDB will automatically delete documents after expireAt is reached (expireAfterSeconds: 0)
 ForgotPasswordSchema.index({ expireAt: 1 }, { expireAfterSeconds: 0 });
 export const ForgotPassword =
-  mongoose.models.ForgotPassword || mongoose.model("ForgotPassword", ForgotPasswordSchema);
+  mongoose.models.ForgotPassword || mongoose.model("ForgotPassword", ForgotPasswordSchema, "forgot_password");
 
 // --- 9. AuditLog Model ---
 const AuditLogSchema = new Schema({
-  account_id: { type: Schema.Types.ObjectId, ref: "Account", required: true },
+  account_id: { type: String, ref: "Account", required: true },
   action: { type: String, required: true },
   details: { type: String, default: "" },
   timestamp: { type: Date, default: Date.now }

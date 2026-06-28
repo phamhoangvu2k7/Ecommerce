@@ -84,7 +84,7 @@ async function fetchProducts() {
       totalProducts.value = data.data.total;
       totalPages.value = data.data.pages;
     } else {
-      errorMsg.value = data.statusMessage || "Lỗi tải danh sách sản phẩm.";
+      errorMsg.value = data.message || data.statusMessage || "Lỗi tải danh sách sản phẩm.";
     }
   } catch (err) {
     errorMsg.value = "Lỗi kết nối máy chủ.";
@@ -142,7 +142,7 @@ async function openEditModal(productId: string) {
       formPosition.value = p.position;
       showModal.value = true;
     } else {
-      alert(data.statusMessage || "Lỗi tải thông tin sản phẩm.");
+      alert(data.message || data.statusMessage || "Lỗi tải thông tin sản phẩm.");
     }
   } catch (err) {
     alert("Lỗi kết nối máy chủ.");
@@ -197,7 +197,7 @@ async function handleSaveProduct() {
       await fetchProducts();
       setTimeout(() => (successMsg.value = ""), 4000);
     } else {
-      alert(data.statusMessage || "Lỗi lưu sản phẩm.");
+      alert(data.message || data.statusMessage || "Lỗi lưu sản phẩm.");
     }
   } catch (err) {
     alert("Có lỗi xảy ra khi lưu sản phẩm.");
@@ -222,7 +222,7 @@ async function handleDeleteProduct(productId: string) {
       await fetchProducts();
       setTimeout(() => (successMsg.value = ""), 4000);
     } else {
-      alert(data.statusMessage || "Lỗi xóa sản phẩm.");
+      alert(data.message || data.statusMessage || "Lỗi xóa sản phẩm.");
     }
   } catch (err) {
     alert("Lỗi kết nối máy chủ.");
@@ -254,7 +254,7 @@ async function handleFileUpload(event: Event) {
     if (data.success) {
       formThumbnail.value = data.url;
     } else {
-      alert(data.statusMessage || "Lỗi tải ảnh lên Cloudinary.");
+      alert(data.message || data.statusMessage || "Lỗi tải ảnh lên Cloudinary.");
     }
   } catch (err) {
     alert("Không thể kết nối tải ảnh.");

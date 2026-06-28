@@ -16,7 +16,7 @@ onMounted(async () => {
     if (data.success) {
       stats.value = data.data;
     } else {
-      errorMsg.value = data.statusMessage || "Lỗi tải số liệu thống kê.";
+      errorMsg.value = data.message || data.statusMessage || "Lỗi tải số liệu thống kê.";
     }
   } catch (err) {
     errorMsg.value = "Lỗi kết nối máy chủ.";

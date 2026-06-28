@@ -4,6 +4,7 @@ dist
 .nitro
 .cache
 .output
+brain/
 .env
 .env.local
 implementation_plan.md

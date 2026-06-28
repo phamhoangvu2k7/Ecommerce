@@ -42,7 +42,7 @@ async function handleLogin() {
       // Redirect to home
       router.push("/");
     } else {
-      errorMsg.value = data.statusMessage || "Đăng nhập thất bại.";
+      errorMsg.value = data.message || data.statusMessage || "Đăng nhập thất bại.";
     }
   } catch (err: any) {
     errorMsg.value = "Có lỗi xảy ra khi kết nối máy chủ.";

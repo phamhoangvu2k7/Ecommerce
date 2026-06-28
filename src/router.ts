@@ -32,7 +32,9 @@ const routes = [
       { path: "dashboard", component: () => import("./pages/admin/Dashboard.vue") },
       { path: "products", component: () => import("./pages/admin/Products.vue") },
       { path: "categories", component: () => import("./pages/admin/Categories.vue") },
-      { path: "trash", component: () => import("./pages/admin/Trash.vue") }
+      { path: "trash", component: () => import("./pages/admin/Trash.vue") },
+      { path: "roles", component: () => import("./pages/admin/Roles.vue") },
+      { path: "accounts", component: () => import("./pages/admin/Accounts.vue") }
     ]
   },
   // Catch All

@@ -23,7 +23,7 @@ async function fetchOrders() {
     if (data.success) {
       orders.value = data.orders;
     } else {
-      errorMsg.value = data.statusMessage || "Lỗi tải lịch sử đơn hàng.";
+      errorMsg.value = data.message || data.statusMessage || "Lỗi tải lịch sử đơn hàng.";
     }
   } catch (err) {
     errorMsg.value = "Lỗi kết nối máy chủ.";
@@ -49,7 +49,7 @@ async function handleCancelOrder(orderId: string) {
       alert("Hủy đơn hàng thành công!");
       await fetchOrders();
     } else {
-      alert(data.statusMessage || "Không thể hủy đơn hàng.");
+      alert(data.message || data.statusMessage || "Không thể hủy đơn hàng.");
     }
   } catch (err) {
     alert("Có lỗi xảy ra khi gửi yêu cầu hủy đơn.");

@@ -56,7 +56,7 @@ async function handleRestore(type: string, id: string) {
       await fetchTrash();
       setTimeout(() => (successMsg.value = ""), 4000);
     } else {
-      alert(data.statusMessage || "Lỗi khôi phục dữ liệu.");
+      alert(data.message || data.statusMessage || "Lỗi khôi phục dữ liệu.");
     }
   } catch (err) {
     alert("Lỗi kết nối máy chủ.");

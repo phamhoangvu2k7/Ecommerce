@@ -42,7 +42,7 @@ async function handleRegister() {
         router.push("/login");
       }, 2000);
     } else {
-      errorMsg.value = data.statusMessage || "Đăng ký tài khoản thất bại.";
+      errorMsg.value = data.message || data.statusMessage || "Đăng ký tài khoản thất bại.";
     }
   } catch (err: any) {
     errorMsg.value = "Có lỗi xảy ra khi kết nối máy chủ.";
