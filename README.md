@@ -18,7 +18,16 @@
 
 Một dự án e-commerce hoàn chỉnh từ giao diện khách mua hàng (Storefront) đến trang quản trị (Admin Dashboard). Sử dụng cấu trúc phân tách rõ ràng, các nghiệp vụ đặt hàng an toàn chống lệch kho, tự động gộp giỏ hàng khi đăng nhập, cùng các tính năng lưu trữ hình ảnh trên đám mây Cloudinary và xác thực tài khoản qua Email OTP.
 
-**Link Test API**: [http://localhost:3000/api/seed](http://localhost:3000/api/seed) (Dùng để khởi tạo dữ liệu mẫu khi chạy dưới local)
+## Giao diện của trang quản trị
+
+https://github.com/user-attachments/assets/df1e0cff-246a-4aed-8f9f-77dbb52c27e1
+
+---
+
+## Giao diện của khách hàng
+
+https://github.com/user-attachments/assets/322909ae-482a-4da7-85be-11925ddf3eef
+
 
 ## Mục lục
 
