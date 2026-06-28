@@ -252,27 +252,4 @@ Hệ thống phân quyền truy cập thông qua mã JWT được chia làm 3 nh
 
 ---
 
-## Đóng gói chạy thực tế
-
-Để tối ưu hiệu năng và đóng gói ứng dụng để chạy thực tế trên máy chủ:
-
-1. **Biên dịch và đóng gói**
-   ```bash
-   npm run build
-   ```
-   Lệnh này sẽ tạo ra thư mục `.output/` chứa toàn bộ frontend đã nén và server backend đã đóng gói.
-
-2. **Khởi chạy độc lập**
-   ```bash
-   node .output/server/index.mjs
-   ```
-   Hệ thống sẽ chạy ổn định trên cổng bạn cấu hình (mặc định là cổng `3000`).
-
----
-
-## Giấy phép
-
-Dự án này được cấp phép theo các điều khoản của **MIT License**. Xem file LICENSE để biết thêm chi tiết.
-
----
 <p align="center">Được hoàn thiện với ❤️ bởi Phạm Hoàng Vũ</p>
