@@ -117,17 +117,6 @@ Một dự án e-commerce hoàn chỉnh từ giao diện khách mua hàng (Store
    ```
    Sau khi chạy, truy cập giao diện tại: [http://localhost:5173](http://localhost:5173)
 
-5. **Tạo dữ liệu thử nghiệm (Seed Data)**
-   Truy cập đường dẫn sau trên trình duyệt để khởi tạo nhanh các tài khoản và sản phẩm mẫu:
-   [http://localhost:5173/api/seed](http://localhost:5173/api/seed)
-
-   *Thông tin đăng nhập mẫu sau khi tạo:*
-   - **Tài khoản Admin**: `admin@example.com` / Mật khẩu: `admin123`
-   - **Tài khoản Biên tập viên (Editor)**: `editor@example.com` / Mật khẩu: `editor123`
-   - **Tài khoản Khách hàng**: `customer@example.com` / Mật khẩu: `customer123`
-
----
-
 ## Cấu trúc thư mục
 
 ```
