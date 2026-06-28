@@ -13,18 +13,25 @@ if (process.env.NODE_ENV !== "production") {
 
 
 export default definePlugin((nitroApp) => {
-  const uri = process.env.MONGO_URL || process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/product-management";
+  const uri = process.env.MONGO_URL || process.env.MONGODB_URI;
   const dbName = process.env.MONGO_NAME || "product-management";
+
+  if (!uri) {
+    console.warn("[MongoDB] WARNING: MONGO_URL environment variable is not defined. Falling back to local MongoDB at 127.0.0.1");
+  }
+
+  const connectionUri = uri || "mongodb://127.0.0.1:27017/product-management";
 
   console.log(`[MongoDB] Connecting to database "${dbName}"...`);
 
-  mongoose.connect(uri, { dbName })
+  mongoose.connect(connectionUri, { dbName })
     .then(() => {
       console.log("[MongoDB] Connection established successfully.");
     })
     .catch((err) => {
       console.error("[MongoDB] Connection error:", err);
     });
+
 
   // Handle server shutdown hook
   nitroApp.hooks.hook("close", async () => {
