@@ -37,8 +37,6 @@ https://github.com/user-attachments/assets/322909ae-482a-4da7-85be-11925ddf3eef
 - [Cấu trúc thư mục](#cấu-trúc-thư-mục)
 - [Sơ đồ Cơ sở Dữ liệu](#sơ-đồ-cơ-sở-dữ-liệu)
 - [Phân quyền hệ thống](#phân-quyền-hệ-thống)
-- [Đóng gói chạy thực tế](#đóng-gói-chạy-thực-tế)
-- [Giấy phép](#giấy-phép)
 
 ---
 
