@@ -127,7 +127,7 @@ https://github.com/user-attachments/assets/322909ae-482a-4da7-85be-11925ddf3eef
    ```bash
    npm run dev
    ```
-   Sau khi khởi chạy thành công, bạn truy cập trang web tại địa chỉ: [http://localhost:5173](http://localhost:5173)
+   Sau khi khởi chạy thành công, bạn truy cập trang web tại địa chỉ: [http://localhost:5173](http://localhost:3000)
 
 ---
 
