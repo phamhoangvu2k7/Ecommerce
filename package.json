@@ -27,6 +27,7 @@
     "@types/nodemailer": "^6.4.15",
     "@vitejs/plugin-vue": "^6.0.7",
     "concurrently": "^8.2.2",
+    "jiti": "^2.7.0",
     "nitro": "latest",
     "typescript": "latest",
     "vite": "^8.1.0"
