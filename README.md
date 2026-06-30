@@ -20,13 +20,13 @@ Dự án này là một website bán hàng cơ bản, bao gồm giao diện dàn
 
 ## Giao diện trang quản trị
 
-https://github.com/user-attachments/assets/df1e0cff-246a-4aed-8f9f-77dbb52c27e1
+https://github.com/user-attachments/assets/f1a28b9e-0b26-4eed-9892-c5f229df9023
 
 ---
 
 ## Giao diện khách hàng
 
-https://github.com/user-attachments/assets/322909ae-482a-4da7-85be-11925ddf3eef
+https://github.com/user-attachments/assets/554ebff2-0e78-4b56-b3a6-c5e5e9245e93
 
 ## Mục lục
 
