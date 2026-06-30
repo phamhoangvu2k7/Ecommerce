@@ -186,26 +186,24 @@ function handleLogout() {
   }
 
   .nav-links {
-    position: fixed;
+    position: absolute;
     top: 70px;
     left: 0;
     right: 0;
-    bottom: 0;
-    background: rgba(11, 15, 25, 0.96);
+    background: rgba(11, 15, 25, 0.98);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
-    gap: 1.5rem;
-    padding: 3rem 2rem;
+    gap: 1rem;
+    padding: 1.5rem 2rem;
     z-index: 99;
     transform: translateY(-100%);
     opacity: 0;
     pointer-events: none;
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
-    overflow-y: auto;
   }
 
   .nav-links.menu-active {
@@ -215,7 +213,7 @@ function handleLogout() {
   }
 
   .nav-link {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
   }
 }
 </style>
