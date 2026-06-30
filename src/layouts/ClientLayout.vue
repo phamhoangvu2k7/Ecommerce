@@ -175,8 +175,12 @@ function handleLogout() {
   transform: translateY(-8px) rotate(-45deg);
 }
 
-/* Responsive styles */
 @media (max-width: 768px) {
+  .premium-nav {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
   .mobile-toggle {
     display: flex;
   }
