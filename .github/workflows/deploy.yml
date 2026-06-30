@@ -20,7 +20,8 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd /var/www/ecommerce
-            git pull origin main
+            git fetch origin
+            git reset --hard origin/main
             npm install --legacy-peer-deps
             npm run build
             pm2 reload ecommerce-app || pm2 start .output/server/index.mjs --name "ecommerce-app" --node-args="--env-file=.env"
