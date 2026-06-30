@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { RouterLink } from "vue-router";
+import ProductCard from "../../components/ProductCard.vue";
+import SkeletonCard from "../../components/SkeletonCard.vue";
 
 const featuredProducts = ref<any[]>([]);
 const loading = ref(true);
@@ -46,36 +48,12 @@ function formatPrice(value: number) {
         <p class="section-subtitle">Đừng bỏ lỡ các siêu phẩm công nghệ hot nhất vừa cập bến cửa hàng.</p>
       </div>
 
-      <div v-if="loading" class="loading-state">
-        Đang tải sản phẩm...
+      <div v-if="loading" class="grid-products">
+        <SkeletonCard v-for="i in 3" :key="i" />
       </div>
 
       <div v-else class="grid-products">
-        <div v-for="product in featuredProducts" :key="product._id" class="premium-card product-card">
-          <div class="product-image-container">
-            <img :src="product.thumbnail || 'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=500'" :alt="product.title" class="product-img" />
-            <div v-if="product.discountPercentage > 0" class="discount-badge">
-              -{{ product.discountPercentage }}%
-            </div>
-          </div>
-          <div class="product-details">
-            <h3 class="product-title">{{ product.title }}</h3>
-            <p class="product-category">{{ product.product_category_id?.title }}</p>
-            
-            <div class="product-prices">
-              <span class="price-new">{{ formatPrice(product.priceNew) }}</span>
-              <span v-if="product.discountPercentage > 0" class="price-old">
-                {{ formatPrice(product.price) }}
-              </span>
-            </div>
-
-            <div class="product-actions">
-              <RouterLink :to="`/products/${product._id}`" class="btn btn-secondary w-full">
-                Chi tiết sản phẩm
-              </RouterLink>
-            </div>
-          </div>
-        </div>
+        <ProductCard v-for="product in featuredProducts" :key="product._id" :product="product" />
       </div>
     </section>
   </div>
@@ -149,96 +127,6 @@ function formatPrice(value: number) {
 .section-subtitle {
   color: var(--text-muted);
   font-size: 0.95rem;
-}
-
-.loading-state {
-  text-align: center;
-  color: var(--text-muted);
-  padding: 3rem 0;
-}
-
-/* Product Card */
-.product-card {
-  display: flex;
-  flex-direction: column;
-}
-
-.product-image-container {
-  height: 200px;
-  position: relative;
-  overflow: hidden;
-  border-radius: 12px;
-  background-color: rgba(255, 255, 255, 0.02);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.product-img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  transition: transform 0.5s ease;
-}
-
-.product-card:hover .product-img {
-  transform: scale(1.05);
-}
-
-.discount-badge {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background-color: var(--danger);
-  color: white;
-  font-size: 0.8rem;
-  font-weight: 700;
-  padding: 0.25rem 0.5rem;
-  border-radius: 6px;
-}
-
-.product-details {
-  padding-top: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-
-.product-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #fff;
-  margin-bottom: 0.25rem;
-}
-
-.product-category {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  margin-bottom: 1rem;
-}
-
-.product-prices {
-  display: flex;
-  align-items: baseline;
-  gap: 0.75rem;
-  margin-bottom: 1.25rem;
-  margin-top: auto;
-}
-
-.price-new {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--primary);
-}
-
-.price-old {
-  font-size: 0.9rem;
-  text-decoration: line-through;
-  color: var(--text-muted);
-}
-
-.w-full {
-  width: 100%;
 }
 
 @media (max-width: 768px) {

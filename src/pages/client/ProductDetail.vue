@@ -2,6 +2,7 @@
 import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useCartStore } from "../../stores/cart.ts";
+import SkeletonDetail from "../../components/SkeletonDetail.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -61,8 +62,8 @@ function formatPrice(value: number) {
 
 <template>
   <div class="product-detail-page container">
-    <div v-if="loading" class="loading-state">
-      Đang tải chi tiết sản phẩm...
+    <div v-if="loading">
+      <SkeletonDetail />
     </div>
 
     <div v-else-if="errorMsg && !product" class="alert alert-error">
@@ -137,12 +138,6 @@ function formatPrice(value: number) {
 </template>
 
 <style scoped>
-.loading-state {
-  text-align: center;
-  color: var(--text-muted);
-  padding: 4rem 0;
-}
-
 .detail-container {
   display: flex;
   gap: 3rem;

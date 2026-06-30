@@ -9,3 +9,4 @@ brain/
 .env.local
 implementation_plan.md
 deploy_plan.md
+skill.md

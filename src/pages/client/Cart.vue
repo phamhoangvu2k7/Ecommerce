@@ -2,6 +2,7 @@
 import { onMounted, ref } from "vue";
 import { RouterLink, useRouter } from "vue-router";
 import { useCartStore } from "../../stores/cart.ts";
+import CartItem from "../../components/CartItem.vue";
 
 const cartStore = useCartStore();
 const router = useRouter();
@@ -73,78 +74,14 @@ function proceedToCheckout() {
     <div v-else class="cart-layout">
       <!-- Items List -->
       <div class="cart-items-section">
-        <div
+        <CartItem
           v-for="item in cartStore.products"
           :key="item.product_id"
-          class="premium-card cart-item fade-in-item"
-        >
-          <img
-            :src="
-              item.thumbnail ||
-              'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=500'
-            "
-            :alt="item.title"
-            class="item-img"
-          />
-
-          <div class="item-details">
-            <h3 class="item-title">{{ item.title }}</h3>
-            <div class="item-prices">
-              <span class="price-new">{{ formatPrice(item.priceNew) }}</span>
-              <span v-if="item.discountPercentage > 0" class="price-old">
-                {{ formatPrice(item.price) }}
-              </span>
-            </div>
-            <div class="item-stock-warning" v-if="item.stock <= 5">
-              Chỉ còn {{ item.stock }} sản phẩm trong kho!
-            </div>
-          </div>
-
-          <!-- Quantity Selector -->
-          <div class="item-qty-actions">
-            <div class="qty-selector">
-              <button
-                @click="
-                  handleUpdateQty(
-                    item.product_id,
-                    item.quantity,
-                    -1,
-                    item.stock,
-                  )
-                "
-                :disabled="updatingId === item.product_id || item.quantity <= 1"
-                class="btn btn-secondary btn-qty"
-              >
-                -
-              </button>
-              <span class="qty-display">{{ item.quantity }}</span>
-              <button
-                @click="
-                  handleUpdateQty(item.product_id, item.quantity, 1, item.stock)
-                "
-                :disabled="
-                  updatingId === item.product_id || item.quantity >= item.stock
-                "
-                class="btn btn-secondary btn-qty"
-              >
-                +
-              </button>
-            </div>
-          </div>
-
-          <div class="item-total-price">
-            {{ formatPrice(item.totalPrice) }}
-          </div>
-
-          <button
-            @click="handleRemoveItem(item.product_id)"
-            :disabled="updatingId === item.product_id"
-            class="btn btn-danger btn-remove"
-            title="Xóa sản phẩm"
-          >
-            🗑️
-          </button>
-        </div>
+          :item="item"
+          :updating-id="updatingId"
+          @update-qty="handleUpdateQty"
+          @remove="handleRemoveItem"
+        />
       </div>
 
       <!-- Order Summary Card -->
@@ -226,123 +163,6 @@ function proceedToCheckout() {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-}
-
-/* Cart Item Card */
-.cart-item {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  padding: 1.25rem;
-}
-
-@media (max-width: 576px) {
-  .cart-item {
-    flex-direction: column;
-    text-align: center;
-    gap: 1rem;
-    padding: 1.5rem 1rem;
-  }
-
-  .item-total-price {
-    text-align: center;
-    min-width: unset;
-    margin: 0.5rem 0;
-  }
-
-  .qty-selector {
-    margin: 0 auto;
-  }
-
-  .btn-remove {
-    width: 100%;
-    max-width: 120px;
-    margin: 0 auto;
-  }
-}
-
-.item-img {
-  width: 80px;
-  height: 80px;
-  object-fit: contain;
-  border-radius: 8px;
-  background-color: rgba(255, 255, 255, 0.02);
-}
-
-.item-details {
-  flex: 1;
-}
-
-.item-title {
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: #fff;
-  margin-bottom: 0.25rem;
-}
-
-.item-prices {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-}
-
-.price-new {
-  font-weight: 700;
-  color: var(--primary);
-}
-
-.price-old {
-  font-size: 0.85rem;
-  text-decoration: line-through;
-  color: var(--text-muted);
-}
-
-.item-stock-warning {
-  color: var(--warning);
-  font-size: 0.8rem;
-  margin-top: 0.25rem;
-  font-weight: 500;
-}
-
-/* Qty Selector */
-.qty-selector {
-  display: flex;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  overflow: hidden;
-  background-color: rgba(15, 23, 42, 0.6);
-  height: 36px;
-  align-items: center;
-}
-
-.btn-qty {
-  width: 32px;
-  height: 100%;
-  border-radius: 0;
-  padding: 0;
-}
-
-.qty-display {
-  width: 36px;
-  text-align: center;
-  font-weight: 700;
-  color: #fff;
-  font-size: 0.95rem;
-}
-
-.item-total-price {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #fff;
-  min-width: 100px;
-  text-align: right;
-}
-
-.btn-remove {
-  padding: 0.5rem;
-  font-size: 0.9rem;
-  border-radius: 8px;
-  flex-shrink: 0;
 }
 
 /* Summary Card */
