@@ -331,4 +331,47 @@ function formatPrice(value: number) {
 .block {
   display: block;
 }
+
+@media (max-width: 768px) {
+  .product-title {
+    font-size: 1.75rem;
+  }
+  
+  .image-column {
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-title {
+    font-size: 1.5rem;
+  }
+
+  .price-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .cart-actions-block {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .qty-selector {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .btn-qty {
+    flex: 1;
+  }
+  
+  .qty-input {
+    flex: 1.5;
+  }
+}
 </style>

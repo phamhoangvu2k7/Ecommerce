@@ -19,6 +19,7 @@ const priceMin = ref((route.query.price_min as string) || "");
 const priceMax = ref((route.query.price_max as string) || "");
 const sortOrder = ref((route.query.sort as string) || "position_desc");
 const currentPage = ref(parseInt(route.query.page as string) || 1);
+const showMobileFilters = ref(false);
 
 onMounted(async () => {
   await fetchCategories();
@@ -118,7 +119,7 @@ function formatPrice(value: number) {
   <div class="product-list-page container">
     <div class="list-layout">
       <!-- Sidebar Filters -->
-      <aside class="sidebar-filters glass-panel">
+      <aside class="sidebar-filters glass-panel" :class="{ 'mobile-show': showMobileFilters }">
         <h3 class="filter-header">Bộ lọc tìm kiếm</h3>
 
         <!-- Categories Filter -->
@@ -160,6 +161,14 @@ function formatPrice(value: number) {
 
       <!-- Main Section -->
       <div class="products-main">
+        <!-- Mobile Filter Toggle Button -->
+        <button 
+          @click="showMobileFilters = !showMobileFilters" 
+          class="btn btn-secondary btn-filter-toggle-mobile w-full"
+        >
+          {{ showMobileFilters ? '✕ Đóng bộ lọc' : '🔍 Bộ lọc & Sắp xếp' }}
+        </button>
+
         <!-- Search bar -->
         <div class="search-bar-container">
           <input
@@ -414,5 +423,41 @@ function formatPrice(value: number) {
 
 .w-full {
   width: 100%;
+}
+
+.btn-filter-toggle-mobile {
+  display: none;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .list-layout {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .btn-filter-toggle-mobile {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 44px;
+    font-size: 0.95rem;
+  }
+  
+  .sidebar-filters {
+    width: 100%;
+    display: none;
+    align-self: stretch;
+    margin-bottom: 1rem;
+  }
+  
+  .sidebar-filters.mobile-show {
+    display: block;
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  .search-bar-container {
+    margin-bottom: 1.5rem;
+  }
 }
 </style>

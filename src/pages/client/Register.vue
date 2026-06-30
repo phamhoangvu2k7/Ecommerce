@@ -150,4 +150,10 @@ async function handleRegister() {
 .mt-4 {
   margin-top: 1rem;
 }
+
+@media (max-width: 576px) {
+  .register-card {
+    padding: 1.5rem;
+  }
+}
 </style>

@@ -111,4 +111,28 @@ const authStore = useAuthStore();
   font-weight: 600;
   font-size: 0.95rem;
 }
+
+@media (max-width: 576px) {
+  .profile-card {
+    padding: 1.5rem;
+  }
+  
+  .profile-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.25rem;
+  }
+  
+  .detail-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .detail-value {
+    word-break: break-all;
+  }
+}
 </style>

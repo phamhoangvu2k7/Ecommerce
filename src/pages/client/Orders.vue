@@ -301,9 +301,31 @@ function getStatusClass(status: string) {
 }
 
 @media (max-width: 576px) {
+  .order-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .order-meta {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
   .order-footer {
     flex-direction: column;
+    align-items: flex-start;
     gap: 1rem;
+  }
+
+  .order-action-total {
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .btn-cancel-order {
+    width: 100%;
+    max-width: 200px;
   }
 }
 

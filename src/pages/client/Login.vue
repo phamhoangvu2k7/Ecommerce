@@ -157,4 +157,10 @@ async function handleLogin() {
 .mt-4 {
   margin-top: 1rem;
 }
+
+@media (max-width: 576px) {
+  .login-card {
+    padding: 1.5rem;
+  }
+}
 </style>

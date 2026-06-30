@@ -238,4 +238,10 @@ async function handleResetPassword() {
 .mt-2 {
   margin-top: 0.5rem;
 }
+
+@media (max-width: 576px) {
+  .forgot-card {
+    padding: 1.5rem;
+  }
+}
 </style>

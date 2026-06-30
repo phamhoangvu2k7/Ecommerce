@@ -273,3 +273,23 @@ a {
 .fade-in-item {
   animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 1rem;
+  }
+  .h1-title {
+    font-size: 1.75rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .grid-products {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .premium-card {
+    padding: 1.25rem;
+  }
+}

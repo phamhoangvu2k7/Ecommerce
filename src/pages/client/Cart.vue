@@ -240,6 +240,24 @@ function proceedToCheckout() {
   .cart-item {
     flex-direction: column;
     text-align: center;
+    gap: 1rem;
+    padding: 1.5rem 1rem;
+  }
+
+  .item-total-price {
+    text-align: center;
+    min-width: unset;
+    margin: 0.5rem 0;
+  }
+
+  .qty-selector {
+    margin: 0 auto;
+  }
+
+  .btn-remove {
+    width: 100%;
+    max-width: 120px;
+    margin: 0 auto;
   }
 }
 

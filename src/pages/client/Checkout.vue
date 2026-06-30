@@ -329,4 +329,19 @@ function formatPrice(value: number) {
 .mt-6 {
   margin-top: 1.5rem;
 }
+
+@media (max-width: 576px) {
+  .shipping-section {
+    padding: 1.25rem;
+  }
+  
+  .section-title {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .sum-item-title {
+    max-width: 150px;
+  }
+}
 </style>

@@ -193,14 +193,15 @@ function handleLogout() {
     border-top: 1px solid var(--border-color);
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 2rem;
-    padding: 2rem;
+    justify-content: flex-start;
+    gap: 1.5rem;
+    padding: 3rem 2rem;
     z-index: 99;
     transform: translateY(-100%);
     opacity: 0;
     pointer-events: none;
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+    overflow-y: auto;
   }
 
   .nav-links.menu-active {
