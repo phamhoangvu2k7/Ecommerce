@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { stripImageDomain } from "~/server/utils/helpers.ts";
 
 export const ProductValidation = z.object({
   title: z.string().min(1, "Tiêu đề không được để trống"),
@@ -7,7 +8,7 @@ export const ProductValidation = z.object({
   price: z.preprocess((val) => Number(val), z.number().min(0, "Giá phải lớn hơn hoặc bằng 0")),
   discountPercentage: z.preprocess((val) => Number(val), z.number().min(0).max(100).optional().default(0)),
   stock: z.preprocess((val) => Number(val), z.number().int().min(0, "Số lượng kho phải là số nguyên >= 0")),
-  thumbnail: z.string().optional(),
+  thumbnail: z.string().optional().transform((val) => val ? stripImageDomain(val) : val),
   status: z.enum(["active", "inactive"]).optional().default("active"),
   position: z.preprocess((val) => Number(val), z.number().int().optional().default(0))
 });

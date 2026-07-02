@@ -1,5 +1,5 @@
 import { defineEventHandler, createError, readMultipartFormData } from "h3";
-import { uploadToCloudinary } from "../../utils/helpers.ts";
+import { uploadToCloudinary, stripImageDomain, prependImageDomain } from "../../utils/helpers.ts";
 
 export default defineEventHandler(async (event) => {
   // Verify admin permissions (context set by global auth middleware)
@@ -32,10 +32,14 @@ export default defineEventHandler(async (event) => {
 
   try {
     // Upload buffer to Cloudinary folder "products"
-    const url = await uploadToCloudinary(filePart.data, "products");
+    const rawUrl = await uploadToCloudinary(filePart.data, "products");
+    
+    // Resolve URL using the configured image base URL
+    const resolvedUrl = prependImageDomain(stripImageDomain(rawUrl));
+
     return {
       success: true,
-      url
+      url: resolvedUrl
     };
   } catch (err: any) {
     console.error("[Cloudinary] Upload failed:", err);

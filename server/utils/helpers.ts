@@ -130,3 +130,38 @@ export function slugify(str: string): string {
     .replace(/-+/g, "-")
     .replace(/^-+|-+$/g, "");
 }
+
+export function stripImageDomain(url: string | undefined | null): string {
+  if (!url) return "";
+  const base = process.env.IMAGE_BASE_URL || `https://res.cloudinary.com/${process.env.CLOUD_NAME || "dkmr15pla"}/image/upload`;
+  if (url.startsWith(base)) {
+    let relative = url.slice(base.length);
+    if (relative.startsWith("/")) {
+      relative = relative.substring(1);
+    }
+    return relative;
+  }
+  // Generic Cloudinary regex to match any cloud name
+  const cloudinaryRegex = /^https:\/\/res\.cloudinary\.com\/[^/]+\/image\/upload\/?/;
+  const match = url.match(cloudinaryRegex);
+  if (match) {
+    let relative = url.slice(match[0].length);
+    if (relative.startsWith("/")) {
+      relative = relative.substring(1);
+    }
+    return relative;
+  }
+  return url;
+}
+
+export function prependImageDomain(path: string | undefined | null): string {
+  if (!path) return "";
+  if (path.startsWith("http://") || path.startsWith("https://")) {
+    return path;
+  }
+  const base = process.env.IMAGE_BASE_URL || `https://res.cloudinary.com/${process.env.CLOUD_NAME || "dkmr15pla"}/image/upload`;
+  const prefix = base.endsWith("/") ? base : `${base}/`;
+  const cleanPath = path.startsWith("/") ? path.substring(1) : path;
+  return `${prefix}${cleanPath}`;
+}
+

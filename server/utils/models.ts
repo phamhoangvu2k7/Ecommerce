@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
+import { prependImageDomain, stripImageDomain } from "~/server/utils/helpers.ts";
 
 // --- Custom Mongoose Soft Delete Plugin ---
 export function softDeletePlugin(schema: Schema) {
@@ -113,11 +114,20 @@ const ProductSchema = new Schema(
     price: { type: Number, required: true, default: 0 },
     discountPercentage: { type: Number, default: 0 },
     stock: { type: Number, required: true, default: 0 },
-    thumbnail: { type: String, default: "" },
+    thumbnail: {
+      type: String,
+      default: "",
+      get: prependImageDomain,
+      set: stripImageDomain
+    },
     status: { type: String, enum: ["active", "inactive"], default: "active" },
     position: { type: Number, default: 0 }
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    toJSON: { getters: true },
+    toObject: { getters: true }
+  }
 );
 ProductSchema.plugin(softDeletePlugin);
 export const Product = mongoose.models.Product || mongoose.model("Product", ProductSchema);
