@@ -30,6 +30,7 @@ export default definePlugin((nitroApp) => {
     .then(async () => {
       console.log("[MongoDB] Connection established successfully.");
       await migrateLegacyThumbnails();
+      await cleanAndMapDatabase();
     })
     .catch((err) => {
       console.error("[MongoDB] Connection error:", err);
@@ -71,5 +72,42 @@ async function migrateLegacyThumbnails() {
     }
   } catch (err) {
     console.error("[MongoDB Migration] Failed to run legacy thumbnail migration:", err);
+  }
+}
+
+async function cleanAndMapDatabase() {
+  try {
+    // 1. Delete test products created during development tests
+    const delResult = await Product.deleteMany({
+      title: /^(Cloudinary )?Test Product/i
+    });
+    if (delResult.deletedCount > 0) {
+      console.log(`[MongoDB Clean] Deleted ${delResult.deletedCount} temporary test products.`);
+    }
+
+    // 2. Map existing seed products in the DB to use working Cloudinary paths
+    const mapping = [
+      { title: "iPhone 15 Pro Max", path: "v1782806960/products/khuvetxll0lpkkg3kzsv.webp" },
+      { title: "Samsung Galaxy S24 Ultra", path: "v1782806930/products/wriwuz2mznhxgwal05nq.webp" },
+      { title: "MacBook Air M3", path: "v1782807044/products/fex0j6t83fjtnk8dmlrq.webp" },
+      { title: "Dell XPS 13 Plus", path: "v1782807018/products/qzurwujesh7ezjp9ku7p.webp" },
+      { title: "Tai nghe Apple AirPods Pro 2", path: "v1782806859/products/mty05la5cdugoziulp3f.webp" }
+    ];
+
+    let updateCount = 0;
+    for (const item of mapping) {
+      const res = await Product.updateOne(
+        { title: item.title },
+        { $set: { thumbnail: item.path } }
+      );
+      if (res.modifiedCount > 0) {
+        updateCount++;
+      }
+    }
+    if (updateCount > 0) {
+      console.log(`[MongoDB Clean] Successfully mapped ${updateCount} seed products to active Cloudinary paths.`);
+    }
+  } catch (err) {
+    console.error("[MongoDB Clean] Failed to clean and map database:", err);
   }
 }

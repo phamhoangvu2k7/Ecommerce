@@ -105,7 +105,7 @@ export default defineEventHandler(async (event) => {
       price: 32000000,
       discountPercentage: 10,
       stock: 50,
-      thumbnail: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=500",
+      thumbnail: "v1782806960/products/khuvetxll0lpkkg3kzsv.webp",
       status: "active",
       position: 1
     }),
@@ -117,7 +117,7 @@ export default defineEventHandler(async (event) => {
       price: 28000000,
       discountPercentage: 15,
       stock: 40,
-      thumbnail: "https://images.unsplash.com/photo-1610792516307-ea5acd9c3b00?w=500",
+      thumbnail: "v1782806930/products/wriwuz2mznhxgwal05nq.webp",
       status: "active",
       position: 2
     }),
@@ -129,7 +129,7 @@ export default defineEventHandler(async (event) => {
       price: 27990000,
       discountPercentage: 5,
       stock: 30,
-      thumbnail: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500",
+      thumbnail: "v1782807044/products/fex0j6t83fjtnk8dmlrq.webp",
       status: "active",
       position: 3
     }),
@@ -141,7 +141,7 @@ export default defineEventHandler(async (event) => {
       price: 45000000,
       discountPercentage: 20,
       stock: 15,
-      thumbnail: "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=500",
+      thumbnail: "v1782807018/products/qzurwujesh7ezjp9ku7p.webp",
       status: "active",
       position: 4
     }),
@@ -153,7 +153,7 @@ export default defineEventHandler(async (event) => {
       price: 5990000,
       discountPercentage: 12,
       stock: 100,
-      thumbnail: "https://images.unsplash.com/photo-1588449668338-d1348257531d?w=500",
+      thumbnail: "v1782806859/products/mty05la5cdugoziulp3f.webp",
       status: "active",
       position: 5
     })
