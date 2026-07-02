@@ -1,6 +1,7 @@
 import { defineEventHandler, readBody, createError, getRouterParam } from "h3";
 import { Product, AuditLog } from "../../../utils/models.ts";
 import { ProductValidation } from "../../../utils/validation.ts";
+import { slugify } from "../../../utils/helpers.ts";
 
 export default defineEventHandler(async (event) => {
   const permissions = event.context.admin?.role_id?.permissions || [];
@@ -27,6 +28,7 @@ export default defineEventHandler(async (event) => {
     { _id: id },
     {
       ...parsed.data,
+      slug: slugify(parsed.data.title),
       updatedBy: event.context.admin._id
     },
     { new: true }

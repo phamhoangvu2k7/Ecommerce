@@ -1,6 +1,7 @@
 import { defineEventHandler, readBody, createError } from "h3";
 import { Product, AuditLog } from "../../../utils/models.ts";
 import { ProductValidation } from "../../../utils/validation.ts";
+import { slugify } from "../../../utils/helpers.ts";
 
 export default defineEventHandler(async (event) => {
   // Check permission
@@ -30,6 +31,7 @@ export default defineEventHandler(async (event) => {
 
   const product = new Product({
     ...parsed.data,
+    slug: slugify(parsed.data.title),
     position,
     createdBy: event.context.admin._id
   });
