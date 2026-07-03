@@ -12,5 +12,18 @@ export default defineNuxtConfig({
     blob: false
   },
   css: ["~/assets/css/style.css"],
+  app: {
+    head: {
+      title: "Product Management Premium System",
+      htmlAttrs: {
+        lang: "vi"
+      },
+      link: [
+        { rel: "preconnect", href: "https://fonts.googleapis.com" },
+        { rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: "anonymous" },
+        { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" }
+      ]
+    }
+  },
   devtools: { enabled: true }
 });
