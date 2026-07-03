@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import { defineEventHandler, parseCookies, getHeader, createError } from "h3";
 import { Account, User } from "../utils/models.ts";
+import { getJwtSecret } from "../utils/helpers.ts";
 
 export default defineEventHandler(async (event) => {
   const path = event.path || "";
@@ -14,13 +15,13 @@ export default defineEventHandler(async (event) => {
 
   if (!token) {
     const cookies = parseCookies(event);
-    token = cookies.token;
+    token = cookies.token || "";
   }
 
   // 2. Decode token and inject user/admin context
   if (token) {
     try {
-      const decoded: any = jwt.verify(token, process.env.JWT_SECRET || "a_very_secret_jwt_key_123456");
+      const decoded: any = jwt.verify(token, getJwtSecret());
       if (decoded.role === "admin") {
         const account = await Account.findById(decoded.id).populate("role_id");
         if (account && account.status === "active") {

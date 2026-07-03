@@ -1,7 +1,7 @@
 import { defineEventHandler, readBody, createError, setCookie } from "h3";
 import jwt from "jsonwebtoken";
 import { Account } from "../../../utils/models.ts";
-import { comparePassword } from "../../../utils/helpers.ts";
+import { comparePassword, getJwtSecret } from "../../../utils/helpers.ts";
 import { LoginValidation } from "../../../utils/validation.ts";
 
 export default defineEventHandler(async (event) => {
@@ -43,7 +43,7 @@ export default defineEventHandler(async (event) => {
   // Generate JWT token
   const token = jwt.sign(
     { id: account._id, role: "admin" },
-    process.env.JWT_SECRET || "a_very_secret_jwt_key_123456",
+    getJwtSecret(),
     { expiresIn: "1d" }
   );
 

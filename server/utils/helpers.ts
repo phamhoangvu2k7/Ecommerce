@@ -165,3 +165,12 @@ export function prependImageDomain(path: string | undefined | null): string {
   return `${prefix}${cleanPath}`;
 }
 
+export function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error("[Security] JWT_SECRET environment variable is not defined!");
+  }
+  return secret;
+}
+
+

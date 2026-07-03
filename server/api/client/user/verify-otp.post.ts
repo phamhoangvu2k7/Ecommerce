@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import { defineEventHandler, createError, readBody } from "h3";
 import { ForgotPassword } from "../../../utils/models.ts";
+import { getJwtSecret } from "../../../utils/helpers.ts";
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
@@ -24,7 +25,7 @@ export default defineEventHandler(async (event) => {
   // Issue temporary JWT reset token valid for 10 minutes
   const resetToken = jwt.sign(
     { email, role: "reset-password" },
-    process.env.JWT_SECRET || "a_very_secret_jwt_key_123456",
+    getJwtSecret(),
     { expiresIn: "10m" }
   );
 

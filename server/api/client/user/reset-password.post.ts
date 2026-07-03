@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import { defineEventHandler, createError, readBody } from "h3";
 import { User } from "../../../utils/models.ts";
-import { hashPassword } from "../../../utils/helpers.ts";
+import { hashPassword, getJwtSecret } from "../../../utils/helpers.ts";
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const decoded: any = jwt.verify(resetToken, process.env.JWT_SECRET || "a_very_secret_jwt_key_123456");
+    const decoded: any = jwt.verify(resetToken, getJwtSecret());
     if (decoded.role !== "reset-password") {
       throw new Error();
     }

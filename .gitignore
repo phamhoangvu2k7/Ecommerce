@@ -7,6 +7,5 @@ dist
 brain/
 .env
 .env.local
-implementation_plan.md
-deploy_plan.md
+plan/
 skill.md

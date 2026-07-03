@@ -2,7 +2,7 @@ import { defineEventHandler, readBody, createError, setCookie, deleteCookie, par
 import jwt from "jsonwebtoken";
 import { User } from "../../../utils/models.ts";
 import { LoginValidation } from "../../../utils/validation.ts";
-import { comparePassword } from "../../../utils/helpers.ts";
+import { comparePassword, getJwtSecret } from "../../../utils/helpers.ts";
 import { CartService } from "../../../utils/services.ts";
 
 export default defineEventHandler(async (event) => {
@@ -54,7 +54,7 @@ export default defineEventHandler(async (event) => {
   // Issue Token
   const token = jwt.sign(
     { id: user._id, role: "client" },
-    process.env.JWT_SECRET || "a_very_secret_jwt_key_123456",
+    getJwtSecret(),
     { expiresIn: "7d" }
   );
 
