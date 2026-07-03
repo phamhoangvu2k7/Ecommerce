@@ -1,4 +1,3 @@
-import { definePlugin } from "nitro";
 import mongoose from "mongoose";
 import dns from "node:dns";
 
@@ -12,7 +11,7 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 
-export default definePlugin((nitroApp) => {
+export default defineNitroPlugin((nitroApp) => {
   const uri = process.env.MONGO_URL || process.env.MONGODB_URI;
   const dbName = process.env.MONGO_NAME || "product-management";
 

@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import nodemailer from "nodemailer";
 import { v2 as cloudinary } from "cloudinary";
 

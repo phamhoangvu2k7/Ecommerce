@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import { RouterLink, RouterView, useRouter, useRoute } from "vue-router";
-import { useAuthStore } from "../stores/auth.ts";
+import { useAuthStore } from "~/stores/auth.ts";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -17,7 +16,6 @@ function handleLogout() {
   authStore.logoutAdmin();
   router.push("/admin/login");
 }
-
 </script>
 
 <template>
@@ -47,24 +45,24 @@ function handleLogout() {
       </div>
 
       <nav class="sidebar-menu">
-        <RouterLink to="/admin/dashboard" class="menu-item">
+        <NuxtLink to="/admin/dashboard" class="menu-item">
           📊 Tổng quan
-        </RouterLink>
-        <RouterLink to="/admin/products" class="menu-item">
+        </NuxtLink>
+        <NuxtLink to="/admin/products" class="menu-item">
           📦 Sản phẩm
-        </RouterLink>
-        <RouterLink to="/admin/categories" class="menu-item">
+        </NuxtLink>
+        <NuxtLink to="/admin/categories" class="menu-item">
           🗂️ Danh mục
-        </RouterLink>
-        <RouterLink to="/admin/trash" class="menu-item">
+        </NuxtLink>
+        <NuxtLink to="/admin/trash" class="menu-item">
           🗑️ Thùng rác
-        </RouterLink>
-        <RouterLink to="/admin/roles" class="menu-item">
+        </NuxtLink>
+        <NuxtLink to="/admin/roles" class="menu-item">
           🔑 Nhóm quyền
-        </RouterLink>
-        <RouterLink to="/admin/accounts" class="menu-item">
+        </NuxtLink>
+        <NuxtLink to="/admin/accounts" class="menu-item">
           👥 Tài khoản Admin
-        </RouterLink>
+        </NuxtLink>
       </nav>
 
       <div class="sidebar-footer">
@@ -93,7 +91,7 @@ function handleLogout() {
       </header>
 
       <div class="admin-content fade-in-item">
-        <RouterView />
+        <slot />
       </div>
     </main>
   </div>

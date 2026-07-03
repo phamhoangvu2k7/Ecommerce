@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useCartStore } from "../../stores/cart.ts";
-import SkeletonDetail from "../../components/SkeletonDetail.vue";
+import { useCartStore } from "~/stores/cart.ts";
+import SkeletonDetail from "~/components/SkeletonDetail.vue";
 
 const route = useRoute();
 const router = useRouter();

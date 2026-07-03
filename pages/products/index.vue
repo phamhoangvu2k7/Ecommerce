@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import ProductCard from "../../components/ProductCard.vue";
-import SkeletonCard from "../../components/SkeletonCard.vue";
+import ProductCard from "~/components/ProductCard.vue";
+import SkeletonCard from "~/components/SkeletonCard.vue";
 
 const route = useRoute();
 const router = useRouter();

@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { onMounted, computed, ref, watch } from "vue";
-import { RouterLink, RouterView, useRouter, useRoute } from "vue-router";
-import { useAuthStore } from "../stores/auth.ts";
-import { useCartStore } from "../stores/cart.ts";
+import { useAuthStore } from "~/stores/auth.ts";
+import { useCartStore } from "~/stores/cart.ts";
 
 const authStore = useAuthStore();
 const cartStore = useCartStore();
@@ -28,14 +27,13 @@ function handleLogout() {
   cartStore.clearCart();
   router.push("/login");
 }
-
 </script>
 
 <template>
   <div class="client-layout">
     <header class="premium-nav">
       <div class="container nav-container">
-        <RouterLink to="/" class="nav-logo">⚡ Premium Store</RouterLink>
+        <NuxtLink to="/" class="nav-logo">⚡ Premium Store</NuxtLink>
 
         <!-- Mobile Menu Toggle Button -->
         <button 
@@ -50,32 +48,31 @@ function handleLogout() {
         </button>
 
         <nav class="nav-links" :class="{ 'menu-active': isMenuOpen }">
-
-          <RouterLink to="/" class="nav-link">Trang chủ</RouterLink>
-          <RouterLink to="/products" class="nav-link">Sản phẩm</RouterLink>
-          <RouterLink to="/cart" class="nav-link style-cart-link">
+          <NuxtLink to="/" class="nav-link">Trang chủ</NuxtLink>
+          <NuxtLink to="/products" class="nav-link">Sản phẩm</NuxtLink>
+          <NuxtLink to="/cart" class="nav-link style-cart-link">
             Giỏ hàng
             <span v-if="cartCount > 0" class="cart-badge">{{ cartCount }}</span>
-          </RouterLink>
+          </NuxtLink>
 
           <!-- User State -->
           <template v-if="authStore.user">
-            <RouterLink to="/orders" class="nav-link">Đơn hàng</RouterLink>
-            <RouterLink to="/profile" class="nav-link user-profile-link">
+            <NuxtLink to="/orders" class="nav-link">Đơn hàng</NuxtLink>
+            <NuxtLink to="/profile" class="nav-link user-profile-link">
               👋 {{ authStore.user.fullName }}
-            </RouterLink>
+            </NuxtLink>
             <button @click="handleLogout" class="btn btn-secondary btn-logout-sm">Đăng xuất</button>
           </template>
           <template v-else>
-            <RouterLink to="/login" class="nav-link">Đăng nhập</RouterLink>
-            <RouterLink to="/register" class="btn btn-primary btn-sm">Đăng ký</RouterLink>
+            <NuxtLink to="/login" class="nav-link">Đăng nhập</NuxtLink>
+            <NuxtLink to="/register" class="btn btn-primary btn-sm">Đăng ký</NuxtLink>
           </template>
         </nav>
       </div>
     </header>
 
     <main class="client-content fade-in-item">
-      <RouterView />
+      <slot />
     </main>
 
     <footer class="client-footer">

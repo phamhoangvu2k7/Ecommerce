@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import { useAuthStore } from "../../stores/auth.ts";
+import { useAuthStore } from "~/stores/auth.ts";
+ 
+definePageMeta({
+  middleware: ["auth"]
+});
 
 const authStore = useAuthStore();
 </script>

@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { RouterLink } from "vue-router";
-import OrderItem from "../../components/OrderItem.vue";
-import SkeletonOrder from "../../components/SkeletonOrder.vue";
+import OrderItem from "~/components/OrderItem.vue";
+import SkeletonOrder from "~/components/SkeletonOrder.vue";
+
+definePageMeta({
+  middleware: ["auth"]
+});
 
 const orders = ref<any[]>([]);
 const loading = ref(true);

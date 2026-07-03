@@ -9,3 +9,5 @@ brain/
 .env.local
 plan/
 skill.md
+.nuxt
+.vscode

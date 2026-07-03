@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRouter, RouterLink } from "vue-router";
-import { useAuthStore } from "../../stores/auth.ts";
-import { useCartStore } from "../../stores/cart.ts";
+import { useAuthStore } from "~/stores/auth.ts";
+import { useCartStore } from "~/stores/cart.ts";
 
 const authStore = useAuthStore();
 const cartStore = useCartStore();

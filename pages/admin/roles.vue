@@ -1,4 +1,9 @@
 <script setup lang="ts">
+definePageMeta({
+  layout: "admin",
+  middleware: ["admin"]
+});
+
 import { ref, onMounted } from "vue";
 
 interface Role {

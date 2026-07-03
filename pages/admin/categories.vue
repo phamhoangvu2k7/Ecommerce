@@ -1,6 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import CategoryNode from "../../components/CategoryNode.vue";
+import CategoryNode from "~/components/CategoryNode.vue";
+
+definePageMeta({
+  layout: "admin",
+  middleware: ["admin"]
+});
 
 const categoryTree = ref<any[]>([]);
 const flatCategories = ref<any[]>([]);

@@ -1,6 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { useAuthStore } from "../../stores/auth.ts";
+import { useAuthStore } from "~/stores/auth.ts";
+
+definePageMeta({
+  layout: "admin",
+  middleware: ["admin"]
+});
 
 interface Role {
   _id: string;

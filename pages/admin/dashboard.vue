@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+definePageMeta({
+  layout: "admin",
+  middleware: ["admin"]
+});
 
 const stats = ref<any>(null);
 const loading = ref(true);

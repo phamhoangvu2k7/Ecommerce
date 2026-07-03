@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { RouterLink } from "vue-router";
-import ProductCard from "../../components/ProductCard.vue";
-import SkeletonCard from "../../components/SkeletonCard.vue";
+import ProductCard from "~/components/ProductCard.vue";
+import SkeletonCard from "~/components/SkeletonCard.vue";
 
 const featuredProducts = ref<any[]>([]);
 const loading = ref(true);

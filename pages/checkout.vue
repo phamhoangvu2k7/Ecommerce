@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { useRouter } from "vue-router";
-import { useCartStore } from "../../stores/cart.ts";
+import { useCartStore } from "~/stores/cart.ts";
+
+definePageMeta({
+  middleware: ["auth"]
+});
 
 const cartStore = useCartStore();
 const router = useRouter();
