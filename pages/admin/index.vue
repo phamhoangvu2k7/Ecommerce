@@ -2,8 +2,8 @@
 definePageMeta({
   middleware: [
     function () {
-      return navigateTo("/admin/dashboard");
-    }
-  ]
-});
+      return navigateTo('/admin/dashboard')
+    },
+  ],
+})
 </script>

@@ -1,31 +1,31 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
-import { useAuthStore } from "~/stores/auth.ts";
+import { ref, watch } from 'vue'
+import { useAuthStore } from '~/stores/auth.ts'
 
-const authStore = useAuthStore();
-const router = useRouter();
-const route = useRoute();
+const authStore = useAuthStore()
+const router = useRouter()
+const route = useRoute()
 
-const isSidebarOpen = ref(false);
+const isSidebarOpen = ref(false)
 
 watch(() => route.path, () => {
-  isSidebarOpen.value = false;
-});
+  isSidebarOpen.value = false
+})
 
 function handleLogout() {
-  authStore.logoutAdmin();
-  router.push("/admin/login");
+  authStore.logoutAdmin()
+  router.push('/admin/login')
 }
 </script>
 
 <template>
   <div class="admin-layout">
     <!-- Sidebar Overlay for mobile -->
-    <div 
-      v-if="isSidebarOpen" 
-      @click="isSidebarOpen = false" 
+    <div
+      v-if="isSidebarOpen"
       class="sidebar-overlay"
-    ></div>
+      @click="isSidebarOpen = false"
+    />
 
     <!-- Sidebar -->
     <aside class="admin-sidebar" :class="{ 'sidebar-open': isSidebarOpen }">
@@ -39,8 +39,12 @@ function handleLogout() {
           {{ authStore.admin.fullName.charAt(0) }}
         </div>
         <div class="user-info">
-          <div class="user-name">{{ authStore.admin.fullName }}</div>
-          <div class="user-role">{{ authStore.admin.role?.title || 'Quản trị viên' }}</div>
+          <div class="user-name">
+            {{ authStore.admin.fullName }}
+          </div>
+          <div class="user-role">
+            {{ authStore.admin.role?.title || 'Quản trị viên' }}
+          </div>
         </div>
       </div>
 
@@ -66,7 +70,7 @@ function handleLogout() {
       </nav>
 
       <div class="sidebar-footer">
-        <button @click="handleLogout" class="btn btn-secondary w-full">
+        <button class="btn btn-secondary w-full" @click="handleLogout">
           🚪 Đăng xuất
         </button>
       </div>
@@ -76,14 +80,16 @@ function handleLogout() {
     <main class="admin-main">
       <header class="admin-header">
         <div class="header-left">
-          <button 
-            @click="isSidebarOpen = !isSidebarOpen" 
-            class="admin-toggle" 
+          <button
+            class="admin-toggle"
             aria-label="Toggle sidebar"
+            @click="isSidebarOpen = !isSidebarOpen"
           >
             ☰
           </button>
-          <div class="header-title">Hệ thống Quản lý</div>
+          <div class="header-title">
+            Hệ thống Quản lý
+          </div>
         </div>
         <div class="header-status">
           <span class="badge badge-active">Hệ thống Đang Chạy</span>

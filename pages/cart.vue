@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { useCartStore } from "~/stores/cart.ts";
-import CartItem from "~/components/CartItem.vue";
+import CartItem from '~/components/CartItem.vue'
+import { useCartStore } from '~/stores/cart.ts'
 
-const cartStore = useCartStore();
-const router = useRouter();
+const cartStore = useCartStore()
+const router = useRouter()
 
-const updatingId = ref<string | null>(null);
+const updatingId = ref<string | null>(null)
 
 onMounted(() => {
-  cartStore.fetchCart();
-});
+  cartStore.fetchCart()
+})
 
 async function handleUpdateQty(
   productId: string,
@@ -17,56 +17,71 @@ async function handleUpdateQty(
   offset: number,
   maxStock: number,
 ) {
-  const newQty = currentQty + offset;
-  if (newQty < 0 || newQty > maxStock) return;
+  const newQty = currentQty + offset
+  if (newQty < 0 || newQty > maxStock)
+    return
 
-  updatingId.value = productId;
+  updatingId.value = productId
   try {
-    await cartStore.updateQuantity(productId, newQty);
-  } catch (err: any) {
-    alert(err.message);
-  } finally {
-    updatingId.value = null;
+    await cartStore.updateQuantity(productId, newQty)
+  }
+  catch (err: any) {
+    // eslint-disable-next-line no-alert
+    alert(err.message)
+  }
+  finally {
+    updatingId.value = null
   }
 }
 
 async function handleRemoveItem(productId: string) {
-  if (!confirm("Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?")) return;
-  updatingId.value = productId;
+  // eslint-disable-next-line no-alert
+  if (!confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?'))
+    return
+  updatingId.value = productId
   try {
-    await cartStore.removeFromCart(productId);
-  } catch (err: any) {
-    alert(err.message);
-  } finally {
-    updatingId.value = null;
+    await cartStore.removeFromCart(productId)
+  }
+  catch (err: any) {
+    // eslint-disable-next-line no-alert
+    alert(err.message)
+  }
+  finally {
+    updatingId.value = null
   }
 }
 
 function formatPrice(value: number) {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-  }).format(value);
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND',
+  }).format(value)
 }
 
 function proceedToCheckout() {
-  router.push("/checkout");
+  router.push('/checkout')
 }
 </script>
 
 <template>
   <div class="cart-page container">
-    <h1 class="h1-title mb-8">Giỏ hàng của bạn</h1>
+    <h1 class="h1-title mb-8">
+      Giỏ hàng của bạn
+    </h1>
 
     <div
       v-if="cartStore.products.length === 0"
       class="empty-cart-state glass-panel fade-in-item"
     >
-      <div class="empty-icon">🛒</div>
-      <p class="empty-text">Giỏ hàng của bạn đang trống.</p>
-      <RouterLink to="/products" class="btn btn-primary"
-        >Khám phá sản phẩm ngay</RouterLink
-      >
+      <div class="empty-icon">
+        🛒
+      </div>
+      <p class="empty-text">
+        Giỏ hàng của bạn đang trống.
+      </p>
+      <RouterLink to="/products" class="btn btn-primary">
+        Khám phá sản phẩm ngay
+      </RouterLink>
     </div>
 
     <div v-else class="cart-layout">
@@ -85,7 +100,9 @@ function proceedToCheckout() {
       <!-- Order Summary Card -->
       <aside class="summary-section">
         <div class="premium-card summary-card">
-          <h3 class="summary-title">Tóm tắt đơn hàng</h3>
+          <h3 class="summary-title">
+            Tóm tắt đơn hàng
+          </h3>
 
           <div class="summary-row">
             <span>Tạm tính</span>
@@ -95,7 +112,7 @@ function proceedToCheckout() {
             <span>Phí vận chuyển</span>
             <span class="success-text">Miễn phí</span>
           </div>
-          <div class="summary-divider"></div>
+          <div class="summary-divider" />
           <div class="summary-row total-row">
             <span>Tổng cộng</span>
             <span class="total-price">{{
@@ -104,8 +121,8 @@ function proceedToCheckout() {
           </div>
 
           <button
-            @click="proceedToCheckout"
             class="btn btn-primary btn-checkout w-full mt-6"
+            @click="proceedToCheckout"
           >
             Tiến hành thanh toán 💳
           </button>

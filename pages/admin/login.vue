@@ -1,46 +1,49 @@
 <script setup lang="ts">
-import { useAuthStore } from "~/stores/auth.ts";
+import { useAuthStore } from '~/stores/auth.ts'
 
-const authStore = useAuthStore();
-const router = useRouter();
+const authStore = useAuthStore()
+const router = useRouter()
 
-const email = ref("");
-const password = ref("");
+const email = ref('')
+const password = ref('')
 
-const loading = ref(false);
-const errorMsg = ref("");
+const loading = ref(false)
+const errorMsg = ref('')
 
 async function handleLogin() {
   if (!email.value || !password.value) {
-    errorMsg.value = "Vui lòng nhập đầy đủ thông tin.";
-    return;
+    errorMsg.value = 'Vui lòng nhập đầy đủ thông tin.'
+    return
   }
 
-  loading.value = true;
-  errorMsg.value = "";
+  loading.value = true
+  errorMsg.value = ''
 
   try {
-    const res = await fetch("/api/admin/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: email.value, password: password.value })
-    });
+    const res = await fetch('/api/admin/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.value, password: password.value }),
+    })
 
-    const data = await res.json();
+    const data = await res.json()
     if (data.success) {
       // Save adminToken in localStorage
-      localStorage.setItem("adminToken", data.token);
-      authStore.setAdmin(data.user);
+      localStorage.setItem('adminToken', data.token)
+      authStore.setAdmin(data.user)
 
       // Redirect to Dashboard
-      router.push("/admin/dashboard");
-    } else {
-      errorMsg.value = data.statusMessage || "Đăng nhập thất bại.";
+      router.push('/admin/dashboard')
     }
-  } catch (err: any) {
-    errorMsg.value = "Lỗi kết nối đến máy chủ.";
-  } finally {
-    loading.value = false;
+    else {
+      errorMsg.value = data.statusMessage || 'Đăng nhập thất bại.'
+    }
+  }
+  catch (err: any) {
+    errorMsg.value = 'Lỗi kết nối đến máy chủ.'
+  }
+  finally {
+    loading.value = false
   }
 }
 </script>
@@ -48,8 +51,12 @@ async function handleLogin() {
 <template>
   <div class="admin-login-page">
     <div class="login-card premium-card glass-panel fade-in-item">
-      <h2 class="card-title">⚡ Hệ thống Quản trị</h2>
-      <p class="card-subtitle">Đăng nhập tài khoản quản lý của bạn</p>
+      <h2 class="card-title">
+        ⚡ Hệ thống Quản trị
+      </h2>
+      <p class="card-subtitle">
+        Đăng nhập tài khoản quản lý của bạn
+      </p>
 
       <div v-if="errorMsg" class="alert alert-error">
         {{ errorMsg }}
@@ -58,12 +65,12 @@ async function handleLogin() {
       <form @submit.prevent="handleLogin">
         <div class="input-group">
           <label class="input-label">Tài khoản Email</label>
-          <input v-model="email" type="email" placeholder="admin@example.com" class="premium-input" required />
+          <input v-model="email" type="email" placeholder="admin@example.com" class="premium-input" required>
         </div>
 
         <div class="input-group">
           <label class="input-label">Mật khẩu</label>
-          <input v-model="password" type="password" placeholder="Nhập mật khẩu" class="premium-input" required />
+          <input v-model="password" type="password" placeholder="Nhập mật khẩu" class="premium-input" required>
         </div>
 
         <button type="submit" :disabled="loading" class="btn btn-primary w-full mt-6">

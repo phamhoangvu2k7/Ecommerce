@@ -1,83 +1,94 @@
 <script setup lang="ts">
+import { onMounted, ref } from 'vue'
+
 definePageMeta({
-  layout: "admin",
-  middleware: ["admin"]
-});
+  layout: 'admin',
+  middleware: ['admin'],
+})
 
-import { ref, onMounted } from "vue";
+const deletedProducts = ref<any[]>([])
+const deletedCategories = ref<any[]>([])
 
-const deletedProducts = ref<any[]>([]);
-const deletedCategories = ref<any[]>([]);
-
-const loading = ref(true);
-const successMsg = ref("");
-const currentTab = ref("products"); // 'products' or 'categories'
+const loading = ref(true)
+const successMsg = ref('')
+const currentTab = ref('products') // 'products' or 'categories'
 
 onMounted(async () => {
-  await fetchTrash();
-});
+  await fetchTrash()
+})
 
 async function fetchTrash() {
-  loading.value = true;
+  loading.value = true
   try {
-    const adminToken = localStorage.getItem("adminToken");
-    const headers: any = {};
-    if (adminToken) headers["Authorization"] = `Bearer ${adminToken}`;
+    const adminToken = localStorage.getItem('adminToken')
+    const headers: any = {}
+    if (adminToken)
+      headers.Authorization = `Bearer ${adminToken}`
 
-    const res = await fetch("/api/admin/trash", { headers });
-    const data = await res.json();
+    const res = await fetch('/api/admin/trash', { headers })
+    const data = await res.json()
     if (data.success) {
-      deletedProducts.value = data.products;
-      deletedCategories.value = data.categories;
+      deletedProducts.value = data.products
+      deletedCategories.value = data.categories
     }
-  } catch (err) {
-    console.error("Error loading trash data:", err);
-  } finally {
-    loading.value = false;
+  }
+  catch (err) {
+    console.error('Error loading trash data:', err)
+  }
+  finally {
+    loading.value = false
   }
 }
 
 async function handleRestore(type: string, id: string) {
-  let confirmMsg = "Bạn có chắc muốn khôi phục sản phẩm này?";
-  if (type === "category") {
-    confirmMsg = "Bạn có chắc muốn khôi phục danh mục này? Tất cả danh mục cha liên quan cũng sẽ tự động được khôi phục.";
+  let confirmMsg = 'Bạn có chắc muốn khôi phục sản phẩm này?'
+  if (type === 'category') {
+    confirmMsg = 'Bạn có chắc muốn khôi phục danh mục này? Tất cả danh mục cha liên quan cũng sẽ tự động được khôi phục.'
   }
 
-  if (!confirm(confirmMsg)) return;
+  if (!confirm(confirmMsg))
+    return
 
   try {
-    const adminToken = localStorage.getItem("adminToken");
-    const headers: any = { "Content-Type": "application/json" };
-    if (adminToken) headers["Authorization"] = `Bearer ${adminToken}`;
+    const adminToken = localStorage.getItem('adminToken')
+    const headers: any = { 'Content-Type': 'application/json' }
+    if (adminToken)
+      headers.Authorization = `Bearer ${adminToken}`
 
-    const res = await fetch("/api/admin/trash/restore", {
-      method: "POST",
+    const res = await fetch('/api/admin/trash/restore', {
+      method: 'POST',
       headers,
-      body: JSON.stringify({ type, id })
-    });
-    const data = await res.json();
+      body: JSON.stringify({ type, id }),
+    })
+    const data = await res.json()
     if (data.success) {
-      successMsg.value = "Khôi phục dữ liệu thành công!";
-      await fetchTrash();
-      setTimeout(() => (successMsg.value = ""), 4000);
-    } else {
-      alert(data.message || data.statusMessage || "Lỗi khôi phục dữ liệu.");
+      successMsg.value = 'Khôi phục dữ liệu thành công!'
+      await fetchTrash()
+      setTimeout(() => (successMsg.value = ''), 4000)
     }
-  } catch (err) {
-    alert("Lỗi kết nối máy chủ.");
+    else {
+      alert(data.message || data.statusMessage || 'Lỗi khôi phục dữ liệu.')
+    }
+  }
+  catch (err) {
+    alert('Lỗi kết nối máy chủ.')
   }
 }
 
 function formatPrice(value: number) {
-  return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value)
 }
 </script>
 
 <template>
   <div class="admin-trash-page">
     <div class="page-header mb-8">
-      <h1 class="h1-title">Thùng rác hệ thống</h1>
-      <p class="text-muted">Quản lý và khôi phục dữ liệu đã bị xóa mềm.</p>
+      <h1 class="h1-title">
+        Thùng rác hệ thống
+      </h1>
+      <p class="text-muted">
+        Quản lý và khôi phục dữ liệu đã bị xóa mềm.
+      </p>
     </div>
 
     <!-- Success Feedback Alert -->
@@ -88,14 +99,14 @@ function formatPrice(value: number) {
     <!-- Tabs switcher header -->
     <div class="trash-tabs mb-6">
       <button
+        class="tab-btn" :class="[currentTab === 'products' ? 'active-tab' : '']"
         @click="currentTab = 'products'"
-        :class="['tab-btn', currentTab === 'products' ? 'active-tab' : '']"
       >
         📦 Sản phẩm đã xóa ({{ deletedProducts.length }})
       </button>
       <button
+        class="tab-btn" :class="[currentTab === 'categories' ? 'active-tab' : '']"
         @click="currentTab = 'categories'"
-        :class="['tab-btn', currentTab === 'categories' ? 'active-tab' : '']"
       >
         🗂️ Danh mục đã xóa ({{ deletedCategories.length }})
       </button>
@@ -112,7 +123,9 @@ function formatPrice(value: number) {
         <table class="premium-table">
           <thead>
             <tr>
-              <th width="80">Ảnh</th>
+              <th width="80">
+                Ảnh
+              </th>
               <th>Tên sản phẩm</th>
               <th>Danh mục gốc</th>
               <th>Giá lúc xóa</th>
@@ -121,17 +134,23 @@ function formatPrice(value: number) {
           </thead>
           <tbody>
             <tr v-if="deletedProducts.length === 0">
-              <td colspan="5" class="text-center py-6 text-muted">Không có sản phẩm nào trong thùng rác.</td>
+              <td colspan="5" class="text-center py-6 text-muted">
+                Không có sản phẩm nào trong thùng rác.
+              </td>
             </tr>
             <tr v-for="product in deletedProducts" :key="product._id" class="table-row">
               <td>
-                <img :src="product.thumbnail || 'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=500'" :alt="product.title" class="table-thumbnail" />
+                <img :src="product.thumbnail || 'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=500'" :alt="product.title" class="table-thumbnail">
               </td>
-              <td class="font-semibold text-white">{{ product.title }}</td>
-              <td class="text-muted">{{ product.product_category_id?.title || 'Không danh mục' }}</td>
+              <td class="font-semibold text-white">
+                {{ product.title }}
+              </td>
+              <td class="text-muted">
+                {{ product.product_category_id?.title || 'Không danh mục' }}
+              </td>
               <td>{{ formatPrice(product.price) }}</td>
               <td>
-                <button @click="handleRestore('product', product._id)" class="btn btn-primary btn-restore">
+                <button class="btn btn-primary btn-restore" @click="handleRestore('product', product._id)">
                   🔄 Khôi phục
                 </button>
               </td>
@@ -155,14 +174,20 @@ function formatPrice(value: number) {
           </thead>
           <tbody>
             <tr v-if="deletedCategories.length === 0">
-              <td colspan="4" class="text-center py-6 text-muted">Không có danh mục nào trong thùng rác.</td>
+              <td colspan="4" class="text-center py-6 text-muted">
+                Không có danh mục nào trong thùng rác.
+              </td>
             </tr>
             <tr v-for="cat in deletedCategories" :key="cat._id" class="table-row">
-              <td class="font-semibold text-white">🗂️ {{ cat.title }}</td>
-              <td class="text-muted">{{ cat.description || 'Không mô tả' }}</td>
+              <td class="font-semibold text-white">
+                🗂️ {{ cat.title }}
+              </td>
+              <td class="text-muted">
+                {{ cat.description || 'Không mô tả' }}
+              </td>
               <td>{{ cat.position }}</td>
               <td>
-                <button @click="handleRestore('category', cat._id)" class="btn btn-primary btn-restore">
+                <button class="btn btn-primary btn-restore" @click="handleRestore('category', cat._id)">
                   🔄 Khôi phục
                 </button>
               </td>

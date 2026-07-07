@@ -2,31 +2,31 @@
   <div class="detail-container animate-pulse" aria-busy="true" aria-label="Đang tải chi tiết sản phẩm...">
     <!-- Image Column -->
     <div class="image-column glass-panel">
-      <div class="skeleton-image"></div>
+      <div class="skeleton-image" />
     </div>
 
     <!-- Info Column -->
     <div class="info-column">
-      <div class="skeleton-line skeleton-bread"></div>
-      <div class="skeleton-line skeleton-title"></div>
-      <div class="skeleton-line skeleton-category"></div>
-      <div class="skeleton-badge"></div>
-      
+      <div class="skeleton-line skeleton-bread" />
+      <div class="skeleton-line skeleton-title" />
+      <div class="skeleton-line skeleton-category" />
+      <div class="skeleton-badge" />
+
       <div class="skeleton-price-section">
-        <div class="skeleton-line skeleton-price-new"></div>
-        <div class="skeleton-line skeleton-price-old"></div>
+        <div class="skeleton-line skeleton-price-new" />
+        <div class="skeleton-line skeleton-price-old" />
       </div>
 
       <div class="skeleton-actions-block">
-        <div class="skeleton-qty"></div>
-        <div class="skeleton-button"></div>
+        <div class="skeleton-qty" />
+        <div class="skeleton-button" />
       </div>
 
       <div class="skeleton-desc-section">
-        <div class="skeleton-line skeleton-desc-title"></div>
-        <div class="skeleton-line skeleton-desc-text-1"></div>
-        <div class="skeleton-line skeleton-desc-text-2"></div>
-        <div class="skeleton-line skeleton-desc-text-3"></div>
+        <div class="skeleton-line skeleton-desc-title" />
+        <div class="skeleton-line skeleton-desc-text-1" />
+        <div class="skeleton-line skeleton-desc-text-2" />
+        <div class="skeleton-line skeleton-desc-text-3" />
       </div>
     </div>
   </div>
@@ -203,12 +203,12 @@
     align-items: flex-start;
     gap: 0.75rem;
   }
-  
+
   .skeleton-actions-block {
     flex-direction: column;
     gap: 0.75rem;
   }
-  
+
   .skeleton-qty {
     width: 100%;
   }

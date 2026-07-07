@@ -1,40 +1,40 @@
-import jwt from "jsonwebtoken";
-import { defineEventHandler, createError, readBody } from "h3";
-import { ForgotPassword } from "../../../utils/models.ts";
-import { getJwtSecret } from "../../../utils/helpers.ts";
+import { createError, defineEventHandler, readBody } from 'h3'
+import jwt from 'jsonwebtoken'
+import { getJwtSecret } from '../../../utils/helpers.ts'
+import { ForgotPassword } from '../../../utils/models.ts'
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody(event);
-  const { email, otp } = body;
+  const body = await readBody(event)
+  const { email, otp } = body
 
   if (!email || !otp) {
     throw createError({
       statusCode: 400,
-      statusMessage: "Vui lòng điền đầy đủ email và mã OTP."
-    });
+      statusMessage: 'Vui lòng điền đầy đủ email và mã OTP.',
+    })
   }
 
-  const record = await ForgotPassword.findOne({ email, otp });
+  const record = await ForgotPassword.findOne({ email, otp })
   if (!record) {
     throw createError({
       statusCode: 400,
-      statusMessage: "Mã OTP không đúng hoặc đã hết hạn."
-    });
+      statusMessage: 'Mã OTP không đúng hoặc đã hết hạn.',
+    })
   }
 
   // Issue temporary JWT reset token valid for 10 minutes
   const resetToken = jwt.sign(
-    { email, role: "reset-password" },
+    { email, role: 'reset-password' },
     getJwtSecret(),
-    { expiresIn: "10m" }
-  );
+    { expiresIn: '10m' },
+  )
 
   // Consume (delete) the OTP so it can't be reused
-  await ForgotPassword.deleteOne({ _id: record._id });
+  await ForgotPassword.deleteOne({ _id: record._id })
 
   return {
     success: true,
-    message: "Xác thực mã OTP thành công. Vui lòng đặt mật khẩu mới.",
-    resetToken
-  };
-});
+    message: 'Xác thực mã OTP thành công. Vui lòng đặt mật khẩu mới.',
+    resetToken,
+  }
+})

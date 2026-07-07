@@ -1,62 +1,69 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { useCartStore } from "~/stores/cart.ts";
-import SkeletonDetail from "~/components/SkeletonDetail.vue";
+import { onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import SkeletonDetail from '~/components/SkeletonDetail.vue'
+import { useCartStore } from '~/stores/cart.ts'
 
-const route = useRoute();
-const router = useRouter();
-const cartStore = useCartStore();
+const route = useRoute()
+const router = useRouter()
+const cartStore = useCartStore()
 
-const product = ref<any>(null);
-const loading = ref(true);
-const errorMsg = ref("");
-const successMsg = ref("");
+const product = ref<any>(null)
+const loading = ref(true)
+const errorMsg = ref('')
+const successMsg = ref('')
 
-const quantity = ref(1);
-const addingToCart = ref(false);
+const quantity = ref(1)
+const addingToCart = ref(false)
 
 onMounted(async () => {
-  const id = route.params.id;
+  const id = route.params.id
   try {
-    const res = await fetch(`/api/client/products/${id}`);
-    const data = await res.json();
+    const res = await fetch(`/api/client/products/${id}`)
+    const data = await res.json()
     if (data.success) {
-      product.value = data.product;
-    } else {
-      errorMsg.value = data.message || data.statusMessage || "Lỗi tải chi tiết sản phẩm.";
+      product.value = data.product
     }
-  } catch (err) {
-    errorMsg.value = "Không thể kết nối đến máy chủ.";
-  } finally {
-    loading.value = false;
+    else {
+      errorMsg.value = data.message || data.statusMessage || 'Lỗi tải chi tiết sản phẩm.'
+    }
   }
-});
+  catch (err) {
+    errorMsg.value = 'Không thể kết nối đến máy chủ.'
+  }
+  finally {
+    loading.value = false
+  }
+})
 
 async function handleAddToCart() {
-  if (!product.value || quantity.value <= 0) return;
-  addingToCart.value = true;
-  errorMsg.value = "";
-  successMsg.value = "";
+  if (!product.value || quantity.value <= 0)
+    return
+  addingToCart.value = true
+  errorMsg.value = ''
+  successMsg.value = ''
 
   try {
-    await cartStore.addToCart(product.value._id, quantity.value);
-    successMsg.value = `Đã thêm ${quantity.value} sản phẩm '${product.value.title}' vào giỏ hàng thành công!`;
-    quantity.value = 1;
+    await cartStore.addToCart(product.value._id, quantity.value)
+    successMsg.value = `Đã thêm ${quantity.value} sản phẩm '${product.value.title}' vào giỏ hàng thành công!`
+    quantity.value = 1
     // Auto clear success message
     setTimeout(() => {
-      successMsg.value = "";
-    }, 4000);
-  } catch (err: any) {
-    errorMsg.value = err.message || "Không thể thêm vào giỏ hàng.";
-  } finally {
-    addingToCart.value = false;
+      successMsg.value = ''
+    }, 4000)
+  }
+  catch (err: any) {
+    errorMsg.value = err.message || 'Không thể thêm vào giỏ hàng.'
+  }
+  finally {
+    addingToCart.value = false
   }
 }
 
 function formatPrice(value: number) {
-  if (!value) return "0 ₫";
-  return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
+  if (!value)
+    return '0 ₫'
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value)
 }
 </script>
 
@@ -68,25 +75,33 @@ function formatPrice(value: number) {
 
     <div v-else-if="errorMsg && !product" class="alert alert-error">
       {{ errorMsg }}
-      <RouterLink to="/products" class="btn btn-secondary mt-4 block text-center">Quay lại danh sách</RouterLink>
+      <RouterLink to="/products" class="btn btn-secondary mt-4 block text-center">
+        Quay lại danh sách
+      </RouterLink>
     </div>
 
     <div v-else-if="product" class="detail-container">
       <!-- Image Column -->
       <div class="image-column glass-panel">
-        <img :src="product.thumbnail || 'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=500'" :alt="product.title" class="detail-img" />
+        <img :src="product.thumbnail || 'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=500'" :alt="product.title" class="detail-img">
       </div>
 
       <!-- Info Column -->
       <div class="info-column">
         <nav class="breadcrumb">
-          <RouterLink to="/products" class="bread-link">Sản phẩm</RouterLink>
+          <RouterLink to="/products" class="bread-link">
+            Sản phẩm
+          </RouterLink>
           <span class="bread-sep">/</span>
           <span class="bread-active">{{ product.product_category_id?.title }}</span>
         </nav>
 
-        <h1 class="product-title">{{ product.title }}</h1>
-        <p class="product-category">Danh mục: <strong>{{ product.product_category_id?.title }}</strong></p>
+        <h1 class="product-title">
+          {{ product.title }}
+        </h1>
+        <p class="product-category">
+          Danh mục: <strong>{{ product.product_category_id?.title }}</strong>
+        </p>
 
         <!-- Status stock badge -->
         <div class="status-stock">
@@ -117,17 +132,23 @@ function formatPrice(value: number) {
         <!-- Add to cart block -->
         <div v-if="product.stock > 0" class="cart-actions-block">
           <div class="qty-selector">
-            <button @click="quantity > 1 ? quantity-- : null" class="btn btn-secondary btn-qty">-</button>
-            <input v-model="quantity" type="number" readonly class="qty-input" />
-            <button @click="quantity < product.stock ? quantity++ : null" class="btn btn-secondary btn-qty">+</button>
+            <button class="btn btn-secondary btn-qty" @click="quantity > 1 ? quantity-- : null">
+              -
+            </button>
+            <input v-model="quantity" type="number" readonly class="qty-input">
+            <button class="btn btn-secondary btn-qty" @click="quantity < product.stock ? quantity++ : null">
+              +
+            </button>
           </div>
-          <button @click="handleAddToCart" :disabled="addingToCart" class="btn btn-primary btn-add">
+          <button :disabled="addingToCart" class="btn btn-primary btn-add" @click="handleAddToCart">
             {{ addingToCart ? 'Đang thêm...' : 'Thêm vào giỏ hàng 🛒' }}
           </button>
         </div>
 
         <div class="description-section">
-          <h3 class="section-title">Mô tả sản phẩm</h3>
+          <h3 class="section-title">
+            Mô tả sản phẩm
+          </h3>
           <p class="description-text">
             {{ product.description || 'Không có mô tả chi tiết cho sản phẩm này.' }}
           </p>
@@ -331,7 +352,7 @@ function formatPrice(value: number) {
   .product-title {
     font-size: 1.75rem;
   }
-  
+
   .image-column {
     max-width: 100%;
     height: auto;
@@ -350,21 +371,21 @@ function formatPrice(value: number) {
     align-items: flex-start;
     gap: 0.75rem;
   }
-  
+
   .cart-actions-block {
     flex-direction: column;
     gap: 0.75rem;
   }
-  
+
   .qty-selector {
     width: 100%;
     justify-content: space-between;
   }
-  
+
   .btn-qty {
     flex: 1;
   }
-  
+
   .qty-input {
     flex: 1.5;
   }

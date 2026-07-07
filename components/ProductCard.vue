@@ -1,41 +1,45 @@
 <script setup lang="ts">
-import { RouterLink } from "vue-router";
+import { RouterLink } from 'vue-router'
 
 defineProps<{
   product: {
-    _id: string;
-    title: string;
-    thumbnail?: string;
-    discountPercentage?: number;
-    price: number;
-    priceNew?: number;
+    _id: string
+    title: string
+    thumbnail?: string
+    discountPercentage?: number
+    price: number
+    priceNew?: number
     product_category_id?: {
-      title: string;
-    };
+      title: string
+    }
   }
-}>();
+}>()
 
 function formatPrice(value: number) {
-  return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value)
 }
 </script>
 
 <template>
   <div class="premium-card product-card">
     <div class="product-image-container">
-      <img 
-        :src="product.thumbnail || 'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=500'" 
-        :alt="product.title" 
-        class="product-img" 
-      />
+      <img
+        :src="product.thumbnail || 'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=500'"
+        :alt="product.title"
+        class="product-img"
+      >
       <div v-if="product.discountPercentage && product.discountPercentage > 0" class="discount-badge">
         -{{ product.discountPercentage }}%
       </div>
     </div>
     <div class="product-details">
-      <h3 class="product-title">{{ product.title }}</h3>
-      <p class="product-category">{{ product.product_category_id?.title }}</p>
-      
+      <h3 class="product-title">
+        {{ product.title }}
+      </h3>
+      <p class="product-category">
+        {{ product.product_category_id?.title }}
+      </p>
+
       <div class="product-prices">
         <span class="price-new">
           {{ formatPrice(product.priceNew || Math.round(product.price * (1 - (product.discountPercentage || 0) / 100))) }}

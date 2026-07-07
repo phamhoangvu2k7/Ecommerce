@@ -1,14 +1,14 @@
 <template>
   <div class="premium-card skeleton-card animate-pulse" aria-busy="true" aria-label="Đang tải sản phẩm...">
-    <div class="skeleton-image"></div>
+    <div class="skeleton-image" />
     <div class="skeleton-details">
-      <div class="skeleton-line skeleton-title"></div>
-      <div class="skeleton-line skeleton-category"></div>
+      <div class="skeleton-line skeleton-title" />
+      <div class="skeleton-line skeleton-category" />
       <div class="skeleton-row">
-        <div class="skeleton-line skeleton-price-new"></div>
-        <div class="skeleton-line skeleton-price-old"></div>
+        <div class="skeleton-line skeleton-price-new" />
+        <div class="skeleton-line skeleton-price-old" />
       </div>
-      <div class="skeleton-button"></div>
+      <div class="skeleton-button" />
     </div>
   </div>
 </template>

@@ -1,13 +1,13 @@
-import { defineEventHandler, createError } from "h3";
-import { Product, ProductCategory, User, Order } from "../../../utils/models.ts";
+import { createError, defineEventHandler } from 'h3'
+import { Order, Product, ProductCategory, User } from '../../../utils/models.ts'
 
 export default defineEventHandler(async (event) => {
-  const permissions = event.context.admin?.role_id?.permissions || [];
-  if (!permissions.includes("dashboard_view")) {
+  const permissions = event.context.admin?.role_id?.permissions || []
+  if (!permissions.includes('dashboard_view')) {
     throw createError({
       statusCode: 403,
-      statusMessage: "Bạn không có quyền truy cập Dashboard."
-    });
+      statusMessage: 'Bạn không có quyền truy cập Dashboard.',
+    })
   }
 
   // Query counts in parallel
@@ -16,19 +16,19 @@ export default defineEventHandler(async (event) => {
     totalProductsInactive,
     totalCategories,
     totalUsers,
-    totalOrders
+    totalOrders,
   ] = await Promise.all([
-    Product.countDocuments({ status: "active" }),
-    Product.countDocuments({ status: "inactive" }),
+    Product.countDocuments({ status: 'active' }),
+    Product.countDocuments({ status: 'inactive' }),
     ProductCategory.countDocuments({}),
     User.countDocuments({}),
-    Order.countDocuments({})
-  ]);
+    Order.countDocuments({}),
+  ])
 
   // Aggregate Revenue (excluding cancelled orders)
   const revenueAggregate = await Order.aggregate([
-    { $match: { status: { $ne: "cancelled" } } },
-    { $unwind: "$products" },
+    { $match: { status: { $ne: 'cancelled' } } },
+    { $unwind: '$products' },
     {
       $group: {
         _id: null,
@@ -37,24 +37,24 @@ export default defineEventHandler(async (event) => {
             $multiply: [
               {
                 $subtract: [
-                  "$products.price",
+                  '$products.price',
                   {
                     $multiply: [
-                      "$products.price",
-                      { $divide: ["$products.discountPercentage", 100] }
-                    ]
-                  }
-                ]
+                      '$products.price',
+                      { $divide: ['$products.discountPercentage', 100] },
+                    ],
+                  },
+                ],
               },
-              "$products.quantity"
-            ]
-          }
-        }
-      }
-    }
-  ]);
+              '$products.quantity',
+            ],
+          },
+        },
+      },
+    },
+  ])
 
-  const totalRevenue = revenueAggregate.length > 0 ? revenueAggregate[0].totalRevenue : 0;
+  const totalRevenue = revenueAggregate.length > 0 ? revenueAggregate[0].totalRevenue : 0
 
   return {
     success: true,
@@ -62,14 +62,14 @@ export default defineEventHandler(async (event) => {
       products: {
         active: totalProductsActive,
         inactive: totalProductsInactive,
-        total: totalProductsActive + totalProductsInactive
+        total: totalProductsActive + totalProductsInactive,
       },
       categoriesCount: totalCategories,
       usersCount: totalUsers,
       orders: {
         total: totalOrders,
-        revenue: Math.round(totalRevenue)
-      }
-    }
-  };
-});
+        revenue: Math.round(totalRevenue),
+      },
+    },
+  }
+})

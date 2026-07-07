@@ -1,73 +1,73 @@
 <script setup lang="ts">
 const props = defineProps<{
   order: {
-    _id: string;
-    createdAt: string;
-    status: string;
+    _id: string
+    createdAt: string
+    status: string
     products: Array<{
       product_id?: {
-        _id: string;
-        title: string;
-        thumbnail?: string;
-      };
-      price: number;
-      discountPercentage: number;
-      quantity: number;
-    }>;
+        _id: string
+        title: string
+        thumbnail?: string
+      }
+      price: number
+      discountPercentage: number
+      quantity: number
+    }>
     userInfo: {
-      fullName: string;
-      phone: string;
-      address: string;
-    };
+      fullName: string
+      phone: string
+      address: string
+    }
   }
-}>();
+}>()
 
 const emit = defineEmits<{
-  (e: "cancel", orderId: string): void;
-}>();
+  (e: 'cancel', orderId: string): void
+}>()
 
 function formatPrice(value: number) {
-  return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value)
 }
 
 function calculateOrderTotal(products: any[]) {
   return products.reduce((sum, p) => {
-    const finalPrice = Math.round(p.price * (1 - p.discountPercentage / 100));
-    return sum + finalPrice * p.quantity;
-  }, 0);
+    const finalPrice = Math.round(p.price * (1 - p.discountPercentage / 100))
+    return sum + finalPrice * p.quantity
+  }, 0)
 }
 
 function getStatusLabel(status: string) {
   switch (status) {
-    case "pending":
-      return "Chờ xác nhận";
-    case "processing":
-      return "Đang xử lý";
-    case "shipping":
-      return "Đang giao hàng";
-    case "delivered":
-      return "Đã giao hàng";
-    case "cancelled":
-      return "Đã hủy";
+    case 'pending':
+      return 'Chờ xác nhận'
+    case 'processing':
+      return 'Đang xử lý'
+    case 'shipping':
+      return 'Đang giao hàng'
+    case 'delivered':
+      return 'Đã giao hàng'
+    case 'cancelled':
+      return 'Đã hủy'
     default:
-      return status;
+      return status
   }
 }
 
 function getStatusClass(status: string) {
   switch (status) {
-    case "pending":
-      return "badge-pending";
-    case "processing":
-      return "badge-processing";
-    case "shipping":
-      return "badge-shipping";
-    case "delivered":
-      return "badge-active";
-    case "cancelled":
-      return "badge-inactive";
+    case 'pending':
+      return 'badge-pending'
+    case 'processing':
+      return 'badge-processing'
+    case 'shipping':
+      return 'badge-shipping'
+    case 'delivered':
+      return 'badge-active'
+    case 'cancelled':
+      return 'badge-inactive'
     default:
-      return "";
+      return ''
   }
 }
 </script>
@@ -81,7 +81,7 @@ function getStatusClass(status: string) {
         <span class="order-date">Ngày đặt: {{ new Date(order.createdAt).toLocaleDateString("vi-VN") }}</span>
       </div>
       <div class="order-status">
-        <span :class="['badge', getStatusClass(order.status)]">
+        <span class="badge" :class="[getStatusClass(order.status)]">
           {{ getStatusLabel(order.status) }}
         </span>
       </div>
@@ -90,13 +90,15 @@ function getStatusClass(status: string) {
     <!-- Products in Order -->
     <div class="order-products">
       <div v-for="item in order.products" :key="item.product_id?._id" class="order-product-item">
-        <img 
-          :src="item.product_id?.thumbnail || 'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=500'" 
-          :alt="item.product_id?.title || 'Sản phẩm'" 
-          class="prod-img" 
-        />
+        <img
+          :src="item.product_id?.thumbnail || 'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=500'"
+          :alt="item.product_id?.title || 'Sản phẩm'"
+          class="prod-img"
+        >
         <div class="prod-details">
-          <h4 class="prod-title">{{ item.product_id?.title || 'Sản phẩm đã bị xóa' }}</h4>
+          <h4 class="prod-title">
+            {{ item.product_id?.title || 'Sản phẩm đã bị xóa' }}
+          </h4>
           <div class="prod-price-qty">
             <span>{{ formatPrice(Math.round(item.price * (1 - item.discountPercentage / 100))) }} &times; {{ item.quantity }}</span>
           </div>
@@ -117,12 +119,12 @@ function getStatusClass(status: string) {
         <div class="order-total-price">
           Tổng thanh toán: <strong>{{ formatPrice(calculateOrderTotal(order.products)) }}</strong>
         </div>
-        
+
         <button
           v-if="order.status === 'pending'"
-          @click="emit('cancel', order._id)"
           class="btn btn-danger btn-cancel-order"
           aria-label="Hủy đơn hàng"
+          @click="emit('cancel', order._id)"
         >
           Hủy đơn hàng 🗑️
         </button>

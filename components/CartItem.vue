@@ -1,33 +1,33 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed } from 'vue'
 
 const props = defineProps<{
   item: {
-    product_id: string;
-    title: string;
-    thumbnail?: string;
-    priceNew: number;
-    price: number;
-    discountPercentage: number;
-    stock: number;
-    quantity: number;
-    totalPrice: number;
-  };
-  updatingId: string | null;
-}>();
+    product_id: string
+    title: string
+    thumbnail?: string
+    priceNew: number
+    price: number
+    discountPercentage: number
+    stock: number
+    quantity: number
+    totalPrice: number
+  }
+  updatingId: string | null
+}>()
 
 const emit = defineEmits<{
-  (e: "update-qty", productId: string, currentQty: number, offset: number, maxStock: number): void;
-  (e: "remove", productId: string): void;
-}>();
+  (e: 'update-qty', productId: string, currentQty: number, offset: number, maxStock: number): void
+  (e: 'remove', productId: string): void
+}>()
 
-const isUpdating = computed(() => props.updatingId === props.item.product_id);
+const isUpdating = computed(() => props.updatingId === props.item.product_id)
 
 function formatPrice(value: number) {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-  }).format(value);
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND',
+  }).format(value)
 }
 </script>
 
@@ -37,17 +37,19 @@ function formatPrice(value: number) {
       :src="item.thumbnail || 'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=500'"
       :alt="item.title"
       class="item-img"
-    />
+    >
 
     <div class="item-details">
-      <h3 class="item-title">{{ item.title }}</h3>
+      <h3 class="item-title">
+        {{ item.title }}
+      </h3>
       <div class="item-prices">
         <span class="price-new">{{ formatPrice(item.priceNew) }}</span>
         <span v-if="item.discountPercentage > 0" class="price-old">
           {{ formatPrice(item.price) }}
         </span>
       </div>
-      <div class="item-stock-warning" v-if="item.stock <= 5">
+      <div v-if="item.stock <= 5" class="item-stock-warning">
         Chỉ còn {{ item.stock }} sản phẩm trong kho!
       </div>
     </div>
@@ -56,19 +58,19 @@ function formatPrice(value: number) {
     <div class="item-qty-actions">
       <div class="qty-selector">
         <button
-          @click="emit('update-qty', item.product_id, item.quantity, -1, item.stock)"
           :disabled="isUpdating || item.quantity <= 1"
           class="btn btn-secondary btn-qty"
           aria-label="Giảm số lượng"
+          @click="emit('update-qty', item.product_id, item.quantity, -1, item.stock)"
         >
           -
         </button>
         <span class="qty-display" aria-live="polite" :aria-label="`Số lượng ${item.quantity}`">{{ item.quantity }}</span>
         <button
-          @click="emit('update-qty', item.product_id, item.quantity, 1, item.stock)"
           :disabled="isUpdating || item.quantity >= item.stock"
           class="btn btn-secondary btn-qty"
           aria-label="Tăng số lượng"
+          @click="emit('update-qty', item.product_id, item.quantity, 1, item.stock)"
         >
           +
         </button>
@@ -80,11 +82,11 @@ function formatPrice(value: number) {
     </div>
 
     <button
-      @click="emit('remove', item.product_id)"
       :disabled="isUpdating"
       class="btn btn-danger btn-remove"
       aria-label="Xóa sản phẩm khỏi giỏ hàng"
       title="Xóa sản phẩm"
+      @click="emit('remove', item.product_id)"
     >
       🗑️
     </button>

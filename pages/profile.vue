@@ -1,16 +1,18 @@
 <script setup lang="ts">
-import { useAuthStore } from "~/stores/auth.ts";
- 
-definePageMeta({
-  middleware: ["auth"]
-});
+import { useAuthStore } from '~/stores/auth.ts'
 
-const authStore = useAuthStore();
+definePageMeta({
+  middleware: ['auth'],
+})
+
+const authStore = useAuthStore()
 </script>
 
 <template>
   <div class="profile-page container">
-    <h1 class="h1-title mb-8">Thông tin cá nhân</h1>
+    <h1 class="h1-title mb-8">
+      Thông tin cá nhân
+    </h1>
 
     <div v-if="authStore.user" class="profile-card premium-card glass-panel fade-in-item">
       <div class="profile-header">
@@ -18,8 +20,12 @@ const authStore = useAuthStore();
           {{ authStore.user.fullName.charAt(0) }}
         </div>
         <div class="profile-title-block">
-          <h2 class="profile-name">{{ authStore.user.fullName }}</h2>
-          <p class="profile-role">Khách hàng thành viên</p>
+          <h2 class="profile-name">
+            {{ authStore.user.fullName }}
+          </h2>
+          <p class="profile-role">
+            Khách hàng thành viên
+          </p>
         </div>
       </div>
 
@@ -120,7 +126,7 @@ const authStore = useAuthStore();
   .profile-card {
     padding: 1.5rem;
   }
-  
+
   .profile-header {
     flex-direction: column;
     text-align: center;
@@ -128,13 +134,13 @@ const authStore = useAuthStore();
     margin-bottom: 1.5rem;
     padding-bottom: 1.25rem;
   }
-  
+
   .detail-row {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.25rem;
   }
-  
+
   .detail-value {
     word-break: break-all;
   }

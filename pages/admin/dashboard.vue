@@ -1,44 +1,53 @@
 <script setup lang="ts">
 definePageMeta({
-  layout: "admin",
-  middleware: ["admin"]
-});
+  layout: 'admin',
+  middleware: ['admin'],
+})
 
-const stats = ref<any>(null);
-const loading = ref(true);
-const errorMsg = ref("");
+const stats = ref<any>(null)
+const loading = ref(true)
+const errorMsg = ref('')
 
 onMounted(async () => {
   try {
-    const adminToken = localStorage.getItem("adminToken");
-    const headers: any = {};
-    if (adminToken) headers["Authorization"] = `Bearer ${adminToken}`;
+    const adminToken = localStorage.getItem('adminToken')
+    const headers: any = {}
+    if (adminToken)
+      headers.Authorization = `Bearer ${adminToken}`
 
-    const res = await fetch("/api/admin/dashboard", { headers });
-    const data = await res.json();
+    const res = await fetch('/api/admin/dashboard', { headers })
+    const data = await res.json()
     if (data.success) {
-      stats.value = data.data;
-    } else {
-      errorMsg.value = data.message || data.statusMessage || "Lỗi tải số liệu thống kê.";
+      stats.value = data.data
     }
-  } catch (err) {
-    errorMsg.value = "Lỗi kết nối máy chủ.";
-  } finally {
-    loading.value = false;
+    else {
+      errorMsg.value = data.message || data.statusMessage || 'Lỗi tải số liệu thống kê.'
+    }
   }
-});
+  catch (err) {
+    errorMsg.value = 'Lỗi kết nối máy chủ.'
+  }
+  finally {
+    loading.value = false
+  }
+})
 
 function formatPrice(value: number) {
-  if (!value) return "0 ₫";
-  return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
+  if (!value)
+    return '0 ₫'
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value)
 }
 </script>
 
 <template>
   <div class="admin-dashboard-page">
     <div class="dashboard-header mb-8">
-      <h1 class="h1-title">Tổng quan số liệu</h1>
-      <p class="text-muted">Báo cáo hoạt động kinh doanh tổng hợp theo thời gian thực.</p>
+      <h1 class="h1-title">
+        Tổng quan số liệu
+      </h1>
+      <p class="text-muted">
+        Báo cáo hoạt động kinh doanh tổng hợp theo thời gian thực.
+      </p>
     </div>
 
     <div v-if="loading" class="loading-state">
@@ -52,27 +61,43 @@ function formatPrice(value: number) {
     <div v-else-if="stats" class="dashboard-grid">
       <!-- Total Revenue -->
       <div class="premium-card stat-card card-revenue fade-in-item">
-        <div class="stat-icon">💰</div>
+        <div class="stat-icon">
+          💰
+        </div>
         <div class="stat-content">
-          <div class="stat-label">Tổng doanh thu</div>
-          <div class="stat-value text-glow-indigo">{{ formatPrice(stats.orders.revenue) }}</div>
+          <div class="stat-label">
+            Tổng doanh thu
+          </div>
+          <div class="stat-value text-glow-indigo">
+            {{ formatPrice(stats.orders.revenue) }}
+          </div>
         </div>
       </div>
 
       <!-- Orders count -->
       <div class="premium-card stat-card card-orders fade-in-item">
-        <div class="stat-icon">📦</div>
+        <div class="stat-icon">
+          📦
+        </div>
         <div class="stat-content">
-          <div class="stat-label">Tổng số đơn hàng</div>
-          <div class="stat-value">{{ stats.orders.total }}</div>
+          <div class="stat-label">
+            Tổng số đơn hàng
+          </div>
+          <div class="stat-value">
+            {{ stats.orders.total }}
+          </div>
         </div>
       </div>
 
       <!-- Total products count -->
       <div class="premium-card stat-card card-products fade-in-item">
-        <div class="stat-icon">🛍️</div>
+        <div class="stat-icon">
+          🛍️
+        </div>
         <div class="stat-content">
-          <div class="stat-label">Sản phẩm (Đang bán)</div>
+          <div class="stat-label">
+            Sản phẩm (Đang bán)
+          </div>
           <div class="stat-value">
             {{ stats.products.active }}
             <span class="sub-value">/ {{ stats.products.total }}</span>
@@ -82,19 +107,31 @@ function formatPrice(value: number) {
 
       <!-- Categories count -->
       <div class="premium-card stat-card card-categories fade-in-item">
-        <div class="stat-icon">🗂️</div>
+        <div class="stat-icon">
+          🗂️
+        </div>
         <div class="stat-content">
-          <div class="stat-label">Danh mục sản phẩm</div>
-          <div class="stat-value">{{ stats.categoriesCount }}</div>
+          <div class="stat-label">
+            Danh mục sản phẩm
+          </div>
+          <div class="stat-value">
+            {{ stats.categoriesCount }}
+          </div>
         </div>
       </div>
 
       <!-- Users count -->
       <div class="premium-card stat-card card-users fade-in-item">
-        <div class="stat-icon">👥</div>
+        <div class="stat-icon">
+          👥
+        </div>
         <div class="stat-content">
-          <div class="stat-label">Khách đăng ký</div>
-          <div class="stat-value">{{ stats.usersCount }}</div>
+          <div class="stat-label">
+            Khách đăng ký
+          </div>
+          <div class="stat-value">
+            {{ stats.usersCount }}
+          </div>
         </div>
       </div>
     </div>

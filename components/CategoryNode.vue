@@ -1,27 +1,38 @@
 <script setup lang="ts">
-import { defineProps, defineEmits } from "vue";
+import { defineEmits, defineProps } from 'vue'
 
 const props = defineProps({
-  node: { type: Object, required: true }
-});
+  node: { type: Object, required: true },
+})
 
-const emit = defineEmits(["edit", "delete"]);
+const emit = defineEmits(['edit', 'delete'])
 </script>
 
+<script lang="ts">
+export default {
+  name: 'CategoryNode',
+}
+</script>
+
+<!-- Define component name for recursive invocation -->
 <template>
   <li class="tree-node">
     <div class="node-wrapper">
       <span class="node-title">
         📁 {{ node.title }}
         <span class="node-pos">(Vị trí: {{ node.position }})</span>
-        <span :class="['badge node-status', node.status === 'active' ? 'badge-active' : 'badge-inactive']">
+        <span class="badge node-status" :class="[node.status === 'active' ? 'badge-active' : 'badge-inactive']">
           {{ node.status === 'active' ? 'Bán' : 'Dừng' }}
         </span>
       </span>
 
       <div class="node-actions">
-        <button @click="emit('edit', node)" class="btn btn-secondary btn-action" title="Sửa">✏️</button>
-        <button @click="emit('delete', node._id)" class="btn btn-danger btn-action" title="Xóa">🗑️</button>
+        <button class="btn btn-secondary btn-action" title="Sửa" @click="emit('edit', node)">
+          ✏️
+        </button>
+        <button class="btn btn-danger btn-action" title="Xóa" @click="emit('delete', node._id)">
+          🗑️
+        </button>
       </div>
     </div>
 
@@ -37,13 +48,6 @@ const emit = defineEmits(["edit", "delete"]);
     </ul>
   </li>
 </template>
-
-<!-- Define component name for recursive invocation -->
-<script lang="ts">
-export default {
-  name: "CategoryNode"
-};
-</script>
 
 <style scoped>
 .tree-node {

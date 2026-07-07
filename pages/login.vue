@@ -1,53 +1,56 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { useRouter, RouterLink } from "vue-router";
-import { useAuthStore } from "~/stores/auth.ts";
-import { useCartStore } from "~/stores/cart.ts";
+import { ref } from 'vue'
+import { RouterLink, useRouter } from 'vue-router'
+import { useAuthStore } from '~/stores/auth.ts'
+import { useCartStore } from '~/stores/cart.ts'
 
-const authStore = useAuthStore();
-const cartStore = useCartStore();
-const router = useRouter();
+const authStore = useAuthStore()
+const cartStore = useCartStore()
+const router = useRouter()
 
-const email = ref("");
-const password = ref("");
+const email = ref('')
+const password = ref('')
 
-const loading = ref(false);
-const errorMsg = ref("");
+const loading = ref(false)
+const errorMsg = ref('')
 
 async function handleLogin() {
   if (!email.value || !password.value) {
-    errorMsg.value = "Vui lòng điền đầy đủ email và mật khẩu.";
-    return;
+    errorMsg.value = 'Vui lòng điền đầy đủ email và mật khẩu.'
+    return
   }
 
-  loading.value = true;
-  errorMsg.value = "";
+  loading.value = true
+  errorMsg.value = ''
 
   try {
-    const res = await fetch("/api/client/user/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: email.value, password: password.value })
-    });
+    const res = await fetch('/api/client/user/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.value, password: password.value }),
+    })
 
-    const data = await res.json();
+    const data = await res.json()
     if (data.success) {
       // Save token & user context
-      localStorage.setItem("token", data.token);
-      authStore.setUser(data.user);
+      localStorage.setItem('token', data.token)
+      authStore.setUser(data.user)
 
       // Re-fetch cart (to sync merged cart)
-      await cartStore.fetchCart();
+      await cartStore.fetchCart()
 
       // Redirect to home
-      router.push("/");
-    } else {
-      errorMsg.value = data.message || data.statusMessage || "Đăng nhập thất bại.";
+      router.push('/')
     }
-  } catch (err: any) {
-    errorMsg.value = "Có lỗi xảy ra khi kết nối máy chủ.";
-  } finally {
-    loading.value = false;
+    else {
+      errorMsg.value = data.message || data.statusMessage || 'Đăng nhập thất bại.'
+    }
+  }
+  catch (err: any) {
+    errorMsg.value = 'Có lỗi xảy ra khi kết nối máy chủ.'
+  }
+  finally {
+    loading.value = false
   }
 }
 </script>
@@ -55,8 +58,12 @@ async function handleLogin() {
 <template>
   <div class="login-page container">
     <div class="login-card premium-card glass-panel fade-in-item">
-      <h2 class="card-title">Đăng nhập tài khoản</h2>
-      <p class="card-subtitle">Nhập email và mật khẩu để tiếp tục mua sắm</p>
+      <h2 class="card-title">
+        Đăng nhập tài khoản
+      </h2>
+      <p class="card-subtitle">
+        Nhập email và mật khẩu để tiếp tục mua sắm
+      </p>
 
       <div v-if="errorMsg" class="alert alert-error">
         {{ errorMsg }}
@@ -65,16 +72,18 @@ async function handleLogin() {
       <form @submit.prevent="handleLogin">
         <div class="input-group">
           <label class="input-label">Địa chỉ Email</label>
-          <input v-model="email" type="email" placeholder="example@gmail.com" class="premium-input" required />
+          <input v-model="email" type="email" placeholder="example@gmail.com" class="premium-input" required>
         </div>
 
         <div class="input-group">
           <label class="input-label">Mật khẩu</label>
-          <input v-model="password" type="password" placeholder="Nhập mật khẩu" class="premium-input" required />
+          <input v-model="password" type="password" placeholder="Nhập mật khẩu" class="premium-input" required>
         </div>
 
         <div class="form-options">
-          <RouterLink to="/forgot-password" class="forgot-link">Quên mật khẩu?</RouterLink>
+          <RouterLink to="/forgot-password" class="forgot-link">
+            Quên mật khẩu?
+          </RouterLink>
         </div>
 
         <button type="submit" :disabled="loading" class="btn btn-primary w-full mt-4">
@@ -83,7 +92,9 @@ async function handleLogin() {
       </form>
 
       <div class="card-footer">
-        Chưa có tài khoản? <RouterLink to="/register" class="register-link">Đăng ký ngay</RouterLink>
+        Chưa có tài khoản? <RouterLink to="/register" class="register-link">
+          Đăng ký ngay
+        </RouterLink>
       </div>
     </div>
   </div>

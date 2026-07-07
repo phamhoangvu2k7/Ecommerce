@@ -1,52 +1,54 @@
-import jwt from "jsonwebtoken";
-import { defineEventHandler, parseCookies, getHeader, createError } from "h3";
-import { Account, User } from "../utils/models.ts";
-import { getJwtSecret } from "../utils/helpers.ts";
+import { createError, defineEventHandler, getHeader, parseCookies } from 'h3'
+import jwt from 'jsonwebtoken'
+import { getJwtSecret } from '../utils/helpers.ts'
+import { Account, User } from '../utils/models.ts'
 
 export default defineEventHandler(async (event) => {
-  const path = event.path || "";
+  const path = event.path || ''
 
   // 1. Extract token from Authorization header or Cookie (prioritizing header)
-  let token = "";
-  const authHeader = getHeader(event, "authorization");
-  if (authHeader && authHeader.startsWith("Bearer ")) {
-    token = authHeader.substring(7);
+  let token = ''
+  const authHeader = getHeader(event, 'authorization')
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.substring(7)
   }
 
   if (!token) {
-    const cookies = parseCookies(event);
-    token = cookies.token || "";
+    const cookies = parseCookies(event)
+    token = cookies.token || ''
   }
 
   // 2. Decode token and inject user/admin context
   if (token) {
     try {
-      const decoded: any = jwt.verify(token, getJwtSecret());
-      if (decoded.role === "admin") {
-        const account = await Account.findById(decoded.id).populate("role_id");
-        if (account && account.status === "active") {
-          event.context.admin = account;
-        }
-      } else {
-        const user = await User.findById(decoded.id);
-        if (user && user.status === "active") {
-          event.context.user = user;
+      const decoded: any = jwt.verify(token, getJwtSecret())
+      if (decoded.role === 'admin') {
+        const account = await Account.findById(decoded.id).populate('role_id')
+        if (account && account.status === 'active') {
+          event.context.admin = account
         }
       }
-    } catch (err) {
+      else {
+        const user = await User.findById(decoded.id)
+        if (user && user.status === 'active') {
+          event.context.user = user
+        }
+      }
+    }
+    catch (err) {
       // Token expired or invalid
-      console.warn("[AuthMiddleware] JWT Token verification failed.");
+      console.warn('[AuthMiddleware] JWT Token verification failed.')
     }
   }
 
   // 3. Enforce Route-level Authentication Checks
   // Protect all admin APIs except /api/admin/auth/login
-  if (path.startsWith("/api/admin") && !path.startsWith("/api/admin/auth/login")) {
+  if (path.startsWith('/api/admin') && !path.startsWith('/api/admin/auth/login')) {
     if (!event.context.admin) {
       throw createError({
         statusCode: 401,
-        statusMessage: "Bạn cần đăng nhập bằng tài khoản quản trị để truy cập."
-      });
+        statusMessage: 'Bạn cần đăng nhập bằng tài khoản quản trị để truy cập.',
+      })
     }
   }
-});
+})

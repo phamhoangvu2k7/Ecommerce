@@ -1,26 +1,26 @@
-import { defineEventHandler, createError, readBody } from "h3";
-import { User, Cart } from "../../../utils/models.ts";
-import { RegisterValidation } from "../../../utils/validation.ts";
-import { hashPassword } from "../../../utils/helpers.ts";
+import { createError, defineEventHandler, readBody } from 'h3'
+import { hashPassword } from '../../../utils/helpers.ts'
+import { Cart, User } from '../../../utils/models.ts'
+import { RegisterValidation } from '../../../utils/validation.ts'
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody(event);
-  const parsed = RegisterValidation.safeParse(body);
+  const body = await readBody(event)
+  const parsed = RegisterValidation.safeParse(body)
   if (!parsed.success) {
     throw createError({
       statusCode: 400,
-      statusMessage: parsed.error.errors.map((e) => e.message).join(", ")
-    });
+      statusMessage: parsed.error.errors.map(e => e.message).join(', '),
+    })
   }
 
-  const { fullName, email, password, phone } = parsed.data;
+  const { fullName, email, password, phone } = parsed.data
 
-  const existingUser = await User.findOne({ email });
+  const existingUser = await User.findOne({ email })
   if (existingUser) {
     throw createError({
       statusCode: 400,
-      statusMessage: "Email này đã được đăng ký sử dụng."
-    });
+      statusMessage: 'Email này đã được đăng ký sử dụng.',
+    })
   }
 
   const user = new User({
@@ -28,24 +28,20 @@ export default defineEventHandler(async (event) => {
     email,
     password: hashPassword(password),
     phone,
-    status: "active"
-  });
+    status: 'active',
+  })
 
-  await user.save();
+  await user.save()
 
   // Initialize an empty cart for this user
   const cart = new Cart({
     user_id: user._id,
-    products: []
-  });
-  await cart.save();
+    products: [],
+  })
+  await cart.save()
 
   return {
     success: true,
-    message: "Đăng ký tài khoản thành công."
-  };
-});
-
-
-
-
+    message: 'Đăng ký tài khoản thành công.',
+  }
+})

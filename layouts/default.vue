@@ -1,31 +1,31 @@
 <script setup lang="ts">
-import { onMounted, computed, ref, watch } from "vue";
-import { useAuthStore } from "~/stores/auth.ts";
-import { useCartStore } from "~/stores/cart.ts";
+import { computed, onMounted, ref, watch } from 'vue'
+import { useAuthStore } from '~/stores/auth.ts'
+import { useCartStore } from '~/stores/cart.ts'
 
-const authStore = useAuthStore();
-const cartStore = useCartStore();
-const router = useRouter();
-const route = useRoute();
+const authStore = useAuthStore()
+const cartStore = useCartStore()
+const router = useRouter()
+const route = useRoute()
 
-const isMenuOpen = ref(false);
+const isMenuOpen = ref(false)
 
 watch(() => route.path, () => {
-  isMenuOpen.value = false;
-});
+  isMenuOpen.value = false
+})
 
 onMounted(() => {
-  cartStore.fetchCart();
-});
+  cartStore.fetchCart()
+})
 
 const cartCount = computed(() => {
-  return cartStore.products.reduce((sum, item) => sum + item.quantity, 0);
-});
+  return cartStore.products.reduce((sum, item) => sum + item.quantity, 0)
+})
 
 function handleLogout() {
-  authStore.logout();
-  cartStore.clearCart();
-  router.push("/login");
+  authStore.logout()
+  cartStore.clearCart()
+  router.push('/login')
 }
 </script>
 
@@ -33,23 +33,29 @@ function handleLogout() {
   <div class="client-layout">
     <header class="premium-nav">
       <div class="container nav-container">
-        <NuxtLink to="/" class="nav-logo">⚡ Premium Store</NuxtLink>
+        <NuxtLink to="/" class="nav-logo">
+          ⚡ Premium Store
+        </NuxtLink>
 
         <!-- Mobile Menu Toggle Button -->
-        <button 
-          @click="isMenuOpen = !isMenuOpen" 
-          class="mobile-toggle" 
+        <button
+          class="mobile-toggle"
           :class="{ 'toggle-active': isMenuOpen }"
           aria-label="Toggle navigation"
+          @click="isMenuOpen = !isMenuOpen"
         >
-          <span></span>
-          <span></span>
-          <span></span>
+          <span />
+          <span />
+          <span />
         </button>
 
         <nav class="nav-links" :class="{ 'menu-active': isMenuOpen }">
-          <NuxtLink to="/" class="nav-link">Trang chủ</NuxtLink>
-          <NuxtLink to="/products" class="nav-link">Sản phẩm</NuxtLink>
+          <NuxtLink to="/" class="nav-link">
+            Trang chủ
+          </NuxtLink>
+          <NuxtLink to="/products" class="nav-link">
+            Sản phẩm
+          </NuxtLink>
           <NuxtLink to="/cart" class="nav-link style-cart-link">
             Giỏ hàng
             <span v-if="cartCount > 0" class="cart-badge">{{ cartCount }}</span>
@@ -57,15 +63,23 @@ function handleLogout() {
 
           <!-- User State -->
           <template v-if="authStore.user">
-            <NuxtLink to="/orders" class="nav-link">Đơn hàng</NuxtLink>
+            <NuxtLink to="/orders" class="nav-link">
+              Đơn hàng
+            </NuxtLink>
             <NuxtLink to="/profile" class="nav-link user-profile-link">
               👋 {{ authStore.user.fullName }}
             </NuxtLink>
-            <button @click="handleLogout" class="btn btn-secondary btn-logout-sm">Đăng xuất</button>
+            <button class="btn btn-secondary btn-logout-sm" @click="handleLogout">
+              Đăng xuất
+            </button>
           </template>
           <template v-else>
-            <NuxtLink to="/login" class="nav-link">Đăng nhập</NuxtLink>
-            <NuxtLink to="/register" class="btn btn-primary btn-sm">Đăng ký</NuxtLink>
+            <NuxtLink to="/login" class="nav-link">
+              Đăng nhập
+            </NuxtLink>
+            <NuxtLink to="/register" class="btn btn-primary btn-sm">
+              Đăng ký
+            </NuxtLink>
           </template>
         </nav>
       </div>

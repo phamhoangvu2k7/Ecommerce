@@ -1,29 +1,29 @@
 <template>
   <div class="premium-card skeleton-order animate-pulse" aria-busy="true" aria-label="Đang tải thông tin đơn hàng...">
     <div class="skeleton-header">
-      <div class="skeleton-line skeleton-meta"></div>
-      <div class="skeleton-status"></div>
+      <div class="skeleton-line skeleton-meta" />
+      <div class="skeleton-status" />
     </div>
-    
+
     <div class="skeleton-products">
       <div v-for="i in 2" :key="i" class="skeleton-product-item">
-        <div class="skeleton-image"></div>
+        <div class="skeleton-image" />
         <div class="skeleton-product-details">
-          <div class="skeleton-line skeleton-prod-title"></div>
-          <div class="skeleton-line skeleton-prod-qty"></div>
+          <div class="skeleton-line skeleton-prod-title" />
+          <div class="skeleton-line skeleton-prod-qty" />
         </div>
-        <div class="skeleton-line skeleton-prod-total"></div>
+        <div class="skeleton-line skeleton-prod-total" />
       </div>
     </div>
 
     <div class="skeleton-footer">
       <div class="skeleton-shipping">
-        <div class="skeleton-line skeleton-ship-line-1"></div>
-        <div class="skeleton-line skeleton-ship-line-2"></div>
+        <div class="skeleton-line skeleton-ship-line-1" />
+        <div class="skeleton-line skeleton-ship-line-2" />
       </div>
       <div class="skeleton-action-total">
-        <div class="skeleton-line skeleton-total-price"></div>
-        <div class="skeleton-button"></div>
+        <div class="skeleton-line skeleton-total-price" />
+        <div class="skeleton-button" />
       </div>
     </div>
   </div>
@@ -167,13 +167,13 @@
     align-items: flex-start;
     gap: 0.5rem;
   }
-  
+
   .skeleton-footer {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
   }
-  
+
   .skeleton-action-total {
     align-items: flex-start;
     width: 100%;

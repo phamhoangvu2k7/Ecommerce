@@ -1,168 +1,138 @@
-import { defineEventHandler } from "h3";
-import { Role, Account, ProductCategory, Product, User } from "../utils/models.ts";
-import { hashPassword } from "../utils/helpers.ts";
+import { defineEventHandler } from 'h3'
+import { hashPassword } from '../utils/helpers.ts'
+import { Account, Product, ProductCategory, Role } from '../utils/models.ts'
 
 export default defineEventHandler(async (event) => {
-  // Clear collections
-  await Promise.all([
-    Role.deleteMany({}),
-    Account.deleteMany({}),
-    ProductCategory.deleteMany({}),
-    Product.deleteMany({}),
-    User.deleteMany({})
-  ]);
+  try {
+    console.log('[Seeding] Deleting old records...')
+    await Role.deleteMany({})
+    await Account.deleteMany({})
+    await ProductCategory.deleteMany({})
+    await Product.deleteMany({})
 
-  // Create Roles
-  const superAdminRole = new Role({
-    title: "Super Admin",
-    description: "Quản trị viên tối cao",
-    permissions: [
-      "dashboard_view",
-      "products_view", "products_create", "products_edit", "products_delete",
-      "categories_view", "categories_create", "categories_edit", "categories_delete",
-      "roles_view", "roles_permissions",
-      "accounts_view", "accounts_create", "accounts_edit", "accounts_delete",
-      "trash_view", "trash_restore"
-    ]
-  });
+    console.log('[Seeding] Inserting Roles...')
+    const adminRole = new Role({
+      id: 'role-admin',
+      title: 'Quản trị viên',
+      description: 'Toàn quyền quản trị hệ thống',
+      permissions: [
+        'products_view',
+        'products_create',
+        'products_edit',
+        'products_delete',
+        'categories_view',
+        'categories_create',
+        'categories_edit',
+        'categories_delete',
+        'accounts_view',
+        'accounts_create',
+        'accounts_edit',
+        'accounts_delete',
+        'roles_view',
+        'roles_create',
+        'roles_edit',
+        'roles_delete',
+        'orders_view',
+        'orders_edit',
+      ],
+    })
+    await adminRole.save()
 
-  const editorRole = new Role({
-    title: "Editor",
-    description: "Biên tập viên nội dung",
-    permissions: [
-      "dashboard_view",
-      "products_view", "products_create", "products_edit",
-      "categories_view", "categories_create", "categories_edit",
-      "trash_view"
-    ]
-  });
+    console.log('[Seeding] Inserting Admin Account...')
+    const adminAccount = new Account({
+      id: 'account-admin',
+      fullName: 'Super Admin',
+      email: 'admin@example.com',
+      password: hashPassword('admin123'),
+      role_id: 'role-admin',
+      phone: '0123456789',
+      avatar: '',
+      status: 'active',
+    })
+    await adminAccount.save()
 
-  await Promise.all([superAdminRole.save(), editorRole.save()]);
+    console.log('[Seeding] Inserting Categories...')
+    const cat1 = new ProductCategory({
+      id: 'cat-1',
+      title: 'Điện thoại',
+      slug: 'dien-thoai',
+      description: 'Các sản phẩm điện thoại di động thông minh',
+      status: 'active',
+      position: 1,
+    })
+    const cat2 = new ProductCategory({
+      id: 'cat-2',
+      title: 'Laptop',
+      slug: 'laptop',
+      description: 'Các dòng máy tính xách tay cao cấp',
+      status: 'active',
+      position: 2,
+    })
+    await cat1.save()
+    await cat2.save()
 
-  // Create Admins
-  const adminAccount = new Account({
-    fullName: "Nguyễn Văn Admin",
-    email: "admin@example.com",
-    password: hashPassword("admin123"),
-    role_id: superAdminRole._id,
-    phone: "0987654321",
-    status: "active"
-  });
-
-  const editorAccount = new Account({
-    fullName: "Trần Thị Editor",
-    email: "editor@example.com",
-    password: hashPassword("editor123"),
-    role_id: editorRole._id,
-    phone: "0912345678",
-    status: "active"
-  });
-
-  await Promise.all([adminAccount.save(), editorAccount.save()]);
-
-  // Create Client Users
-  const clientUser = new User({
-    fullName: "Khách Hàng A",
-    email: "customer@example.com",
-    password: hashPassword("customer123"),
-    phone: "0900000001",
-    status: "active"
-  });
-  await clientUser.save();
-
-  // Create Categories
-  const phoneCat = new ProductCategory({
-    title: "Điện thoại",
-    slug: "dien-thoai",
-    description: "Các loại smartphone mới nhất",
-    status: "active",
-    position: 1
-  });
-  const laptopCat = new ProductCategory({
-    title: "Laptop",
-    slug: "laptop",
-    description: "Máy tính xách tay văn phòng và gaming",
-    status: "active",
-    position: 2
-  });
-  const accessoryCat = new ProductCategory({
-    title: "Phụ kiện",
-    slug: "phu-kien",
-    description: "Cáp sạc, tai nghe, pin dự phòng",
-    status: "active",
-    position: 3
-  });
-
-  await Promise.all([phoneCat.save(), laptopCat.save(), accessoryCat.save()]);
-
-  // Create Products
-  const products = [
-    new Product({
-      title: "iPhone 15 Pro Max",
-      slug: "iphone-15-pro-max",
-      product_category_id: phoneCat._id,
-      description: "iPhone 15 Pro Max 256GB chính hãng Việt Nam",
-      price: 32000000,
+    console.log('[Seeding] Inserting Products...')
+    const p1 = new Product({
+      id: 'prod-1',
+      title: 'iPhone 15 Pro Max 256GB',
+      slug: 'iphone-15-pro-max-256gb',
+      product_category_id: 'cat-1',
+      description: 'Điện thoại Apple cao cấp nhất năm 2023',
+      price: 30000000,
       discountPercentage: 10,
       stock: 50,
-      thumbnail: "v1782806960/products/khuvetxll0lpkkg3kzsv.webp",
-      status: "active",
-      position: 1
-    }),
-    new Product({
-      title: "Samsung Galaxy S24 Ultra",
-      slug: "samsung-galaxy-s24-ultra",
-      product_category_id: phoneCat._id,
-      description: "Samsung Galaxy S24 Ultra 12GB/256GB",
+      thumbnail: '',
+      status: 'active',
+      position: 1,
+    })
+
+    const p2 = new Product({
+      id: 'prod-2',
+      title: 'MacBook Air M3 8GB 256GB',
+      slug: 'macbook-air-m3-8gb-256gb',
+      product_category_id: 'cat-2',
+      description: 'Laptop Apple siêu mỏng nhẹ chip M3 mới nhất',
       price: 28000000,
-      discountPercentage: 15,
-      stock: 40,
-      thumbnail: "v1782806930/products/wriwuz2mznhxgwal05nq.webp",
-      status: "active",
-      position: 2
-    }),
-    new Product({
-      title: "MacBook Air M3",
-      slug: "macbook-air-m3",
-      product_category_id: laptopCat._id,
-      description: "MacBook Air M3 8GB/256GB 2024",
-      price: 27990000,
       discountPercentage: 5,
       stock: 30,
-      thumbnail: "v1782807044/products/fex0j6t83fjtnk8dmlrq.webp",
-      status: "active",
-      position: 3
-    }),
-    new Product({
-      title: "Dell XPS 13 Plus",
-      slug: "dell-xps-13-plus",
-      product_category_id: laptopCat._id,
-      description: "Dell XPS 13 Plus 9320 Core i7-1360P",
-      price: 45000000,
-      discountPercentage: 20,
-      stock: 15,
-      thumbnail: "v1782807018/products/qzurwujesh7ezjp9ku7p.webp",
-      status: "active",
-      position: 4
-    }),
-    new Product({
-      title: "Tai nghe Apple AirPods Pro 2",
-      slug: "tai-nghe-apple-airpods-pro-2",
-      product_category_id: accessoryCat._id,
-      description: "Tai nghe chống ồn chủ động AirPods Pro thế hệ 2",
-      price: 5990000,
-      discountPercentage: 12,
-      stock: 100,
-      thumbnail: "v1782806859/products/mty05la5cdugoziulp3f.webp",
-      status: "active",
-      position: 5
+      thumbnail: '',
+      status: 'active',
+      position: 2,
     })
-  ];
 
-  await Promise.all(products.map(p => p.save()));
+    const p3 = new Product({
+      id: 'prod-3',
+      title: 'Samsung Galaxy S24 Ultra',
+      slug: 'samsung-galaxy-s24-ultra',
+      product_category_id: 'cat-1',
+      description: 'Flagship cao cấp nhất của Samsung với AI thông minh',
+      price: 25000000,
+      discountPercentage: 8,
+      stock: 45,
+      thumbnail: '',
+      status: 'active',
+      position: 3,
+    })
 
-  return {
-    success: true,
-    message: "Dữ liệu mẫu đã được seed thành công!"
-  };
-});
+    await p1.save()
+    await p2.save()
+    await p3.save()
+
+    console.log('[Seeding] Seeding completed successfully.')
+    return {
+      success: true,
+      message: 'Khởi tạo dữ liệu mẫu SQLite (D1) thành công!',
+      data: {
+        adminEmail: 'admin@example.com',
+        adminPassword: 'admin123',
+      },
+    }
+  }
+  catch (err: any) {
+    console.error('[Seeding] Error seeding database:', err)
+    return {
+      success: false,
+      message: `Khởi tạo dữ liệu mẫu thất bại: ${err.message}`,
+    }
+  }
+})

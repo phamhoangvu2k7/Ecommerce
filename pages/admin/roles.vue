@@ -1,235 +1,256 @@
 <script setup lang="ts">
-definePageMeta({
-  layout: "admin",
-  middleware: ["admin"]
-});
+import { onMounted, ref } from 'vue'
 
-import { ref, onMounted } from "vue";
+definePageMeta({
+  layout: 'admin',
+  middleware: ['admin'],
+})
 
 interface Role {
-  _id: string;
-  title: string;
-  description: string;
-  permissions: string[];
-  deleted?: boolean;
+  _id: string
+  title: string
+  description: string
+  permissions: string[]
+  deleted?: boolean
 }
 
-const roles = ref<Role[]>([]);
-const selectedRole = ref<Role | null>(null);
-const loading = ref(true);
-const saving = ref(false);
-const successMsg = ref("");
-const errorMsg = ref("");
+const roles = ref<Role[]>([])
+const selectedRole = ref<Role | null>(null)
+const loading = ref(true)
+const saving = ref(false)
+const successMsg = ref('')
+const errorMsg = ref('')
 
 // New Role form state
-const showCreateModal = ref(false);
-const newRoleTitle = ref("");
-const newRoleDesc = ref("");
+const showCreateModal = ref(false)
+const newRoleTitle = ref('')
+const newRoleDesc = ref('')
 
 // Perm categories
 const permissionCategories = [
   {
-    title: "📊 Tổng quan",
+    title: '📊 Tổng quan',
     perms: [
-      { key: "dashboard_view", label: "Truy cập Dashboard" }
-    ]
+      { key: 'dashboard_view', label: 'Truy cập Dashboard' },
+    ],
   },
   {
-    title: "📦 Quản lý Sản phẩm",
+    title: '📦 Quản lý Sản phẩm',
     perms: [
-      { key: "products_view", label: "Xem sản phẩm" },
-      { key: "products_create", label: "Tạo sản phẩm mới" },
-      { key: "products_edit", label: "Chỉnh sửa sản phẩm" },
-      { key: "products_delete", label: "Xóa sản phẩm (mềm)" }
-    ]
+      { key: 'products_view', label: 'Xem sản phẩm' },
+      { key: 'products_create', label: 'Tạo sản phẩm mới' },
+      { key: 'products_edit', label: 'Chỉnh sửa sản phẩm' },
+      { key: 'products_delete', label: 'Xóa sản phẩm (mềm)' },
+    ],
   },
   {
-    title: "🗂️ Quản lý Danh mục",
+    title: '🗂️ Quản lý Danh mục',
     perms: [
-      { key: "categories_view", label: "Xem danh mục" },
-      { key: "categories_create", label: "Tạo danh mục mới" },
-      { key: "categories_edit", label: "Chỉnh sửa danh mục" },
-      { key: "categories_delete", label: "Xóa danh mục" }
-    ]
+      { key: 'categories_view', label: 'Xem danh mục' },
+      { key: 'categories_create', label: 'Tạo danh mục mới' },
+      { key: 'categories_edit', label: 'Chỉnh sửa danh mục' },
+      { key: 'categories_delete', label: 'Xóa danh mục' },
+    ],
   },
   {
-    title: "🗑️ Thùng rác hệ thống",
+    title: '🗑️ Thùng rác hệ thống',
     perms: [
-      { key: "trash_view", label: "Xem dữ liệu đã xóa" },
-      { key: "trash_restore", label: "Khôi phục dữ liệu" }
-    ]
+      { key: 'trash_view', label: 'Xem dữ liệu đã xóa' },
+      { key: 'trash_restore', label: 'Khôi phục dữ liệu' },
+    ],
   },
   {
-    title: "🔑 Quản lý Nhóm quyền (Roles)",
+    title: '🔑 Quản lý Nhóm quyền (Roles)',
     perms: [
-      { key: "roles_view", label: "Xem danh sách nhóm quyền" },
-      { key: "roles_create", label: "Tạo nhóm quyền mới" },
-      { key: "roles_edit", label: "Sửa thông tin nhóm quyền" },
-      { key: "roles_permissions", label: "Cấu hình ma trận phân quyền" },
-      { key: "roles_delete", label: "Xóa nhóm quyền" }
-    ]
+      { key: 'roles_view', label: 'Xem danh sách nhóm quyền' },
+      { key: 'roles_create', label: 'Tạo nhóm quyền mới' },
+      { key: 'roles_edit', label: 'Sửa thông tin nhóm quyền' },
+      { key: 'roles_permissions', label: 'Cấu hình ma trận phân quyền' },
+      { key: 'roles_delete', label: 'Xóa nhóm quyền' },
+    ],
   },
   {
-    title: "👥 Quản lý Tài khoản Admin",
+    title: '👥 Quản lý Tài khoản Admin',
     perms: [
-      { key: "accounts_view", label: "Xem danh sách tài khoản" },
-      { key: "accounts_create", label: "Tạo tài khoản quản lý" },
-      { key: "accounts_edit", label: "Chỉnh sửa tài khoản" },
-      { key: "accounts_delete", label: "Xóa tài khoản quản lý" }
-    ]
-  }
-];
+      { key: 'accounts_view', label: 'Xem danh sách tài khoản' },
+      { key: 'accounts_create', label: 'Tạo tài khoản quản lý' },
+      { key: 'accounts_edit', label: 'Chỉnh sửa tài khoản' },
+      { key: 'accounts_delete', label: 'Xóa tài khoản quản lý' },
+    ],
+  },
+]
 
 onMounted(async () => {
-  await fetchRoles();
-});
+  await fetchRoles()
+})
 
 async function fetchRoles() {
-  loading.value = true;
-  errorMsg.value = "";
+  loading.value = true
+  errorMsg.value = ''
   try {
-    const adminToken = localStorage.getItem("adminToken");
-    const headers: any = {};
-    if (adminToken) headers["Authorization"] = `Bearer ${adminToken}`;
+    const adminToken = localStorage.getItem('adminToken')
+    const headers: any = {}
+    if (adminToken)
+      headers.Authorization = `Bearer ${adminToken}`
 
-    const res = await fetch("/api/admin/roles", { headers });
-    const data = await res.json();
+    const res = await fetch('/api/admin/roles', { headers })
+    const data = await res.json()
     if (data.success) {
-      roles.value = data.roles.filter((r: Role) => !r.deleted);
+      roles.value = data.roles.filter((r: Role) => !r.deleted)
       if (roles.value.length > 0) {
         // Keep selection if exists, else select first
         if (selectedRole.value) {
-          const found = roles.value.find(r => r._id === selectedRole.value?._id);
-          selectedRole.value = found ? { ...found } : { ...roles.value[0] };
-        } else {
-          selectedRole.value = { ...roles.value[0] };
+          const found = roles.value.find(r => r._id === selectedRole.value?._id)
+          selectedRole.value = found ? { ...found } : { ...roles.value[0] }
+        }
+        else {
+          selectedRole.value = { ...roles.value[0] }
         }
       }
-    } else {
-      errorMsg.value = data.message || data.statusMessage || "Lỗi tải nhóm quyền.";
     }
-  } catch (err) {
-    errorMsg.value = "Lỗi kết nối máy chủ.";
-  } finally {
-    loading.value = false;
+    else {
+      errorMsg.value = data.message || data.statusMessage || 'Lỗi tải nhóm quyền.'
+    }
+  }
+  catch (err) {
+    errorMsg.value = 'Lỗi kết nối máy chủ.'
+  }
+  finally {
+    loading.value = false
   }
 }
 
 function selectRole(role: Role) {
-  selectedRole.value = { ...role };
+  selectedRole.value = { ...role }
 }
 
 function togglePermission(permKey: string) {
-  if (!selectedRole.value) return;
-  const idx = selectedRole.value.permissions.indexOf(permKey);
+  if (!selectedRole.value)
+    return
+  const idx = selectedRole.value.permissions.indexOf(permKey)
   if (idx > -1) {
-    selectedRole.value.permissions.splice(idx, 1);
-  } else {
-    selectedRole.value.permissions.push(permKey);
+    selectedRole.value.permissions.splice(idx, 1)
+  }
+  else {
+    selectedRole.value.permissions.push(permKey)
   }
 }
 
 async function handleSavePermissions() {
-  if (!selectedRole.value) return;
-  saving.value = true;
-  successMsg.value = "";
-  errorMsg.value = "";
+  if (!selectedRole.value)
+    return
+  saving.value = true
+  successMsg.value = ''
+  errorMsg.value = ''
 
   try {
-    const adminToken = localStorage.getItem("adminToken");
-    const headers: any = { "Content-Type": "application/json" };
-    if (adminToken) headers["Authorization"] = `Bearer ${adminToken}`;
+    const adminToken = localStorage.getItem('adminToken')
+    const headers: any = { 'Content-Type': 'application/json' }
+    if (adminToken)
+      headers.Authorization = `Bearer ${adminToken}`
 
     const res = await fetch(`/api/admin/roles/${selectedRole.value._id}`, {
-      method: "PATCH",
+      method: 'PATCH',
       headers,
       body: JSON.stringify({
         title: selectedRole.value.title,
         description: selectedRole.value.description,
-        permissions: selectedRole.value.permissions
-      })
-    });
-    const data = await res.json();
+        permissions: selectedRole.value.permissions,
+      }),
+    })
+    const data = await res.json()
     if (data.success) {
-      successMsg.value = "Cập nhật nhóm quyền thành công!";
-      await fetchRoles();
-      setTimeout(() => (successMsg.value = ""), 4000);
-    } else {
-      errorMsg.value = data.message || data.statusMessage || "Không thể cập nhật.";
+      successMsg.value = 'Cập nhật nhóm quyền thành công!'
+      await fetchRoles()
+      setTimeout(() => (successMsg.value = ''), 4000)
     }
-  } catch (err) {
-    errorMsg.value = "Lỗi kết nối máy chủ.";
-  } finally {
-    saving.value = false;
+    else {
+      errorMsg.value = data.message || data.statusMessage || 'Không thể cập nhật.'
+    }
+  }
+  catch (err) {
+    errorMsg.value = 'Lỗi kết nối máy chủ.'
+  }
+  finally {
+    saving.value = false
   }
 }
 
 async function handleCreateRole() {
   if (!newRoleTitle.value.trim()) {
-    alert("Vui lòng nhập tên nhóm quyền.");
-    return;
+    alert('Vui lòng nhập tên nhóm quyền.')
+    return
   }
   try {
-    const adminToken = localStorage.getItem("adminToken");
-    const headers: any = { "Content-Type": "application/json" };
-    if (adminToken) headers["Authorization"] = `Bearer ${adminToken}`;
+    const adminToken = localStorage.getItem('adminToken')
+    const headers: any = { 'Content-Type': 'application/json' }
+    if (adminToken)
+      headers.Authorization = `Bearer ${adminToken}`
 
-    const res = await fetch("/api/admin/roles", {
-      method: "POST",
+    const res = await fetch('/api/admin/roles', {
+      method: 'POST',
       headers,
       body: JSON.stringify({
         title: newRoleTitle.value,
         description: newRoleDesc.value,
-        permissions: []
-      })
-    });
-    const data = await res.json();
+        permissions: [],
+      }),
+    })
+    const data = await res.json()
     if (data.success) {
-      showCreateModal.value = false;
-      newRoleTitle.value = "";
-      newRoleDesc.value = "";
-      successMsg.value = "Thêm nhóm quyền mới thành công!";
-      await fetchRoles();
+      showCreateModal.value = false
+      newRoleTitle.value = ''
+      newRoleDesc.value = ''
+      successMsg.value = 'Thêm nhóm quyền mới thành công!'
+      await fetchRoles()
       // Select the new role
-      const newRole = roles.value.find(r => r._id === data.role._id);
-      if (newRole) selectedRole.value = { ...newRole };
-      setTimeout(() => (successMsg.value = ""), 4000);
-    } else {
-      alert(data.message || data.statusMessage || "Lỗi tạo nhóm quyền.");
+      const newRole = roles.value.find(r => r._id === data.role._id)
+      if (newRole)
+        selectedRole.value = { ...newRole }
+      setTimeout(() => (successMsg.value = ''), 4000)
     }
-  } catch (err) {
-    alert("Lỗi kết nối máy chủ.");
+    else {
+      alert(data.message || data.statusMessage || 'Lỗi tạo nhóm quyền.')
+    }
+  }
+  catch (err) {
+    alert('Lỗi kết nối máy chủ.')
   }
 }
 
 async function handleDeleteRole() {
-  if (!selectedRole.value) return;
-  if (selectedRole.value.title === "Admin") {
-    alert("Không thể xóa nhóm quyền hệ thống tối cao.");
-    return;
+  if (!selectedRole.value)
+    return
+  if (selectedRole.value.title === 'Admin') {
+    alert('Không thể xóa nhóm quyền hệ thống tối cao.')
+    return
   }
-  if (!confirm(`Bạn có chắc chắn muốn xóa nhóm quyền "${selectedRole.value.title}"?`)) return;
+  if (!confirm(`Bạn có chắc chắn muốn xóa nhóm quyền "${selectedRole.value.title}"?`))
+    return
 
   try {
-    const adminToken = localStorage.getItem("adminToken");
-    const headers: any = {};
-    if (adminToken) headers["Authorization"] = `Bearer ${adminToken}`;
+    const adminToken = localStorage.getItem('adminToken')
+    const headers: any = {}
+    if (adminToken)
+      headers.Authorization = `Bearer ${adminToken}`
 
     const res = await fetch(`/api/admin/roles/${selectedRole.value._id}`, {
-      method: "DELETE",
-      headers
-    });
-    const data = await res.json();
+      method: 'DELETE',
+      headers,
+    })
+    const data = await res.json()
     if (data.success) {
-      successMsg.value = "Xóa nhóm quyền thành công!";
-      selectedRole.value = null;
-      await fetchRoles();
-      setTimeout(() => (successMsg.value = ""), 4000);
-    } else {
-      errorMsg.value = data.message || data.statusMessage || "Không thể xóa.";
+      successMsg.value = 'Xóa nhóm quyền thành công!'
+      selectedRole.value = null
+      await fetchRoles()
+      setTimeout(() => (successMsg.value = ''), 4000)
     }
-  } catch (err) {
-    errorMsg.value = "Lỗi kết nối máy chủ.";
+    else {
+      errorMsg.value = data.message || data.statusMessage || 'Không thể xóa.'
+    }
+  }
+  catch (err) {
+    errorMsg.value = 'Lỗi kết nối máy chủ.'
   }
 }
 </script>
@@ -238,10 +259,14 @@ async function handleDeleteRole() {
   <div class="roles-page">
     <div class="page-header mb-8">
       <div class="title-block">
-        <h1 class="h1-title">Nhóm quyền & Phân quyền</h1>
-        <p class="text-muted">Cấu hình vai trò và ma trận chức năng truy cập hệ thống.</p>
+        <h1 class="h1-title">
+          Nhóm quyền & Phân quyền
+        </h1>
+        <p class="text-muted">
+          Cấu hình vai trò và ma trận chức năng truy cập hệ thống.
+        </p>
       </div>
-      <button @click="showCreateModal = true" class="btn btn-primary">
+      <button class="btn btn-primary" @click="showCreateModal = true">
         ➕ Thêm nhóm quyền
       </button>
     </div>
@@ -262,16 +287,22 @@ async function handleDeleteRole() {
       <!-- Left List of Roles -->
       <div class="roles-sidebar">
         <div class="premium-card list-card">
-          <h3 class="list-title mb-4">Danh sách vai trò</h3>
+          <h3 class="list-title mb-4">
+            Danh sách vai trò
+          </h3>
           <div class="role-items">
             <div
               v-for="role in roles"
               :key="role._id"
+              class="role-item-btn" :class="[selectedRole?._id === role._id ? 'active-role' : '']"
               @click="selectRole(role)"
-              :class="['role-item-btn', selectedRole?._id === role._id ? 'active-role' : '']"
             >
-              <div class="role-item-title">{{ role.title }}</div>
-              <div class="role-item-desc text-muted">{{ role.description || 'Không mô tả' }}</div>
+              <div class="role-item-title">
+                {{ role.title }}
+              </div>
+              <div class="role-item-desc text-muted">
+                {{ role.description || 'Không mô tả' }}
+              </div>
             </div>
           </div>
         </div>
@@ -282,21 +313,25 @@ async function handleDeleteRole() {
         <div class="premium-card editor-card">
           <div class="editor-header mb-6">
             <div class="editor-title-block">
-              <h2 class="role-details-title">{{ selectedRole.title }}</h2>
-              <p class="text-muted">Cấu hình quyền hạn truy cập của nhóm.</p>
+              <h2 class="role-details-title">
+                {{ selectedRole.title }}
+              </h2>
+              <p class="text-muted">
+                Cấu hình quyền hạn truy cập của nhóm.
+              </p>
             </div>
             <div class="editor-actions">
               <button
                 v-if="selectedRole.title !== 'Admin'"
-                @click="handleDeleteRole"
                 class="btn btn-danger"
+                @click="handleDeleteRole"
               >
                 🗑️ Xóa vai trò
               </button>
               <button
-                @click="handleSavePermissions"
                 :disabled="saving"
                 class="btn btn-primary"
+                @click="handleSavePermissions"
               >
                 {{ saving ? 'Đang lưu...' : '💾 Lưu cấu hình' }}
               </button>
@@ -313,7 +348,7 @@ async function handleDeleteRole() {
                   :disabled="selectedRole.title === 'Admin'"
                   type="text"
                   class="premium-input"
-                />
+                >
               </div>
               <div class="input-group">
                 <label class="input-label">Mô tả chi tiết</label>
@@ -322,7 +357,7 @@ async function handleDeleteRole() {
                   type="text"
                   class="premium-input"
                   placeholder="Ghi chú vai trò..."
-                />
+                >
               </div>
             </div>
           </div>
@@ -334,18 +369,22 @@ async function handleDeleteRole() {
               :key="cat.title"
               class="matrix-category mb-6"
             >
-              <h4 class="category-heading mb-3">{{ cat.title }}</h4>
+              <h4 class="category-heading mb-3">
+                {{ cat.title }}
+              </h4>
               <div class="matrix-checkbox-grid">
                 <div
                   v-for="perm in cat.perms"
                   :key="perm.key"
+                  class="checkbox-tile" :class="[selectedRole.permissions.includes(perm.key) ? 'tile-checked' : '']"
                   @click="togglePermission(perm.key)"
-                  :class="['checkbox-tile', selectedRole.permissions.includes(perm.key) ? 'tile-checked' : '']"
                 >
                   <div class="tile-icon">
                     {{ selectedRole.permissions.includes(perm.key) ? '✅' : '⬛' }}
                   </div>
-                  <div class="tile-label">{{ perm.label }}</div>
+                  <div class="tile-label">
+                    {{ perm.label }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -358,24 +397,32 @@ async function handleDeleteRole() {
     <div v-if="showCreateModal" class="modal-backdrop">
       <div class="modal-content premium-card glass-panel fade-in-item">
         <div class="modal-header">
-          <h3 class="modal-title">Thêm nhóm quyền mới</h3>
-          <button @click="showCreateModal = false" class="btn btn-secondary btn-close-modal">✖</button>
+          <h3 class="modal-title">
+            Thêm nhóm quyền mới
+          </h3>
+          <button class="btn btn-secondary btn-close-modal" @click="showCreateModal = false">
+            ✖
+          </button>
         </div>
 
-        <form @submit.prevent="handleCreateRole" class="modal-form">
+        <form class="modal-form" @submit.prevent="handleCreateRole">
           <div class="input-group">
             <label class="input-label">Tên nhóm quyền *</label>
-            <input v-model="newRoleTitle" type="text" class="premium-input" placeholder="Ví dụ: Staff, Manager" required />
+            <input v-model="newRoleTitle" type="text" class="premium-input" placeholder="Ví dụ: Staff, Manager" required>
           </div>
 
           <div class="input-group">
             <label class="input-label">Mô tả nhóm quyền</label>
-            <textarea v-model="newRoleDesc" rows="3" class="premium-input" placeholder="Mô tả vai trò này trong hệ thống..."></textarea>
+            <textarea v-model="newRoleDesc" rows="3" class="premium-input" placeholder="Mô tả vai trò này trong hệ thống..." />
           </div>
 
           <div class="modal-footer">
-            <button type="button" @click="showCreateModal = false" class="btn btn-secondary">Hủy</button>
-            <button type="submit" class="btn btn-primary">Tạo mới</button>
+            <button type="button" class="btn btn-secondary" @click="showCreateModal = false">
+              Hủy
+            </button>
+            <button type="submit" class="btn btn-primary">
+              Tạo mới
+            </button>
           </div>
         </form>
       </div>

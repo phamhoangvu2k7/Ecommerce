@@ -1,26 +1,28 @@
 <script setup lang="ts">
-import ProductCard from "~/components/ProductCard.vue";
-import SkeletonCard from "~/components/SkeletonCard.vue";
+import ProductCard from '~/components/ProductCard.vue'
+import SkeletonCard from '~/components/SkeletonCard.vue'
 
-const featuredProducts = ref<any[]>([]);
-const loading = ref(true);
+const featuredProducts = ref<any[]>([])
+const loading = ref(true)
 
 onMounted(async () => {
   try {
-    const res = await fetch("/api/client/products?limit=3");
-    const data = await res.json();
+    const res = await fetch('/api/client/products?limit=3')
+    const data = await res.json()
     if (data.success) {
-      featuredProducts.value = data.data.products;
+      featuredProducts.value = data.data.products
     }
-  } catch (err) {
-    console.error("Error loading featured products:", err);
-  } finally {
-    loading.value = false;
   }
-});
+  catch (err) {
+    console.error('Error loading featured products:', err)
+  }
+  finally {
+    loading.value = false
+  }
+})
 
 function formatPrice(value: number) {
-  return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value)
 }
 </script>
 
@@ -29,21 +31,31 @@ function formatPrice(value: number) {
     <!-- Hero Section -->
     <section class="hero-section glass-panel fade-in-item">
       <div class="hero-content">
-        <h1 class="hero-title">Trải nghiệm Mua sắm Premium</h1>
-        <p class="hero-subtitle">Khám phá thế giới công nghệ đẳng cấp với các sản phẩm chính hãng, ưu đãi độc quyền và dịch vụ giao hàng siêu tốc.</p>
+        <h1 class="hero-title">
+          Trải nghiệm Mua sắm Premium
+        </h1>
+        <p class="hero-subtitle">
+          Khám phá thế giới công nghệ đẳng cấp với các sản phẩm chính hãng, ưu đãi độc quyền và dịch vụ giao hàng siêu tốc.
+        </p>
         <div class="hero-actions">
-          <RouterLink to="/products" class="btn btn-primary">Mua sắm ngay 🚀</RouterLink>
+          <RouterLink to="/products" class="btn btn-primary">
+            Mua sắm ngay 🚀
+          </RouterLink>
           <a href="#featured" class="btn btn-secondary">Xem sản phẩm nổi bật</a>
         </div>
       </div>
-      <div class="hero-glowing-blob"></div>
+      <div class="hero-glowing-blob" />
     </section>
 
     <!-- Featured Products -->
     <section id="featured" class="featured-section">
       <div class="section-header">
-        <h2 class="section-title">Sản Phẩm Mới Nhất</h2>
-        <p class="section-subtitle">Đừng bỏ lỡ các siêu phẩm công nghệ hot nhất vừa cập bến cửa hàng.</p>
+        <h2 class="section-title">
+          Sản Phẩm Mới Nhất
+        </h2>
+        <p class="section-subtitle">
+          Đừng bỏ lỡ các siêu phẩm công nghệ hot nhất vừa cập bến cửa hàng.
+        </p>
       </div>
 
       <div v-if="loading" class="grid-products">
@@ -134,27 +146,27 @@ function formatPrice(value: number) {
     text-align: center;
     justify-content: center;
   }
-  
+
   .hero-content {
     max-width: 100%;
   }
-  
+
   .hero-title {
     font-size: 2rem;
     margin-bottom: 1rem;
   }
-  
+
   .hero-subtitle {
     font-size: 1rem;
     margin-bottom: 1.5rem;
   }
-  
+
   .hero-actions {
     flex-direction: column;
     align-items: center;
     gap: 0.75rem;
   }
-  
+
   .hero-actions .btn {
     width: 100%;
     max-width: 300px;
