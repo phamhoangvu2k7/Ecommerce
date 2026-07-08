@@ -1,4 +1,5 @@
 import { defineEventHandler, getRouterParam } from 'h3'
+import { blob } from 'hub:blob'
 
 export default defineEventHandler(async (event) => {
   const pathname = getRouterParam(event, 'pathname')
@@ -10,5 +11,5 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  return hubBlob().serve(event, pathname)
+  return blob.serve(event, pathname)
 })

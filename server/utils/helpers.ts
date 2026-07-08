@@ -1,4 +1,5 @@
 import { compareSync, hashSync } from 'bcrypt-edge'
+import { blob } from 'hub:blob'
 import { randomUUID } from 'uncrypto'
 
 export function hashPassword(password: string): string {
@@ -26,13 +27,6 @@ export async function sendMail(to: string, subject: string, htmlContent: string)
   const mailUser = process.env.EMAIL_USER || 'no-reply@example.com'
   const brevoKey = process.env.BREVO_API_KEY || ''
 
-  console.log(`\n==================================================`)
-  console.log(`[MAIL PREVIEW] To: ${to}`)
-  console.log(`Subject: ${subject}`)
-  console.log(`Content Preview:`)
-  console.log(htmlContent.replace(/<[^>]*>/g, '').trim()) // Strip HTML tags to show text OTP
-  console.log(`==================================================\n`)
-
   if (brevoKey) {
     try {
       const res = await $fetch('https://api.brevo.com/v3/smtp/email', {
@@ -40,14 +34,14 @@ export async function sendMail(to: string, subject: string, htmlContent: string)
         headers: {
           'accept': 'application/json',
           'api-key': brevoKey,
-          'content-type': 'application/json'
+          'content-type': 'application/json',
         },
         body: {
           sender: { name: 'Product Management', email: mailUser },
           to: [{ email: to }],
-          subject: subject,
-          htmlContent: htmlContent
-        }
+          subject,
+          htmlContent,
+        },
       })
       return res
     }
@@ -57,7 +51,7 @@ export async function sendMail(to: string, subject: string, htmlContent: string)
   }
 
   // Mock mode / Fallback
-  return { messageId: 'mock-id-' + Date.now() }
+  return { messageId: `mock-id-${Date.now()}` }
 }
 
 function getExtension(buffer: Buffer): string {
@@ -78,13 +72,29 @@ function getExtension(buffer: Buffer): string {
   return ''
 }
 
-export async function uploadToCloudinary(fileBuffer: Buffer, folder: string = 'products'): Promise<string> {
-  const ext = getExtension(fileBuffer)
+export async function uploadToCloudinary(
+  fileBuffer: Buffer,
+  folder: string = 'products',
+  options?: { contentType?: string, filename?: string },
+): Promise<string> {
+  let ext = ''
+  if (options?.filename) {
+    const parts = options.filename.split('.')
+    if (parts.length > 1) {
+      ext = `.${parts.pop()?.toLowerCase()}`
+    }
+  }
+  if (!ext) {
+    ext = getExtension(fileBuffer)
+  }
+
   const filename = `${randomUUID()}${ext}`
   const pathname = `${folder}/${filename}`
 
   // Save to NuxtHub Blob (Cloudflare R2 in production, local fs in dev)
-  await hubBlob().put(pathname, fileBuffer)
+  await blob.put(pathname, fileBuffer, {
+    contentType: options?.contentType,
+  })
 
   return pathname
 }

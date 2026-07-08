@@ -30,8 +30,11 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    // Upload buffer to Cloudinary folder "products"
-    const rawUrl = await uploadToCloudinary(filePart.data, 'products')
+    // Upload buffer to Cloudinary folder "products" (Cloudflare R2)
+    const rawUrl = await uploadToCloudinary(filePart.data, 'products', {
+      contentType: filePart.type,
+      filename: filePart.filename,
+    })
 
     // Resolve URL using the configured image base URL
     const resolvedUrl = prependImageDomain(stripImageDomain(rawUrl))
