@@ -280,11 +280,11 @@ async function handleFileUpload(event: Event) {
       formThumbnail.value = data.url
     }
     else {
-      alert(data.message || data.statusMessage || 'Lỗi tải ảnh lên Cloudinary.')
+      alert(data.message || data.statusMessage || 'Lỗi tải ảnh lên Cloudflare R2.')
     }
   }
   catch (err) {
-    alert('Không thể kết nối tải ảnh.')
+    alert('Không thể kết nối tải ảnh lên R2.')
   }
   finally {
     uploading.value = false
@@ -513,7 +513,7 @@ function changePage(page: number) {
                   <input type="file" accept="image/*" class="file-hidden" @change="handleFileUpload">
                 </label>
               </div>
-              <span v-if="uploading" class="text-uploading">Đang tải ảnh lên Cloudinary...</span>
+              <span v-if="uploading" class="text-uploading">Đang tải ảnh lên Cloudflare R2...</span>
             </div>
             <div class="input-group">
               <label class="input-label">Vị trí sắp xếp (Thứ tự)</label>

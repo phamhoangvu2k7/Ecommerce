@@ -10,7 +10,7 @@ export default defineNuxtConfig({
     hub: {
       db: 'sqlite',
       kv: true,
-      blob: false,
+      blob: true,
     },
   },
   $production: {
@@ -24,7 +24,7 @@ export default defineNuxtConfig({
         driver: 'cloudflare-kv-binding',
         namespaceId: '517b13cf22994084a68a702c85bcfcb5',
       },
-      blob: false,
+      blob: true,
     },
   },
   css: ['~/assets/css/style.css'],

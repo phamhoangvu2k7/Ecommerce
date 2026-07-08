@@ -60,9 +60,33 @@ export async function sendMail(to: string, subject: string, htmlContent: string)
   return { messageId: 'mock-id-' + Date.now() }
 }
 
+function getExtension(buffer: Buffer): string {
+  if (buffer.length > 4) {
+    if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) {
+      return '.png'
+    }
+    if (buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF) {
+      return '.jpg'
+    }
+    if (buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46) {
+      return '.gif'
+    }
+    if (buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46) {
+      return '.webp'
+    }
+  }
+  return ''
+}
+
 export async function uploadToCloudinary(fileBuffer: Buffer, folder: string = 'products'): Promise<string> {
-  // Tạm thời chưa lưu ảnh thực tế lên Cloudflare R2, trả về ảnh mẫu placeholder
-  return 'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=500'
+  const ext = getExtension(fileBuffer)
+  const filename = `${randomUUID()}${ext}`
+  const pathname = `${folder}/${filename}`
+
+  // Save to NuxtHub Blob (Cloudflare R2 in production, local fs in dev)
+  await hubBlob().put(pathname, fileBuffer)
+
+  return pathname
 }
 
 export function slugify(str: string): string {

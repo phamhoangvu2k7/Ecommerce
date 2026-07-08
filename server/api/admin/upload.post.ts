@@ -42,10 +42,10 @@ export default defineEventHandler(async (event) => {
     }
   }
   catch (err: any) {
-    console.error('[Cloudinary] Upload failed:', err)
+    console.error('[R2] Upload failed:', err)
     throw createError({
       statusCode: 500,
-      statusMessage: 'Lỗi lưu trữ ảnh lên đám mây Cloudinary.',
+      statusMessage: 'Lỗi lưu trữ ảnh lên Cloudflare R2.',
     })
   }
 })
