@@ -1,6 +1,6 @@
 import { createError, defineEventHandler, getHeader, parseCookies } from 'h3'
-import jwt from 'jsonwebtoken'
 import { getJwtSecret } from '../utils/helpers.ts'
+import { verifyJwt } from '../utils/jwt.ts'
 import { Account, User } from '../utils/models.ts'
 
 export default defineEventHandler(async (event) => {
@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
   // 2. Decode token and inject user/admin context
   if (token) {
     try {
-      const decoded: any = jwt.verify(token, getJwtSecret())
+      const decoded: any = await verifyJwt(token, getJwtSecret())
       if (decoded.role === 'admin') {
         const account = await Account.findById(decoded.id).populate('role_id')
         if (account && account.status === 'active') {

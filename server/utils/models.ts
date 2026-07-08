@@ -7,7 +7,13 @@ import { prependImageDomain, stripImageDomain } from '~/server/utils/helpers.ts'
 export function hubDatabase() {
   return {
     async exec(queryString: string) {
-      await db.run(sql.raw(queryString))
+      const queries = queryString
+        .split(';')
+        .map(q => q.trim())
+        .filter(q => q.length > 0)
+      for (const query of queries) {
+        await db.run(sql.raw(query))
+      }
     },
     prepare(queryString: string) {
       let boundParams: any[] = []

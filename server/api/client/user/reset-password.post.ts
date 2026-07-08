@@ -1,6 +1,6 @@
 import { createError, defineEventHandler, readBody } from 'h3'
-import jwt from 'jsonwebtoken'
 import { getJwtSecret, hashPassword } from '../../../utils/helpers.ts'
+import { verifyJwt } from '../../../utils/jwt.ts'
 import { User } from '../../../utils/models.ts'
 
 export default defineEventHandler(async (event) => {
@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const decoded: any = jwt.verify(resetToken, getJwtSecret())
+    const decoded: any = await verifyJwt(resetToken, getJwtSecret())
     if (decoded.role !== 'reset-password') {
       throw new Error()
     }

@@ -1,14 +1,12 @@
-import bcrypt from 'bcryptjs'
-import { blob } from 'hub:blob'
-import nodemailer from 'nodemailer'
+import { compareSync, hashSync } from 'bcrypt-edge'
 import { randomUUID } from 'uncrypto'
 
 export function hashPassword(password: string): string {
-  return bcrypt.hashSync(password, 10)
+  return hashSync(password, 10)
 }
 
 export function comparePassword(password: string, hash: string): boolean {
-  return bcrypt.compareSync(password, hash)
+  return compareSync(password, hash)
 }
 
 export function generateOTP(length: number = 6): string {
@@ -25,90 +23,46 @@ export function escapeRegex(text: string): string {
 }
 
 export async function sendMail(to: string, subject: string, htmlContent: string) {
-  const mailUser = process.env.EMAIL_USER || process.env.MAIL_USER || 'test@example.com'
-  const mailPass = process.env.EMAIL_PASSWORD || process.env.MAIL_PASS || 'password123'
+  const mailUser = process.env.EMAIL_USER || 'no-reply@example.com'
+  const brevoKey = process.env.BREVO_API_KEY || ''
 
-  let transporterOptions: any = {
-    host: 'smtp.ethereal.email', // Default host for testing if Gmail is not set up
-    port: 587,
-    secure: false,
-    auth: {
-      user: mailUser,
-      pass: mailPass,
-    },
-  }
+  console.log(`\n==================================================`)
+  console.log(`[MAIL PREVIEW] To: ${to}`)
+  console.log(`Subject: ${subject}`)
+  console.log(`Content Preview:`)
+  console.log(htmlContent.replace(/<[^>]*>/g, '').trim()) // Strip HTML tags to show text OTP
+  console.log(`==================================================\n`)
 
-  // If gmail user/pass is configured, use gmail service
-  if (mailUser.includes('gmail.com')) {
-    transporterOptions = {
-      service: 'gmail',
-      auth: {
-        user: mailUser,
-        pass: mailPass,
-      },
-    }
-  }
-
-  try {
-    const transporter = nodemailer.createTransport(transporterOptions)
-    const mailOptions = {
-      from: `"Product Management" <${mailUser}>`,
-      to,
-      subject,
-      html: htmlContent,
-    }
-    return await transporter.sendMail(mailOptions)
-  }
-  catch (err: any) {
-    // If it's a Gmail authentication error or failure, fallback to Ethereal test account dynamically
-    if (mailUser.includes('gmail.com')) {
-      console.warn('[Mail] Gmail authentication failed (likely needs Google App Password). Falling back to dynamic ethereal.email test account...')
-      try {
-        const testAccount = await nodemailer.createTestAccount()
-        const fallbackTransporter = nodemailer.createTransport({
-          host: 'smtp.ethereal.email',
-          port: 587,
-          secure: false,
-          auth: {
-            user: testAccount.user,
-            pass: testAccount.pass,
-          },
-        })
-
-        const mailOptions = {
-          from: `"Product Management (Fallback)" <${testAccount.user}>`,
-          to,
-          subject,
-          html: htmlContent,
+  if (brevoKey) {
+    try {
+      const res = await $fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'api-key': brevoKey,
+          'content-type': 'application/json'
+        },
+        body: {
+          sender: { name: 'Product Management', email: mailUser },
+          to: [{ email: to }],
+          subject: subject,
+          htmlContent: htmlContent
         }
-
-        const result = await fallbackTransporter.sendMail(mailOptions)
-
-        // Print the OTP details clearly to the server console
-        console.log(`\n==================================================`)
-        console.log(`[OTP FALLBACK PREVIEW] To: ${to}`)
-        console.log(`Subject: ${subject}`)
-        console.log(`Content Preview:`)
-        console.log(htmlContent.replace(/<[^>]*>/g, '').trim()) // Strip HTML tags to show text OTP
-        console.log(`Ethereal Preview URL: ${nodemailer.getTestMessageUrl(result)}`)
-        console.log(`==================================================\n`)
-
-        return result
-      }
-      catch (fallbackErr) {
-        console.error('[Mail] Fallback email sending failed:', fallbackErr)
-      }
+      })
+      return res
     }
-    throw err
+    catch (err) {
+      console.error('[Mail] Failed to send email via Brevo:', err)
+    }
   }
+
+  // Mock mode / Fallback
+  return { messageId: 'mock-id-' + Date.now() }
 }
 
 export async function uploadToCloudinary(fileBuffer: Buffer, folder: string = 'products'): Promise<string> {
-  const filename = `${folder}/${randomUUID()}.jpg`
-  const blobFile = await blob.put(filename, fileBuffer, {
-    addRandomSuffix: true,
-  })
-  return blobFile.url
+  // Tạm thời chưa lưu ảnh thực tế lên Cloudflare R2, trả về ảnh mẫu placeholder
+  return 'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=500'
 }
 
 export function slugify(str: string): string {

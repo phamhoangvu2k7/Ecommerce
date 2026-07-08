@@ -1,6 +1,6 @@
 import { createError, defineEventHandler, readBody } from 'h3'
-import jwt from 'jsonwebtoken'
 import { getJwtSecret } from '../../../utils/helpers.ts'
+import { signJwt } from '../../../utils/jwt.ts'
 import { ForgotPassword } from '../../../utils/models.ts'
 
 export default defineEventHandler(async (event) => {
@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // Issue temporary JWT reset token valid for 10 minutes
-  const resetToken = jwt.sign(
+  const resetToken = await signJwt(
     { email, role: 'reset-password' },
     getJwtSecret(),
     { expiresIn: '10m' },

@@ -1,11 +1,6 @@
 import { hubDatabase } from '../utils/models.ts'
 
-export default defineNitroPlugin(async (nitroApp) => {
-  const db = hubDatabase()
-
-  console.log('[NuxtHub D1] Initializing SQLite database tables...')
-
-  const schema = `
+export const schema = `
     CREATE TABLE IF NOT EXISTS roles (
       id TEXT PRIMARY KEY,
       title TEXT NOT NULL,
@@ -134,6 +129,11 @@ export default defineNitroPlugin(async (nitroApp) => {
       timestamp TEXT DEFAULT (datetime('now', 'localtime'))
     );
   `
+
+export default defineNitroPlugin(async (nitroApp) => {
+  const db = hubDatabase()
+
+  console.log('[NuxtHub D1] Initializing SQLite database tables...')
 
   try {
     await db.exec(schema)

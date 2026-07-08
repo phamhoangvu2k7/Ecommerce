@@ -1,9 +1,13 @@
 import { defineEventHandler } from 'h3'
+import { schema } from '../plugins/db.ts'
 import { hashPassword } from '../utils/helpers.ts'
-import { Account, Product, ProductCategory, Role } from '../utils/models.ts'
+import { Account, Product, ProductCategory, Role, hubDatabase } from '../utils/models.ts'
 
 export default defineEventHandler(async (event) => {
   try {
+    console.log('[Seeding] Initializing database tables...')
+    await hubDatabase().exec(schema)
+
     console.log('[Seeding] Deleting old records...')
     await Role.deleteMany({})
     await Account.deleteMany({})

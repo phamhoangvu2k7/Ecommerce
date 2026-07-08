@@ -1,6 +1,6 @@
 import { createError, defineEventHandler, deleteCookie, parseCookies, readBody, setCookie } from 'h3'
-import jwt from 'jsonwebtoken'
 import { comparePassword, getJwtSecret } from '../../../utils/helpers.ts'
+import { signJwt } from '../../../utils/jwt.ts'
 import { User } from '../../../utils/models.ts'
 import { CartService } from '../../../utils/services.ts'
 import { LoginValidation } from '../../../utils/validation.ts'
@@ -53,7 +53,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // Issue Token
-  const token = jwt.sign(
+  const token = await signJwt(
     { id: user._id, role: 'client' },
     getJwtSecret(),
     { expiresIn: '7d' },
