@@ -1,7 +1,7 @@
 import { createError, defineEventHandler, readBody } from 'h3'
-import { slugify } from '../../../utils/helpers.ts'
-import { AuditLog, Product } from '../../../utils/models.ts'
-import { ProductValidation } from '../../../utils/validation.ts'
+import { slugify } from '../../../utils/helpers'
+import { AuditLog, Product } from '../../../utils/models'
+import { ProductValidation } from '../../../utils/validation'
 
 export default defineEventHandler(async (event) => {
   // Check permission

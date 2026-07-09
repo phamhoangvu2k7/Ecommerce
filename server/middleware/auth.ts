@@ -1,7 +1,7 @@
 import { createError, defineEventHandler, getHeader, parseCookies } from 'h3'
-import { getJwtSecret } from '../utils/helpers.ts'
-import { verifyJwt } from '../utils/jwt.ts'
-import { Account, User } from '../utils/models.ts'
+import { getJwtSecret } from '../utils/helpers'
+import { verifyJwt } from '../utils/jwt'
+import { Account, User } from '../utils/models'
 
 export default defineEventHandler(async (event) => {
   const path = event.path || ''
@@ -35,6 +35,7 @@ export default defineEventHandler(async (event) => {
         }
       }
     }
+    // eslint-disable-next-line unused-imports/no-unused-vars
     catch (err) {
       // Token expired or invalid
       console.warn('[AuthMiddleware] JWT Token verification failed.')

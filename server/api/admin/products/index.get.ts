@@ -1,5 +1,5 @@
 import { createError, defineEventHandler, getQuery } from 'h3'
-import { ProductService } from '../../../utils/services.ts'
+import { ProductService } from '../../../utils/services'
 
 export default defineEventHandler(async (event) => {
   // Check permission

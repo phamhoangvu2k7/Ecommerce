@@ -1,5 +1,5 @@
-import { comparePassword, escapeRegex, hashPassword } from './helpers.ts'
-import { Account, AuditLog, Cart, ForgotPassword, Order, Product, ProductCategory, User } from './models.ts'
+import { escapeRegex } from './helpers.ts'
+import { Cart, Order, Product, ProductCategory } from './models.ts'
 
 // --- 1. Product & Category Service ---
 export const ProductService = {
@@ -93,13 +93,13 @@ export const ProductService = {
     let filteredProducts = productsWithNewPrice
     if (query.price_min !== undefined && query.price_min !== '') {
       const min = Number.parseFloat(query.price_min) * 1000000
-      if (!isNaN(min)) {
+      if (!Number.isNaN(min)) {
         filteredProducts = filteredProducts.filter(p => p.priceNew >= min)
       }
     }
     if (query.price_max !== undefined && query.price_max !== '') {
       const max = Number.parseFloat(query.price_max) * 1000000
-      if (!isNaN(max)) {
+      if (!Number.isNaN(max)) {
         filteredProducts = filteredProducts.filter(p => p.priceNew <= max)
       }
     }

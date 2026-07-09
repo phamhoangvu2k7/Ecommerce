@@ -1,8 +1,8 @@
 import { createError, defineEventHandler, readBody, setCookie } from 'h3'
-import { comparePassword, getJwtSecret } from '../../../utils/helpers.ts'
-import { signJwt } from '../../../utils/jwt.ts'
-import { Account } from '../../../utils/models.ts'
-import { LoginValidation } from '../../../utils/validation.ts'
+import { comparePassword, getJwtSecret } from '../../../utils/helpers'
+import { signJwt } from '../../../utils/jwt'
+import { Account } from '../../../utils/models'
+import { LoginValidation } from '../../../utils/validation'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -50,6 +50,7 @@ export default defineEventHandler(async (event) => {
   // Set HTTP-only Cookie
   setCookie(event, 'token', token, {
     httpOnly: true,
+    // eslint-disable-next-line node/prefer-global/process
     secure: process.env.NODE_ENV === 'production',
     maxAge: 60 * 60 * 24, // 1 day
   })

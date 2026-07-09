@@ -1,21 +1,34 @@
-import { defineEventHandler } from 'h3'
-import { schema } from '../plugins/db.ts'
-import { hashPassword } from '../utils/helpers.ts'
-import { Account, Product, ProductCategory, Role, hubDatabase } from '../utils/models.ts'
+import { createError, defineEventHandler, getQuery } from 'h3'
+import * as db from '../plugins/db'
+import * as helpers from '../utils/helpers'
+import * as models from '../utils/models'
 
 export default defineEventHandler(async (event) => {
+  // 1. Kiểm tra bảo mật khi chạy ở môi trường Production
+  // eslint-disable-next-line node/prefer-global/process
+  if (process.env.NODE_ENV === 'production') {
+    const query = getQuery(event)
+    // eslint-disable-next-line node/prefer-global/process
+    const seedSecret = process.env.SEED_SECRET
+
+    // Nếu không cấu hình SEED_SECRET hoặc token truyền vào không khớp
+    if (!seedSecret || query.secret !== seedSecret) {
+      throw createError({
+        statusCode: 403,
+        statusMessage: 'Forbidden: Bạn không có quyền chạy lệnh seed này trên môi trường Production!',
+      })
+    }
+  }
+
   try {
-    console.log('[Seeding] Initializing database tables...')
-    await hubDatabase().exec(schema)
+    await models.hubDatabase().exec(db.schema)
 
-    console.log('[Seeding] Deleting old records...')
-    await Role.deleteMany({})
-    await Account.deleteMany({})
-    await ProductCategory.deleteMany({})
-    await Product.deleteMany({})
+    await models.Role.deleteMany({})
+    await models.Account.deleteMany({})
+    await models.ProductCategory.deleteMany({})
+    await models.Product.deleteMany({})
 
-    console.log('[Seeding] Inserting Roles...')
-    const adminRole = new Role({
+    const adminRole = new models.Role({
       id: 'role-admin',
       title: 'Quản trị viên',
       description: 'Toàn quyền quản trị hệ thống',
@@ -42,12 +55,17 @@ export default defineEventHandler(async (event) => {
     })
     await adminRole.save()
 
-    console.log('[Seeding] Inserting Admin Account...')
-    const adminAccount = new Account({
+    // Sử dụng biến môi trường (Environment Variables) hoặc fallback về mặc định
+    // eslint-disable-next-line node/prefer-global/process
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com'
+    // eslint-disable-next-line node/prefer-global/process
+    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123'
+
+    const adminAccount = new models.Account({
       id: 'account-admin',
       fullName: 'Super Admin',
-      email: 'admin@example.com',
-      password: hashPassword('admin123'),
+      email: adminEmail,
+      password: helpers.hashPassword(adminPassword),
       role_id: 'role-admin',
       phone: '0123456789',
       avatar: '',
@@ -55,8 +73,7 @@ export default defineEventHandler(async (event) => {
     })
     await adminAccount.save()
 
-    console.log('[Seeding] Inserting Categories...')
-    const cat1 = new ProductCategory({
+    const cat1 = new models.ProductCategory({
       id: 'cat-1',
       title: 'Điện thoại',
       slug: 'dien-thoai',
@@ -64,7 +81,7 @@ export default defineEventHandler(async (event) => {
       status: 'active',
       position: 1,
     })
-    const cat2 = new ProductCategory({
+    const cat2 = new models.ProductCategory({
       id: 'cat-2',
       title: 'Laptop',
       slug: 'laptop',
@@ -75,8 +92,7 @@ export default defineEventHandler(async (event) => {
     await cat1.save()
     await cat2.save()
 
-    console.log('[Seeding] Inserting Products...')
-    const p1 = new Product({
+    const p1 = new models.Product({
       id: 'prod-1',
       title: 'iPhone 15 Pro Max 256GB',
       slug: 'iphone-15-pro-max-256gb',
@@ -90,7 +106,7 @@ export default defineEventHandler(async (event) => {
       position: 1,
     })
 
-    const p2 = new Product({
+    const p2 = new models.Product({
       id: 'prod-2',
       title: 'MacBook Air M3 8GB 256GB',
       slug: 'macbook-air-m3-8gb-256gb',
@@ -104,7 +120,7 @@ export default defineEventHandler(async (event) => {
       position: 2,
     })
 
-    const p3 = new Product({
+    const p3 = new models.Product({
       id: 'prod-3',
       title: 'Samsung Galaxy S24 Ultra',
       slug: 'samsung-galaxy-s24-ultra',
@@ -122,13 +138,12 @@ export default defineEventHandler(async (event) => {
     await p2.save()
     await p3.save()
 
-    console.log('[Seeding] Seeding completed successfully.')
     return {
       success: true,
       message: 'Khởi tạo dữ liệu mẫu SQLite (D1) thành công!',
       data: {
-        adminEmail: 'admin@example.com',
-        adminPassword: 'admin123',
+        adminEmail,
+        adminPassword,
       },
     }
   }

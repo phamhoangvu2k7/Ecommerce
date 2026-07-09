@@ -1,7 +1,87 @@
-import { sql } from 'drizzle-orm'
+import { and, asc, count, desc, eq, gt, gte, inArray, isNull, like, lt, lte, ne, sql } from 'drizzle-orm'
 import { db } from 'hub:db'
 import { randomUUID } from 'uncrypto'
-import { prependImageDomain, stripImageDomain } from '~/server/utils/helpers.ts'
+import { prependImageDomain, stripImageDomain } from '~/server/utils/helpers'
+import * as schema from '../db/schema'
+
+// Map custom table names to Drizzle ORM schemas
+const tableMap: Record<string, any> = {
+  roles: schema.roles,
+  accounts: schema.accounts,
+  users: schema.users,
+  product_categories: schema.productCategories,
+  products: schema.products,
+  carts: schema.carts,
+  orders: schema.orders,
+  forgot_passwords: schema.forgotPasswords,
+  audit_logs: schema.auditLogs,
+}
+
+// Helper to build Drizzle ORM where conditions from custom filter objects
+function buildDrizzleWhere(drizzleTable: any, filter: any, hasSoftDelete: boolean, columns: string[]) {
+  const conditions: any[] = []
+
+  // Apply soft delete filter by default if model supports it
+  if (hasSoftDelete && filter.deleted === undefined) {
+    conditions.push(eq(drizzleTable.deleted, 0))
+  }
+
+  for (const [key, val] of Object.entries(filter)) {
+    const colName = key === '_id' ? 'id' : key
+
+    if (!columns.includes(colName)) {
+      continue
+    }
+
+    const column = drizzleTable[colName]
+    if (!column)
+      continue
+
+    if (val === null) {
+      conditions.push(isNull(column))
+    }
+    else if (val instanceof RegExp) {
+      conditions.push(like(column, `%${val.source}%`))
+    }
+    else if (typeof val === 'object' && val !== null) {
+      if ('$in' in val) {
+        const inArr = (val as any).$in
+        if (Array.isArray(inArr)) {
+          if (inArr.length === 0) {
+            conditions.push(sql`1 = 0`)
+          }
+          else {
+            conditions.push(inArray(column, inArr))
+          }
+        }
+      }
+      if ('$gte' in val) {
+        conditions.push(gte(column, (val as any).$gte))
+      }
+      if ('$lte' in val) {
+        conditions.push(lte(column, (val as any).$lte))
+      }
+      if ('$gt' in val) {
+        conditions.push(gt(column, (val as any).$gt))
+      }
+      if ('$lt' in val) {
+        conditions.push(lt(column, (val as any).$lt))
+      }
+      if ('$ne' in val) {
+        conditions.push(ne(column, (val as any).$ne))
+      }
+    }
+    else {
+      let dbVal = val
+      if (typeof val === 'boolean') {
+        dbVal = val ? 1 : 0
+      }
+      conditions.push(eq(column, dbVal))
+    }
+  }
+
+  return conditions.length > 0 ? and(...conditions) : undefined
+}
 
 // --- 0. Custom hubDatabase Wrapper based on Drizzle ORM for raw SQL ---
 export function hubDatabase() {
@@ -45,7 +125,7 @@ export function hubDatabase() {
   }
 }
 
-// --- 1. Query Builder for SQLite D1 ---
+// --- 1. Query Builder for SQLite D1 using Drizzle ---
 class QueryBuilder<T extends BaseModel> {
   modelClass: any
   filter: any
@@ -85,120 +165,71 @@ class QueryBuilder<T extends BaseModel> {
     return this
   }
 
-  buildWhere() {
-    const whereParts: string[] = []
-    const params: any[] = []
-
-    // Apply soft delete filter by default if model supports it
-    if (this.modelClass.hasSoftDelete && this.filter.deleted === undefined) {
-      whereParts.push('deleted = 0')
-    }
-
-    for (const [key, val] of Object.entries(this.filter)) {
-      const col = key === '_id' ? 'id' : key
-
-      if (!this.modelClass.columns.includes(col)) {
-        continue
-      }
-
-      if (val === null) {
-        whereParts.push(`${col} IS NULL`)
-      }
-      else if (val instanceof RegExp) {
-        whereParts.push(`${col} LIKE ?`)
-        params.push(`%${val.source}%`)
-      }
-      else if (typeof val === 'object' && val !== null) {
-        // MongoDB operators
-        if ('$in' in val) {
-          const inArr = (val as any).$in
-          if (!Array.isArray(inArr) || inArr.length === 0) {
-            whereParts.push('1 = 0') // Empty array means match nothing
-          }
-          else {
-            const placeholders = inArr.map(() => '?').join(', ')
-            whereParts.push(`${col} IN (${placeholders})`)
-            params.push(...inArr)
-          }
-        }
-        if ('$gte' in val) {
-          whereParts.push(`${col} >= ?`)
-          params.push((val as any).$gte)
-        }
-        if ('$lte' in val) {
-          whereParts.push(`${col} <= ?`)
-          params.push((val as any).$lte)
-        }
-        if ('$gt' in val) {
-          whereParts.push(`${col} > ?`)
-          params.push((val as any).$gt)
-        }
-        if ('$lt' in val) {
-          whereParts.push(`${col} < ?`)
-          params.push((val as any).$lt)
-        }
-        if ('$ne' in val) {
-          whereParts.push(`${col} != ?`)
-          params.push((val as any).$ne)
-        }
-      }
-      else {
-        // Direct value
-        whereParts.push(`${col} = ?`)
-        if (typeof val === 'boolean') {
-          params.push(val ? 1 : 0)
-        }
-        else {
-          params.push(val)
-        }
-      }
-    }
-
-    return {
-      whereClause: whereParts.length > 0 ? whereParts.join(' AND ') : '',
-      params,
-    }
-  }
-
   async count(): Promise<number> {
-    const { whereClause, params } = this.buildWhere()
-    let sqlQuery = `SELECT COUNT(*) as count FROM ${this.modelClass.tableName}`
-    if (whereClause) {
-      sqlQuery += ` WHERE ${whereClause}`
+    const drizzleTable = tableMap[this.modelClass.tableName]
+    if (!drizzleTable) {
+      throw new Error(`Table ${this.modelClass.tableName} not found in schema.`)
     }
-    const stmt = this.modelClass.db.prepare(sqlQuery).bind(...params)
-    const row = await stmt.first()
-    return row ? (row.count as number) : 0
+
+    const whereClause = buildDrizzleWhere(
+      drizzleTable,
+      this.filter,
+      this.modelClass.hasSoftDelete,
+      this.modelClass.columns,
+    )
+
+    let query = db.select({ value: count() }).from(drizzleTable)
+    if (whereClause) {
+      query = query.where(whereClause) as any
+    }
+
+    const res = await query
+    return res[0]?.value || 0
   }
 
   async execute(): Promise<any[]> {
-    const { whereClause, params } = this.buildWhere()
-    let sqlQuery = `SELECT * FROM ${this.modelClass.tableName}`
+    const drizzleTable = tableMap[this.modelClass.tableName]
+    if (!drizzleTable) {
+      throw new Error(`Table ${this.modelClass.tableName} not found in schema.`)
+    }
 
+    let query = db.select().from(drizzleTable)
+
+    const whereClause = buildDrizzleWhere(
+      drizzleTable,
+      this.filter,
+      this.modelClass.hasSoftDelete,
+      this.modelClass.columns,
+    )
     if (whereClause) {
-      sqlQuery += ` WHERE ${whereClause}`
+      query = query.where(whereClause) as any
     }
 
     if (this._sort) {
-      const sortParts = Object.entries(this._sort).map(([field, order]) => {
-        const sqlField = field === '_id' ? 'id' : field
-        const dir = String(order).toLowerCase().startsWith('desc') || order === -1 ? 'DESC' : 'ASC'
-        return `${sqlField} ${dir}`
-      })
+      const sortParts = Object.entries(this._sort)
+        .map(([field, order]) => {
+          const sqlField = field === '_id' ? 'id' : field
+          const column = drizzleTable[sqlField]
+          if (!column)
+            return null
+          const dir = String(order).toLowerCase().startsWith('desc') || order === -1 ? 'desc' : 'asc'
+          return dir === 'desc' ? desc(column) : asc(column)
+        })
+        .filter(Boolean) as any[]
+
       if (sortParts.length > 0) {
-        sqlQuery += ` ORDER BY ${sortParts.join(', ')}`
+        query = query.orderBy(...sortParts) as any
       }
     }
 
     if (this._limit !== null) {
-      sqlQuery += ` LIMIT ${Number(this._limit)}`
+      query = query.limit(this._limit) as any
     }
     if (this._skip !== null) {
-      sqlQuery += ` OFFSET ${Number(this._skip)}`
+      query = query.offset(this._skip) as any
     }
 
-    const stmt = this.modelClass.db.prepare(sqlQuery).bind(...params)
-    const { results } = await stmt.all()
+    const results = await query
 
     // Map raw rows to model instances / objects
     let rows = results.map((row: any) => this.modelClass.fromRow(row))
@@ -207,15 +238,14 @@ class QueryBuilder<T extends BaseModel> {
     if (this._populatePaths.length > 0 && rows.length > 0) {
       for (const path of this._populatePaths) {
         if (path === 'product_category_id') {
-          const categoryIds = [...new Set(rows.map(r => r.product_category_id).filter(Boolean))]
+          const categoryIds = [...new Set(rows.map(r => r.product_category_id).filter(Boolean))] as string[]
           if (categoryIds.length > 0) {
-            const placeholders = categoryIds.map(() => '?').join(', ')
-            const catRows = await this.modelClass.db
-              .prepare(`SELECT * FROM product_categories WHERE id IN (${placeholders})`)
-              .bind(...categoryIds)
-              .all()
+            const catRows = await db
+              .select()
+              .from(schema.productCategories)
+              .where(inArray(schema.productCategories.id, categoryIds))
             const catMap = Object.fromEntries(
-              catRows.results.map((c: any) => [c.id, ProductCategory.fromRow(c)]),
+              catRows.map((c: any) => [c.id, ProductCategory.fromRow(c)]),
             )
             rows.forEach((r) => {
               r.product_category_id = catMap[r.product_category_id] || null
@@ -223,15 +253,14 @@ class QueryBuilder<T extends BaseModel> {
           }
         }
         else if (path === 'role_id') {
-          const roleIds = [...new Set(rows.map(r => r.role_id).filter(Boolean))]
+          const roleIds = [...new Set(rows.map(r => r.role_id).filter(Boolean))] as string[]
           if (roleIds.length > 0) {
-            const placeholders = roleIds.map(() => '?').join(', ')
-            const roleRows = await this.modelClass.db
-              .prepare(`SELECT * FROM roles WHERE id IN (${placeholders})`)
-              .bind(...roleIds)
-              .all()
+            const roleRows = await db
+              .select()
+              .from(schema.roles)
+              .where(inArray(schema.roles.id, roleIds))
             const roleMap = Object.fromEntries(
-              roleRows.results.map((role: any) => [role.id, Role.fromRow(role)]),
+              roleRows.map((role: any) => [role.id, Role.fromRow(role)]),
             )
             rows.forEach((r) => {
               r.role_id = roleMap[r.role_id] || null
@@ -239,20 +268,18 @@ class QueryBuilder<T extends BaseModel> {
           }
         }
         else if (path === 'products.product_id') {
-          // Flatten all product IDs in cart or order items
           const productIds = [
             ...new Set(
               rows.flatMap(r => (r.products || []).map((p: any) => p.product_id)).filter(Boolean),
             ),
-          ]
+          ] as string[]
           if (productIds.length > 0) {
-            const placeholders = productIds.map(() => '?').join(', ')
-            const prodRows = await this.modelClass.db
-              .prepare(`SELECT * FROM products WHERE id IN (${placeholders})`)
-              .bind(...productIds)
-              .all()
+            const prodRows = await db
+              .select()
+              .from(schema.products)
+              .where(inArray(schema.products.id, productIds))
             const prodMap = Object.fromEntries(
-              prodRows.results.map((p: any) => [p.id, Product.fromRow(p)]),
+              prodRows.map((p: any) => [p.id, Product.fromRow(p)]),
             )
             rows.forEach((r) => {
               if (Array.isArray(r.products)) {
@@ -408,36 +435,27 @@ export class BaseModel {
   }
 
   static async updateOne(filter: any, update: any) {
-    const qb = new QueryBuilder(this, filter)
-    const { whereClause, params: whereParams } = qb.buildWhere()
+    const drizzleTable = tableMap[this.tableName]
+    if (!drizzleTable) {
+      throw new Error(`Table ${this.tableName} not found in schema.`)
+    }
 
-    const setParts: string[] = []
-    const updateParams: any[] = []
-
-    const addSet = (col: string, val: any, isInc = false) => {
-      const cls = this
-      if (!cls.columns.includes(col))
+    const updateData: any = {}
+    const addSet = (col: string, val: any) => {
+      if (!this.columns.includes(col))
         return
 
-      if (isInc) {
-        setParts.push(`${col} = ${col} + ?`)
-      }
-      else {
-        setParts.push(`${col} = ?`)
-      }
-
-      if (cls.jsonFields.includes(col)) {
-        updateParams.push(JSON.stringify(val))
+      let dbVal = val
+      if (this.jsonFields.includes(col)) {
+        dbVal = JSON.stringify(val)
       }
       else if (val instanceof Date) {
-        updateParams.push(val.toISOString())
+        dbVal = val.toISOString()
       }
       else if (typeof val === 'boolean') {
-        updateParams.push(val ? 1 : 0)
+        dbVal = val ? 1 : 0
       }
-      else {
-        updateParams.push(val)
-      }
+      updateData[col] = dbVal
     }
 
     if (update.$set) {
@@ -447,7 +465,10 @@ export class BaseModel {
     }
     if (update.$inc) {
       for (const [col, val] of Object.entries(update.$inc)) {
-        addSet(col, val, true)
+        if (this.columns.includes(col)) {
+          const column = drizzleTable[col]
+          updateData[col] = sql`${column} + ${Number(val)}`
+        }
       }
     }
 
@@ -457,16 +478,17 @@ export class BaseModel {
       addSet(col, val)
     }
 
-    if (setParts.length === 0)
-      return
-
-    let sqlQuery = `UPDATE ${this.tableName} SET ${setParts.join(', ')}`
-    if (whereClause) {
-      sqlQuery += ` WHERE ${whereClause}`
+    // Set updatedAt
+    if (this.columns.includes('updatedAt')) {
+      updateData.updatedAt = new Date().toISOString()
     }
 
-    const allParams = [...updateParams, ...whereParams]
-    await this.db.prepare(sqlQuery).bind(...allParams).run()
+    const whereClause = buildDrizzleWhere(drizzleTable, filter, this.hasSoftDelete, this.columns)
+    let query = db.update(drizzleTable).set(updateData)
+    if (whereClause) {
+      query = query.where(whereClause) as any
+    }
+    await query
   }
 
   static async findOneAndUpdate(filter: any, update: any, options: any = {}) {
@@ -496,43 +518,57 @@ export class BaseModel {
   }
 
   static async deleteMany(filter: any = {}) {
-    const qb = new QueryBuilder(this, filter)
-    const { whereClause, params } = qb.buildWhere()
-    let sqlQuery = `DELETE FROM ${this.tableName}`
-    if (whereClause) {
-      sqlQuery += ` WHERE ${whereClause}`
+    const drizzleTable = tableMap[this.tableName]
+    if (!drizzleTable) {
+      throw new Error(`Table ${this.tableName} not found in schema.`)
     }
-    await this.db.prepare(sqlQuery).bind(...params).run()
+
+    const whereClause = buildDrizzleWhere(drizzleTable, filter, this.hasSoftDelete, this.columns)
+    let query = db.delete(drizzleTable)
+    if (whereClause) {
+      query = query.where(whereClause) as any
+    }
+    await query
   }
 
   async save() {
     const cls = this.constructor as typeof BaseModel
-    const db = cls.db
-
     this.updatedAt = new Date().toISOString()
 
-    const cols = cls.columns
-    const placeholders = cols.map(() => '?').join(', ')
-    const sqlQuery = `INSERT OR REPLACE INTO ${cls.tableName} (${cols.join(', ')}) VALUES (${placeholders})`
+    const drizzleTable = tableMap[cls.tableName]
+    if (!drizzleTable) {
+      throw new Error(`Table ${cls.tableName} not found in schema.`)
+    }
 
-    const params = cols.map((col) => {
+    const values: any = {}
+    cls.columns.forEach((col) => {
       let val = col === 'thumbnail' ? (this as any)._thumbnail : (this as any)[col]
       if (val === undefined) {
         val = null
       }
       if (cls.jsonFields.includes(col)) {
-        return JSON.stringify(val || (col === 'userInfo' ? {} : []))
+        values[col] = JSON.stringify(val || (col === 'userInfo' ? {} : []))
       }
-      if (val instanceof Date) {
-        return val.toISOString()
+      else if (val instanceof Date) {
+        values[col] = val.toISOString()
       }
-      if (typeof val === 'boolean') {
-        return val ? 1 : 0
+      else if (typeof val === 'boolean') {
+        values[col] = val ? 1 : 0
       }
-      return val
+      else {
+        values[col] = val
+      }
     })
 
-    await db.prepare(sqlQuery).bind(...params).run()
+    // id is primary key and always set in constructor
+    values.id = this.id
+    values.updatedAt = this.updatedAt
+
+    await db.insert(drizzleTable).values(values).onConflictDoUpdate({
+      target: drizzleTable.id,
+      set: values,
+    })
+
     return this
   }
 

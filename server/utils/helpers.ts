@@ -24,7 +24,9 @@ export function escapeRegex(text: string): string {
 }
 
 export async function sendMail(to: string, subject: string, htmlContent: string) {
+  // eslint-disable-next-line node/prefer-global/process
   const mailUser = process.env.EMAIL_USER || 'no-reply@example.com'
+  // eslint-disable-next-line node/prefer-global/process
   const brevoKey = process.env.BREVO_API_KEY || ''
 
   if (brevoKey) {
@@ -54,6 +56,7 @@ export async function sendMail(to: string, subject: string, htmlContent: string)
   return { messageId: `mock-id-${Date.now()}` }
 }
 
+// eslint-disable-next-line node/prefer-global/buffer
 function getExtension(buffer: Buffer): string {
   if (buffer.length > 4) {
     if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) {
@@ -73,6 +76,7 @@ function getExtension(buffer: Buffer): string {
 }
 
 export async function uploadToCloudinary(
+  // eslint-disable-next-line node/prefer-global/buffer
   fileBuffer: Buffer,
   folder: string = 'products',
   options?: { contentType?: string, filename?: string },
@@ -121,6 +125,7 @@ export function stripImageDomain(url: string | undefined | null): string {
       path = parsed.pathname
     }
   }
+  // eslint-disable-next-line unused-imports/no-unused-vars
   catch (e) {}
 
   if (path.startsWith('/blobs/')) {
@@ -149,6 +154,7 @@ export function prependImageDomain(path: string | undefined | null): string {
 }
 
 export function getJwtSecret(): string {
+  // eslint-disable-next-line node/prefer-global/process
   const secret = process.env.JWT_SECRET
   if (!secret) {
     throw new Error('[Security] JWT_SECRET environment variable is not defined!')
