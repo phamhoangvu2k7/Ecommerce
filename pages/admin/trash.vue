@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { resolveImageUrl } from '~/composables/useImageUrl'
 
 definePageMeta({
   layout: 'admin',
@@ -140,7 +141,7 @@ function formatPrice(value: number) {
             </tr>
             <tr v-for="product in deletedProducts" :key="product.id" class="table-row">
               <td>
-                <img :src="product.thumbnail || 'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=500'" :alt="product.title" class="table-thumbnail">
+                <img :src="resolveImageUrl(product.thumbnail)" :alt="product.title" class="table-thumbnail">
               </td>
               <td class="font-semibold text-white">
                 {{ product.title }}

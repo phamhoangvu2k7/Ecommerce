@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useCartStore } from '~/stores/cart.ts'
+import { resolveImageUrl } from '~/composables/useImageUrl'
 
 definePageMeta({
   middleware: ['auth'],
@@ -162,7 +163,7 @@ function formatPrice(value: number) {
 
           <div class="summary-items-list">
             <div v-for="item in cartStore.products" :key="item.product_id" class="summary-item">
-              <img :src="item.thumbnail || 'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=500'" :alt="item.title" class="sum-item-img">
+              <img :src="resolveImageUrl(item.thumbnail)" :alt="item.title" class="sum-item-img">
               <div class="sum-item-details">
                 <h4 class="sum-item-title">
                   {{ item.title }}

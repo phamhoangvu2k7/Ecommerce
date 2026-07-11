@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { resolveImageUrl } from '~/composables/useImageUrl'
 
 const props = defineProps<{
   item: {
@@ -34,7 +35,7 @@ function formatPrice(value: number) {
 <template>
   <div class="premium-card cart-item fade-in-item">
     <img
-      :src="item.thumbnail || 'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=500'"
+      :src="resolveImageUrl(item.thumbnail)"
       :alt="item.title"
       class="item-img"
     >

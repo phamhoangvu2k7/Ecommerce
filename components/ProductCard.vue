@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
+import { resolveImageUrl } from '~/composables/useImageUrl'
 
 defineProps<{
   product: {
@@ -24,7 +25,7 @@ function formatPrice(value: number) {
   <div class="premium-card product-card">
     <div class="product-image-container">
       <img
-        :src="product.thumbnail || 'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=500'"
+        :src="resolveImageUrl(product.thumbnail)"
         :alt="product.title"
         class="product-img"
       >

@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import SkeletonDetail from '~/components/SkeletonDetail.vue'
 import { useCartStore } from '~/stores/cart.ts'
+import { resolveImageUrl } from '~/composables/useImageUrl'
 
 const route = useRoute()
 const router = useRouter()
@@ -83,7 +84,7 @@ function formatPrice(value: number) {
     <div v-else-if="product" class="detail-container">
       <!-- Image Column -->
       <div class="image-column glass-panel">
-        <img :src="product.thumbnail || 'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=500'" :alt="product.title" class="detail-img">
+        <img :src="resolveImageUrl(product.thumbnail)" :alt="product.title" class="detail-img">
       </div>
 
       <!-- Info Column -->

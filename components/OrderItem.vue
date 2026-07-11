@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { resolveImageUrl } from '~/composables/useImageUrl'
 const props = defineProps<{
   order: {
     id: string
@@ -91,7 +92,7 @@ function getStatusClass(status: string) {
     <div class="order-products">
       <div v-for="item in order.products" :key="item.product_id?.id" class="order-product-item">
         <img
-          :src="item.product_id?.thumbnail || 'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=500'"
+          :src="resolveImageUrl(item.product_id?.thumbnail)"
           :alt="item.product_id?.title || 'Sản phẩm'"
           class="prod-img"
         >

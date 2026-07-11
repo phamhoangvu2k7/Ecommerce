@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { resolveImageUrl } from '~/composables/useImageUrl'
 definePageMeta({
   layout: 'admin',
   middleware: ['admin'],
@@ -394,7 +395,7 @@ function changePage(page: number) {
           </tr>
           <tr v-for="product in products" :key="product.id" class="table-row">
             <td>
-              <img :src="product.thumbnail || 'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=500'" :alt="product.title" class="table-thumbnail">
+              <img :src="resolveImageUrl(product.thumbnail)" :alt="product.title" class="table-thumbnail">
             </td>
             <td>
               <div class="product-title-cell">
