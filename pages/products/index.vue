@@ -145,7 +145,7 @@ function formatPrice(value: number) {
             <option value="">
               Tất cả danh mục
             </option>
-            <option v-for="cat in categories" :key="cat._id" :value="cat.slug">
+            <option v-for="cat in categories" :key="cat.id" :value="cat.slug">
               {{ cat.title }}
             </option>
           </select>
@@ -222,7 +222,7 @@ function formatPrice(value: number) {
 
         <div v-else>
           <div class="grid-products">
-            <ProductCard v-for="product in products" :key="product._id" :product="product" />
+            <ProductCard v-for="product in products" :key="product.id" :product="product" />
           </div>
 
           <!-- Pagination Footer -->

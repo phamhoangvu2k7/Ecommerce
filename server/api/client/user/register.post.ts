@@ -1,7 +1,8 @@
 import { createError, defineEventHandler, readBody } from 'h3'
 import { hashPassword } from '../../../utils/helpers.ts'
-import { Cart, User } from '../../../utils/models.ts'
 import { RegisterValidation } from '../../../utils/validation.ts'
+import { db, schema } from 'hub:db'
+import { eq, and } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -15,7 +16,11 @@ export default defineEventHandler(async (event) => {
 
   const { fullName, email, password, phone } = parsed.data
 
-  const existingUser = await User.findOne({ email })
+  const existingUsers = await db.select()
+    .from(schema.users)
+    .where(and(eq(schema.users.email, email), eq(schema.users.deleted, 0)))
+    .limit(1)
+  const existingUser = existingUsers[0]
   if (existingUser) {
     throw createError({
       statusCode: 400,
@@ -23,22 +28,28 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const user = new User({
+  const userId = crypto.randomUUID()
+  await db.insert(schema.users).values({
+    id: userId,
     fullName,
     email,
     password: hashPassword(password),
     phone,
     status: 'active',
+    deleted: 0,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   })
-
-  await user.save()
 
   // Initialize an empty cart for this user
-  const cart = new Cart({
-    user_id: user._id,
-    products: [],
+  const cartId = crypto.randomUUID()
+  await db.insert(schema.carts).values({
+    id: cartId,
+    user_id: userId,
+    products: '[]',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   })
-  await cart.save()
 
   return {
     success: true,

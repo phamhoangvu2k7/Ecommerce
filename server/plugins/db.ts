@@ -1,4 +1,5 @@
-import { hubDatabase } from '../utils/models.ts'
+import { sql } from 'drizzle-orm'
+import { db } from 'hub:db'
 
 export const schema = `
     CREATE TABLE IF NOT EXISTS roles (
@@ -130,14 +131,15 @@ export const schema = `
     );
   `
 
-export default defineNitroPlugin(async (nitroApp) => {
-  const db = hubDatabase()
-
-  console.log('[NuxtHub D1] Initializing SQLite database tables...')
-
+export default defineNitroPlugin(async () => {
   try {
-    await db.exec(schema)
-    console.log('[NuxtHub D1] Database tables initialized successfully.')
+    const queries = schema
+      .split(';')
+      .map(q => q.trim())
+      .filter(q => q.length > 0)
+    for (const query of queries) {
+      await db.run(sql.raw(query))
+    }
   }
   catch (err) {
     console.error('[NuxtHub D1] Error initializing database tables:', err)

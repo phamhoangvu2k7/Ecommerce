@@ -1,6 +1,7 @@
 import { createError, defineEventHandler, readBody } from 'h3'
 import { hashPassword } from '../../../utils/helpers.ts'
-import { Account } from '../../../utils/models.ts'
+import { db, schema } from 'hub:db'
+import { eq, and } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const permissions = event.context.admin?.role_id?.permissions || []
@@ -12,46 +13,72 @@ export default defineEventHandler(async (event) => {
   }
 
   const id = event.context.params?.id
+  if (!id) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Thiếu ID tài khoản.',
+    })
+  }
+
   const body = await readBody(event)
 
   try {
-    const account = await Account.findById(id)
-    if (!account || account.deleted) {
+    const accounts = await db.select()
+      .from(schema.accounts)
+      .where(and(eq(schema.accounts.id, id), eq(schema.accounts.deleted, 0)))
+      .limit(1)
+    const account = accounts[0]
+    if (!account) {
       throw createError({
         statusCode: 404,
         statusMessage: 'Không tìm thấy tài khoản quản trị.',
       })
     }
 
+    const updateData: any = {}
     if (body.email && body.email !== account.email) {
-      const existing = await Account.findOne({ email: body.email })
+      const existingAccounts = await db.select()
+        .from(schema.accounts)
+        .where(and(eq(schema.accounts.email, body.email), eq(schema.accounts.deleted, 0)))
+        .limit(1)
+      const existing = existingAccounts[0]
       if (existing) {
         throw createError({
           statusCode: 400,
           statusMessage: 'Email này đã được sử dụng.',
         })
       }
-      account.email = body.email
+      updateData.email = body.email
     }
 
     if (body.fullName !== undefined)
-      account.fullName = body.fullName
+      updateData.fullName = body.fullName
     if (body.password)
-      account.password = hashPassword(body.password)
+      updateData.password = hashPassword(body.password)
     if (body.role_id !== undefined)
-      account.role_id = body.role_id || null
+      updateData.role_id = body.role_id || null
     if (body.phone !== undefined)
-      account.phone = body.phone
+      updateData.phone = body.phone
     if (body.avatar !== undefined)
-      account.avatar = body.avatar
+      updateData.avatar = body.avatar
     if (body.status !== undefined)
-      account.status = body.status
+      updateData.status = body.status
 
-    await account.save()
+    updateData.updatedAt = new Date().toISOString()
+
+    await db.update(schema.accounts)
+      .set(updateData)
+      .where(eq(schema.accounts.id, id))
+
+    const updatedAccounts = await db.select()
+      .from(schema.accounts)
+      .where(eq(schema.accounts.id, id))
+      .limit(1)
+    const updatedAccount = updatedAccounts[0]
 
     return {
       success: true,
-      account,
+      account: updatedAccount,
     }
   }
   catch (err: any) {

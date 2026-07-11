@@ -1,12 +1,12 @@
 <script setup lang="ts">
 const props = defineProps<{
   order: {
-    _id: string
+    id: string
     createdAt: string
     status: string
     products: Array<{
       product_id?: {
-        _id: string
+        id: string
         title: string
         thumbnail?: string
       }
@@ -77,7 +77,7 @@ function getStatusClass(status: string) {
     <!-- Order Header -->
     <div class="order-header">
       <div class="order-meta">
-        <span class="order-id">Mã đơn: <strong>{{ order._id }}</strong></span>
+        <span class="order-id">Mã đơn: <strong>{{ order.id }}</strong></span>
         <span class="order-date">Ngày đặt: {{ new Date(order.createdAt).toLocaleDateString("vi-VN") }}</span>
       </div>
       <div class="order-status">
@@ -89,7 +89,7 @@ function getStatusClass(status: string) {
 
     <!-- Products in Order -->
     <div class="order-products">
-      <div v-for="item in order.products" :key="item.product_id?._id" class="order-product-item">
+      <div v-for="item in order.products" :key="item.product_id?.id" class="order-product-item">
         <img
           :src="item.product_id?.thumbnail || 'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=500'"
           :alt="item.product_id?.title || 'Sản phẩm'"
@@ -124,7 +124,7 @@ function getStatusClass(status: string) {
           v-if="order.status === 'pending'"
           class="btn btn-danger btn-cancel-order"
           aria-label="Hủy đơn hàng"
-          @click="emit('cancel', order._id)"
+          @click="emit('cancel', order.id)"
         >
           Hủy đơn hàng 🗑️
         </button>

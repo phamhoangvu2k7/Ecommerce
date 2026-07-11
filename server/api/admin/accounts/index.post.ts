@@ -1,6 +1,7 @@
 import { createError, defineEventHandler, readBody } from 'h3'
 import { hashPassword } from '../../../utils/helpers.ts'
-import { Account } from '../../../utils/models.ts'
+import { db, schema } from 'hub:db'
+import { eq, and } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const permissions = event.context.admin?.role_id?.permissions || []
@@ -20,7 +21,11 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const existing = await Account.findOne({ email: body.email })
+    const existingAccounts = await db.select()
+      .from(schema.accounts)
+      .where(and(eq(schema.accounts.email, body.email), eq(schema.accounts.deleted, 0)))
+      .limit(1)
+    const existing = existingAccounts[0]
     if (existing) {
       throw createError({
         statusCode: 400,
@@ -28,7 +33,9 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const account = new Account({
+    const accountId = crypto.randomUUID()
+    const accountData = {
+      id: accountId,
       fullName: body.fullName,
       email: body.email,
       password: hashPassword(body.password),
@@ -36,13 +43,16 @@ export default defineEventHandler(async (event) => {
       phone: body.phone || '',
       avatar: body.avatar || '',
       status: body.status || 'active',
-    })
+      deleted: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
 
-    await account.save()
+    await db.insert(schema.accounts).values(accountData)
 
     return {
       success: true,
-      account,
+      account: accountData,
     }
   }
   catch (err: any) {

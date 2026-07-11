@@ -1,7 +1,8 @@
 import { createError, defineEventHandler, getHeader, parseCookies } from 'h3'
 import { getJwtSecret } from '../utils/helpers'
 import { verifyJwt } from '../utils/jwt'
-import { Account, User } from '../utils/models'
+import { db, schema } from 'hub:db'
+import { eq, and } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const path = event.path || ''
@@ -23,13 +24,49 @@ export default defineEventHandler(async (event) => {
     try {
       const decoded: any = await verifyJwt(token, getJwtSecret())
       if (decoded.role === 'admin') {
-        const account = await Account.findById(decoded.id).populate('role_id')
+        const accounts = await db.select()
+          .from(schema.accounts)
+          .where(and(eq(schema.accounts.id, decoded.id), eq(schema.accounts.deleted, 0)))
+          .limit(1)
+        const account = accounts[0]
         if (account && account.status === 'active') {
+          // Populate role_id
+          if (account.role_id) {
+            const roles = await db.select()
+              .from(schema.roles)
+              .where(and(eq(schema.roles.id, account.role_id), eq(schema.roles.deleted, 0)))
+              .limit(1)
+            const role = roles[0]
+            if (role) {
+              let permissions: string[] = []
+              if (typeof role.permissions === 'string') {
+                try {
+                  permissions = JSON.parse(role.permissions)
+                } catch {
+                  permissions = []
+                }
+              } else if (Array.isArray(role.permissions)) {
+                permissions = role.permissions
+              }
+              account.role_id = {
+                ...role,
+                permissions
+              } as any
+            } else {
+              account.role_id = null
+            }
+          } else {
+            account.role_id = null
+          }
           event.context.admin = account
         }
       }
       else {
-        const user = await User.findById(decoded.id)
+        const users = await db.select()
+          .from(schema.users)
+          .where(and(eq(schema.users.id, decoded.id), eq(schema.users.deleted, 0)))
+          .limit(1)
+        const user = users[0]
         if (user && user.status === 'active') {
           event.context.user = user
         }

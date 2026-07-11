@@ -1,5 +1,6 @@
 import { createError, defineEventHandler } from 'h3'
-import { Product, ProductCategory } from '../../../utils/models.ts'
+import { db, schema } from 'hub:db'
+import { eq } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const permissions = event.context.admin?.role_id?.permissions || []
@@ -10,11 +11,24 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Querying with { deleted: true } overrides the softDelete query filter
-  const [products, categories] = await Promise.all([
-    Product.find({ deleted: true }).populate('product_category_id'),
-    ProductCategory.find({ deleted: true }),
+  const [productRows, categories] = await Promise.all([
+    db.select({
+      product: schema.products,
+      category: schema.productCategories,
+    })
+    .from(schema.products)
+    .leftJoin(schema.productCategories, eq(schema.products.product_category_id, schema.productCategories.id))
+    .where(eq(schema.products.deleted, 1)),
+
+    db.select()
+      .from(schema.productCategories)
+      .where(eq(schema.productCategories.deleted, 1)),
   ])
+
+  const products = productRows.map(row => ({
+    ...row.product,
+    product_category_id: row.category || null,
+  }))
 
   return {
     success: true,

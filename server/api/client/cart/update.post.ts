@@ -16,10 +16,10 @@ export default defineEventHandler(async (event) => {
   const guestCartId = cookies.cartId
   const user = event.context.user
 
-  const cart = await CartService.getOrCreateCart(guestCartId, user ? user._id.toString() : null)
+  const cart = await CartService.getOrCreateCart(guestCartId, user ? user.id : null)
 
   try {
-    await CartService.updateCartItem(String(cart._id), productId, Number(quantity), user ? user._id.toString() : null)
+    await CartService.updateCartItem(String(cart.id), productId, Number(quantity), user ? user.id : null)
     return {
       success: true,
       message: 'Cập nhật giỏ hàng thành công.',

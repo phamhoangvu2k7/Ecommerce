@@ -138,7 +138,7 @@ function formatPrice(value: number) {
                 Không có sản phẩm nào trong thùng rác.
               </td>
             </tr>
-            <tr v-for="product in deletedProducts" :key="product._id" class="table-row">
+            <tr v-for="product in deletedProducts" :key="product.id" class="table-row">
               <td>
                 <img :src="product.thumbnail || 'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=500'" :alt="product.title" class="table-thumbnail">
               </td>
@@ -150,7 +150,7 @@ function formatPrice(value: number) {
               </td>
               <td>{{ formatPrice(product.price) }}</td>
               <td>
-                <button class="btn btn-primary btn-restore" @click="handleRestore('product', product._id)">
+                <button class="btn btn-primary btn-restore" @click="handleRestore('product', product.id)">
                   🔄 Khôi phục
                 </button>
               </td>
@@ -178,7 +178,7 @@ function formatPrice(value: number) {
                 Không có danh mục nào trong thùng rác.
               </td>
             </tr>
-            <tr v-for="cat in deletedCategories" :key="cat._id" class="table-row">
+            <tr v-for="cat in deletedCategories" :key="cat.id" class="table-row">
               <td class="font-semibold text-white">
                 🗂️ {{ cat.title }}
               </td>
@@ -187,7 +187,7 @@ function formatPrice(value: number) {
               </td>
               <td>{{ cat.position }}</td>
               <td>
-                <button class="btn btn-primary btn-restore" @click="handleRestore('category', cat._id)">
+                <button class="btn btn-primary btn-restore" @click="handleRestore('category', cat.id)">
                   🔄 Khôi phục
                 </button>
               </td>

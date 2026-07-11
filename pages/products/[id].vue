@@ -44,7 +44,7 @@ async function handleAddToCart() {
   successMsg.value = ''
 
   try {
-    await cartStore.addToCart(product.value._id, quantity.value)
+    await cartStore.addToCart(product.value.id, quantity.value)
     successMsg.value = `Đã thêm ${quantity.value} sản phẩm '${product.value.title}' vào giỏ hàng thành công!`
     quantity.value = 1
     // Auto clear success message

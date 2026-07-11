@@ -1,6 +1,7 @@
 import { createError, defineEventHandler, readBody } from 'h3'
 import { slugify } from '../../../utils/helpers.ts'
-import { AuditLog, ProductCategory } from '../../../utils/models.ts'
+import { db, schema } from 'hub:db'
+import { eq, and, desc, isNull } from 'drizzle-orm'
 import { ProductCategoryValidation } from '../../../utils/validation.ts'
 
 export default defineEventHandler(async (event) => {
@@ -23,32 +24,52 @@ export default defineEventHandler(async (event) => {
 
   let position = parsed.data.position
   if (!position) {
-    const lastCategory = await ProductCategory.findOne({
-      parent_id: parsed.data.parent_id || null,
-    }).sort({ position: -1 })
-    position = lastCategory ? lastCategory.position + 1 : 1
+    const parentId = parsed.data.parent_id || null
+    const conditions: any[] = [eq(schema.productCategories.deleted, 0)]
+    if (parentId === null) {
+      conditions.push(isNull(schema.productCategories.parent_id))
+    } else {
+      conditions.push(eq(schema.productCategories.parent_id, parentId))
+    }
+    const lastCategories = await db.select()
+      .from(schema.productCategories)
+      .where(and(...conditions))
+      .orderBy(desc(schema.productCategories.position))
+      .limit(1)
+    const lastCategory = lastCategories[0]
+    position = lastCategory ? (lastCategory.position || 0) + 1 : 1
   }
 
-  const category = new ProductCategory({
-    ...parsed.data,
-    slug: slugify(parsed.data.title),
+  const categoryId = crypto.randomUUID()
+  const slug = slugify(parsed.data.title)
+  const categoryData = {
+    id: categoryId,
+    title: parsed.data.title,
+    parent_id: parsed.data.parent_id || null,
+    slug,
+    description: parsed.data.description || '',
+    status: parsed.data.status || 'active',
     position,
-    createdBy: event.context.admin._id,
-  })
+    deleted: 0,
+    createdBy: event.context.admin.id,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  }
 
-  await category.save()
+  await db.insert(schema.productCategories).values(categoryData)
 
   // Audit log
-  const audit = new AuditLog({
-    account_id: event.context.admin._id,
+  await db.insert(schema.auditLogs).values({
+    id: crypto.randomUUID(),
+    account_id: event.context.admin.id,
     action: 'CREATE_CATEGORY',
-    details: `Tạo danh mục: ${category.title} (ID: ${category._id})`,
+    details: `Tạo danh mục: ${categoryData.title} (ID: ${categoryId})`,
+    timestamp: new Date().toISOString(),
   })
-  await audit.save()
 
   return {
     success: true,
     message: 'Tạo danh mục mới thành công.',
-    category,
+    category: categoryData,
   }
 })

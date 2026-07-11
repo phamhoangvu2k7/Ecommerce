@@ -1,7 +1,8 @@
 import { createError, defineEventHandler, readBody } from 'h3'
 import { getJwtSecret } from '../../../utils/helpers.ts'
 import { signJwt } from '../../../utils/jwt.ts'
-import { ForgotPassword } from '../../../utils/models.ts'
+import { db, schema } from 'hub:db'
+import { eq, and } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -14,7 +15,11 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const record = await ForgotPassword.findOne({ email, otp })
+  const records = await db.select()
+    .from(schema.forgotPasswords)
+    .where(and(eq(schema.forgotPasswords.email, email), eq(schema.forgotPasswords.otp, otp)))
+    .limit(1)
+  const record = records[0]
   if (!record) {
     throw createError({
       statusCode: 400,
@@ -30,7 +35,7 @@ export default defineEventHandler(async (event) => {
   )
 
   // Consume (delete) the OTP so it can't be reused
-  await ForgotPassword.deleteOne({ _id: record._id })
+  await db.delete(schema.forgotPasswords).where(eq(schema.forgotPasswords.id, record.id))
 
   return {
     success: true,

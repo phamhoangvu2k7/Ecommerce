@@ -1,5 +1,6 @@
 import { createError, defineEventHandler, getRouterParam } from 'h3'
-import { Order, Product } from '../../../../../utils/models.ts'
+import { db, schema } from 'hub:db'
+import { eq, and, sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
@@ -11,7 +12,11 @@ export default defineEventHandler(async (event) => {
   }
 
   const id = getRouterParam(event, 'id')
-  const order = await Order.findOne({ _id: id, user_id: user._id })
+  const orders = await db.select()
+    .from(schema.orders)
+    .where(and(eq(schema.orders.id, id), eq(schema.orders.user_id, user.id)))
+    .limit(1)
+  const order = orders[0]
 
   if (!order) {
     throw createError({
@@ -28,15 +33,32 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    order.status = 'cancelled'
-    await order.save()
+    await db.update(schema.orders)
+      .set({
+        status: 'cancelled',
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(schema.orders.id, id))
+
+    let orderProducts: any[] = []
+    if (typeof order.products === 'string') {
+      try {
+        orderProducts = JSON.parse(order.products)
+      } catch {
+        orderProducts = []
+      }
+    } else if (Array.isArray(order.products)) {
+      orderProducts = order.products
+    }
 
     // Restore stock to warehouse
-    for (const item of order.products) {
-      await Product.updateOne(
-        { _id: item.product_id },
-        { $inc: { stock: item.quantity } },
-      )
+    for (const item of orderProducts) {
+      await db.update(schema.products)
+        .set({
+          stock: sql`${schema.products.stock} + ${Number(item.quantity)}`,
+          updatedAt: new Date().toISOString(),
+        })
+        .where(eq(schema.products.id, item.product_id))
     }
 
     return {

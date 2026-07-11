@@ -1,5 +1,6 @@
 import { createError, defineEventHandler } from 'h3'
-import { Role } from '../../../utils/models.ts'
+import { db, schema } from 'hub:db'
+import { eq, and } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const permissions = event.context.admin?.role_id?.permissions || []
@@ -11,21 +12,34 @@ export default defineEventHandler(async (event) => {
   }
 
   const id = event.context.params?.id
+  if (!id) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Thiếu ID nhóm quyền.',
+    })
+  }
 
   try {
-    const role = await Role.findById(id)
-    if (!role || role.deleted) {
+    const roles = await db.select()
+      .from(schema.roles)
+      .where(and(eq(schema.roles.id, id), eq(schema.roles.deleted, 0)))
+      .limit(1)
+    const role = roles[0]
+    if (!role) {
       throw createError({
         statusCode: 404,
         statusMessage: 'Không tìm thấy nhóm quyền.',
       })
     }
 
-    role.deleted = true
-    role.deletedAt = new Date()
-    role.deletedBy = event.context.admin?._id
-
-    await role.save()
+    await db.update(schema.roles)
+      .set({
+        deleted: 1,
+        deletedAt: new Date().toISOString(),
+        deletedBy: event.context.admin?.id,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(schema.roles.id, id))
 
     return {
       success: true,

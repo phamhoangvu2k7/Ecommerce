@@ -1,7 +1,8 @@
 import { createError, defineEventHandler, deleteCookie, parseCookies, readBody, setCookie } from 'h3'
 import { comparePassword, getJwtSecret } from '../../../utils/helpers.ts'
 import { signJwt } from '../../../utils/jwt.ts'
-import { User } from '../../../utils/models.ts'
+import { db, schema } from 'hub:db'
+import { eq, and } from 'drizzle-orm'
 import { CartService } from '../../../utils/services.ts'
 import { LoginValidation } from '../../../utils/validation.ts'
 
@@ -17,8 +18,12 @@ export default defineEventHandler(async (event) => {
 
   const { email, password } = parsed.data
 
-  const user = await User.findOne({ email })
-  if (!user || user.deleted) {
+  const users = await db.select()
+    .from(schema.users)
+    .where(and(eq(schema.users.email, email), eq(schema.users.deleted, 0)))
+    .limit(1)
+  const user = users[0]
+  if (!user) {
     throw createError({
       statusCode: 400,
       statusMessage: 'Email hoặc mật khẩu không chính xác.',
@@ -44,7 +49,7 @@ export default defineEventHandler(async (event) => {
   const guestCartId = cookies.cartId
   if (guestCartId) {
     try {
-      await CartService.mergeCarts(guestCartId, user._id.toString())
+      await CartService.mergeCarts(guestCartId, user.id)
       deleteCookie(event, 'cartId')
     }
     catch (err) {
@@ -54,7 +59,7 @@ export default defineEventHandler(async (event) => {
 
   // Issue Token
   const token = await signJwt(
-    { id: user._id, role: 'client' },
+    { id: user.id, role: 'client' },
     getJwtSecret(),
     { expiresIn: '7d' },
   )
@@ -71,7 +76,7 @@ export default defineEventHandler(async (event) => {
     message: 'Đăng nhập thành công.',
     token,
     user: {
-      id: user._id,
+      id: user.id,
       fullName: user.fullName,
       email: user.email,
       phone: user.phone,

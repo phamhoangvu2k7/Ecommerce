@@ -30,7 +30,7 @@ export default {
         <button class="btn btn-secondary btn-action" title="Sửa" @click="emit('edit', node)">
           ✏️
         </button>
-        <button class="btn btn-danger btn-action" title="Xóa" @click="emit('delete', node._id)">
+        <button class="btn btn-danger btn-action" title="Xóa" @click="emit('delete', node.id)">
           🗑️
         </button>
       </div>
@@ -40,7 +40,7 @@ export default {
     <ul v-if="node.children && node.children.length > 0" class="tree-children">
       <CategoryNode
         v-for="child in node.children"
-        :key="child._id"
+        :key="child.id"
         :node="child"
         @edit="(n) => emit('edit', n)"
         @delete="(id) => emit('delete', id)"

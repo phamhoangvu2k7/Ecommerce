@@ -144,7 +144,7 @@ async function openEditModal(productId: string) {
     if (data.success) {
       const p = data.product
       formTitle.value = p.title
-      formCategory.value = p.product_category_id?._id || ''
+      formCategory.value = p.product_category_id?.id || ''
       formDescription.value = p.description || ''
       formPrice.value = p.price
       formDiscount.value = p.discountPercentage
@@ -392,7 +392,7 @@ function changePage(page: number) {
               Không tìm thấy sản phẩm nào.
             </td>
           </tr>
-          <tr v-for="product in products" :key="product._id" class="table-row">
+          <tr v-for="product in products" :key="product.id" class="table-row">
             <td>
               <img :src="product.thumbnail || 'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=500'" :alt="product.title" class="table-thumbnail">
             </td>
@@ -421,10 +421,10 @@ function changePage(page: number) {
             </td>
             <td class="text-center">
               <div class="table-actions">
-                <button class="btn btn-secondary btn-action" title="Sửa" @click="openEditModal(product._id)">
+                <button class="btn btn-secondary btn-action" title="Sửa" @click="openEditModal(product.id)">
                   ✏️
                 </button>
-                <button class="btn btn-danger btn-action" title="Xóa" @click="handleDeleteProduct(product._id)">
+                <button class="btn btn-danger btn-action" title="Xóa" @click="handleDeleteProduct(product.id)">
                   🗑️
                 </button>
               </div>
@@ -470,7 +470,7 @@ function changePage(page: number) {
                 <option value="">
                   Chọn danh mục
                 </option>
-                <option v-for="cat in categories" :key="cat._id" :value="cat._id">
+                <option v-for="cat in categories" :key="cat.id" :value="cat.id">
                   {{ cat.title }}
                 </option>
               </select>

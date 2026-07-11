@@ -1,5 +1,5 @@
 import { createError, defineEventHandler, readBody } from 'h3'
-import { AuditLog } from '../../../utils/models.ts'
+import { db, schema } from 'hub:db'
 import { ProductService } from '../../../utils/services.ts'
 
 export default defineEventHandler(async (event) => {
@@ -33,12 +33,13 @@ export default defineEventHandler(async (event) => {
     }
 
     // Log activity
-    const audit = new AuditLog({
-      account_id: event.context.admin._id,
+    await db.insert(schema.auditLogs).values({
+      id: crypto.randomUUID(),
+      account_id: event.context.admin.id,
       action: 'RESTORE_DATA',
       details: `Khôi phục thành công ${type === 'product' ? 'sản phẩm' : 'danh mục'} (ID: ${id})`,
+      timestamp: new Date().toISOString(),
     })
-    await audit.save()
 
     return {
       success: true,

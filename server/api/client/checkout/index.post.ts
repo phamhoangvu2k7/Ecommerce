@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
     const order = await CheckoutService.processCheckout(
       cartId,
       { fullName, phone, address },
-      user ? user._id.toString() : null,
+      user ? user.id : null,
     )
 
     // Clear guest cart cookie on successful checkout

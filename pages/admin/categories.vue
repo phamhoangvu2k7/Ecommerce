@@ -73,7 +73,7 @@ function resetForm() {
 
 function editCategory(cat: any) {
   isEditing.value = true
-  editingId.value = cat._id
+  editingId.value = cat.id
   formTitle.value = cat.title
   formParent.value = cat.parent_id || ''
   formDescription.value = cat.description || ''
@@ -203,7 +203,7 @@ async function handleDeleteCategory(id: string) {
           <ul class="tree-root">
             <CategoryNode
               v-for="node in categoryTree"
-              :key="node._id"
+              :key="node.id"
               :node="node"
               @edit="editCategory"
               @delete="handleDeleteCategory"
@@ -232,9 +232,9 @@ async function handleDeleteCategory(id: string) {
               </option>
               <!-- Exclude editing category from parent choices to avoid self-loop -->
               <option
-                v-for="cat in flatCategories.filter(c => c._id !== editingId)"
-                :key="cat._id"
-                :value="cat._id"
+                v-for="cat in flatCategories.filter(c => c.id !== editingId)"
+                :key="cat.id"
+                :value="cat.id"
               >
                 {{ cat.title }}
               </option>

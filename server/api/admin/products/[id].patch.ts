@@ -1,6 +1,7 @@
 import { createError, defineEventHandler, getRouterParam, readBody } from 'h3'
 import { slugify } from '../../../utils/helpers.ts'
-import { AuditLog, Product } from '../../../utils/models.ts'
+import { db, schema } from 'hub:db'
+import { eq, and } from 'drizzle-orm'
 import { ProductValidation } from '../../../utils/validation.ts'
 
 export default defineEventHandler(async (event) => {
@@ -13,6 +14,13 @@ export default defineEventHandler(async (event) => {
   }
 
   const id = getRouterParam(event, 'id')
+  if (!id) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Thiếu ID sản phẩm.',
+    })
+  }
+
   const body = await readBody(event)
 
   // Validate fields
@@ -24,15 +32,11 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const product = await Product.findOneAndUpdate(
-    { _id: id },
-    {
-      ...parsed.data,
-      slug: slugify(parsed.data.title),
-      updatedBy: event.context.admin._id,
-    },
-    { new: true },
-  )
+  const prods = await db.select()
+    .from(schema.products)
+    .where(and(eq(schema.products.id, id), eq(schema.products.deleted, 0)))
+    .limit(1)
+  const product = prods[0]
 
   if (!product) {
     throw createError({
@@ -41,17 +45,35 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  const updateData = {
+    ...parsed.data,
+    slug: slugify(parsed.data.title),
+    updatedBy: event.context.admin.id,
+    updatedAt: new Date().toISOString(),
+  }
+
+  await db.update(schema.products)
+    .set(updateData)
+    .where(eq(schema.products.id, id))
+
+  const updatedProds = await db.select()
+    .from(schema.products)
+    .where(eq(schema.products.id, id))
+    .limit(1)
+  const updatedProduct = updatedProds[0]
+
   // Log activity
-  const audit = new AuditLog({
-    account_id: event.context.admin._id,
+  await db.insert(schema.auditLogs).values({
+    id: crypto.randomUUID(),
+    account_id: event.context.admin.id,
     action: 'UPDATE_PRODUCT',
-    details: `Cập nhật sản phẩm: ${product.title} (ID: ${product._id})`,
+    details: `Cập nhật sản phẩm: ${updatedProduct?.title} (ID: ${id})`,
+    timestamp: new Date().toISOString(),
   })
-  await audit.save()
 
   return {
     success: true,
     message: 'Cập nhật sản phẩm thành công.',
-    product,
+    product: updatedProduct,
   }
 })

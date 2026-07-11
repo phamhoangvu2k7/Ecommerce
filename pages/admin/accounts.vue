@@ -7,12 +7,12 @@ definePageMeta({
 })
 
 interface Role {
-  _id: string
+  id: string
   title: string
 }
 
 interface Account {
-  _id: string
+  id: string
   fullName: string
   email: string
   phone: string
@@ -110,12 +110,12 @@ function openCreateModal() {
 function openEditModal(account: Account) {
   resetForm()
   isEditing.value = true
-  editingId.value = account._id
+  editingId.value = account.id
 
   formFullName.value = account.fullName
   formEmail.value = account.email
   formPhone.value = account.phone || ''
-  formRole.value = account.role_id?._id || ''
+  formRole.value = account.role_id?.id || ''
   formStatus.value = account.status
   showModal.value = true
 }
@@ -181,7 +181,7 @@ async function handleSaveAccount() {
 }
 
 async function handleDeleteAccount(account: Account) {
-  if (String(account._id) === String(authStore.admin?.id || authStore.admin?._id)) {
+  if (String(account.id) === String(authStore.admin?.id)) {
     alert('Bạn không thể tự xóa tài khoản của chính mình.')
     return
   }
@@ -195,7 +195,7 @@ async function handleDeleteAccount(account: Account) {
     if (adminToken)
       headers.Authorization = `Bearer ${adminToken}`
 
-    const res = await fetch(`/api/admin/accounts/${account._id}`, {
+    const res = await fetch(`/api/admin/accounts/${account.id}`, {
       method: 'DELETE',
       headers,
     })
@@ -268,7 +268,7 @@ async function handleDeleteAccount(account: Account) {
               Không tìm thấy tài khoản quản trị nào.
             </td>
           </tr>
-          <tr v-for="acc in accounts" :key="acc._id" class="table-row">
+          <tr v-for="acc in accounts" :key="acc.id" class="table-row">
             <td>
               <div class="user-avatar-sm">
                 {{ acc.fullName.charAt(0) }}
@@ -299,7 +299,7 @@ async function handleDeleteAccount(account: Account) {
                   ✏️
                 </button>
                 <button
-                  :disabled="String(acc._id) === String(authStore.admin?.id || authStore.admin?._id)"
+                  :disabled="String(acc.id) === String(authStore.admin?.id)"
                   class="btn btn-danger btn-action"
                   title="Xóa"
                   @click="handleDeleteAccount(acc)"
@@ -355,7 +355,7 @@ async function handleDeleteAccount(account: Account) {
                 <option value="">
                   Chọn vai trò
                 </option>
-                <option v-for="role in roles" :key="role._id" :value="role._id">
+                <option v-for="role in roles" :key="role.id" :value="role.id">
                   {{ role.title }}
                 </option>
               </select>

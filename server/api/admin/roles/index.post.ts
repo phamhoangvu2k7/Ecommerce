@@ -1,5 +1,5 @@
 import { createError, defineEventHandler, readBody } from 'h3'
-import { Role } from '../../../utils/models.ts'
+import { db, schema } from 'hub:db'
 
 export default defineEventHandler(async (event) => {
   const permissions = event.context.admin?.role_id?.permissions || []
@@ -19,17 +19,29 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const role = new Role({
-      title: body.title,
-      description: body.description || '',
-      permissions: body.permissions || [],
-    })
+    const roleId = crypto.randomUUID()
+    const title = body.title
+    const description = body.description || ''
+    const perms = body.permissions || []
 
-    await role.save()
+    await db.insert(schema.roles).values({
+      id: roleId,
+      title,
+      description,
+      permissions: JSON.stringify(perms) as any,
+      deleted: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    })
 
     return {
       success: true,
-      role,
+      role: {
+        id: roleId,
+        title,
+        description,
+        permissions: perms,
+      },
     }
   }
   catch (err) {

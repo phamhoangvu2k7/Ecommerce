@@ -11,7 +11,7 @@ export default defineEventHandler((event) => {
   return {
     success: true,
     user: {
-      id: event.context.user._id,
+      id: event.context.user.id,
       fullName: event.context.user.fullName,
       email: event.context.user.email,
       phone: event.context.user.phone,

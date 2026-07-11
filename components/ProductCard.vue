@@ -3,7 +3,7 @@ import { RouterLink } from 'vue-router'
 
 defineProps<{
   product: {
-    _id: string
+    id: string
     title: string
     thumbnail?: string
     discountPercentage?: number
@@ -50,7 +50,7 @@ function formatPrice(value: number) {
       </div>
 
       <div class="product-actions">
-        <RouterLink :to="`/products/${product._id}`" class="btn btn-secondary w-full">
+        <RouterLink :to="`/products/${product.id}`" class="btn btn-secondary w-full">
           Xem chi tiết
         </RouterLink>
       </div>

@@ -1,7 +1,8 @@
 import { createError, defineEventHandler, readBody } from 'h3'
 import { getJwtSecret, hashPassword } from '../../../utils/helpers.ts'
 import { verifyJwt } from '../../../utils/jwt.ts'
-import { User } from '../../../utils/models.ts'
+import { db, schema } from 'hub:db'
+import { eq, and } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -28,7 +29,11 @@ export default defineEventHandler(async (event) => {
     }
 
     const email = decoded.email
-    const user = await User.findOne({ email })
+    const users = await db.select()
+      .from(schema.users)
+      .where(and(eq(schema.users.email, email), eq(schema.users.deleted, 0)))
+      .limit(1)
+    const user = users[0]
     if (!user) {
       throw createError({
         statusCode: 400,
@@ -36,8 +41,12 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    user.password = hashPassword(password)
-    await user.save()
+    await db.update(schema.users)
+      .set({
+        password: hashPassword(password),
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(schema.users.id, user.id))
 
     return {
       success: true,

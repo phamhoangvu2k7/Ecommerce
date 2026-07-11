@@ -1,6 +1,7 @@
 import { createError, defineEventHandler, readBody } from 'h3'
 import { generateOTP, sendMail } from '../../../utils/helpers.ts'
-import { ForgotPassword, User } from '../../../utils/models.ts'
+import { db, schema } from 'hub:db'
+import { eq, and } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -13,8 +14,12 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const user = await User.findOne({ email })
-  if (!user || user.deleted) {
+  const users = await db.select()
+    .from(schema.users)
+    .where(and(eq(schema.users.email, email), eq(schema.users.deleted, 0)))
+    .limit(1)
+  const user = users[0]
+  if (!user) {
     throw createError({
       statusCode: 400,
       statusMessage: 'Email không tồn tại trên hệ thống.',
@@ -26,9 +31,15 @@ export default defineEventHandler(async (event) => {
   const expireAt = new Date(Date.now() + 3 * 60 * 1000) // 3 minutes TTL
 
   // Delete older OTP records for this email and save new one
-  await ForgotPassword.deleteMany({ email })
-  const forgot = new ForgotPassword({ email, otp, expireAt })
-  await forgot.save()
+  await db.delete(schema.forgotPasswords).where(eq(schema.forgotPasswords.email, email))
+  await db.insert(schema.forgotPasswords).values({
+    id: crypto.randomUUID(),
+    email,
+    otp,
+    expireAt: expireAt.toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  })
 
   // Send Email
   const html = `

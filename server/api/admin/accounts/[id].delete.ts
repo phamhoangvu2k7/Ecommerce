@@ -1,5 +1,6 @@
 import { createError, defineEventHandler } from 'h3'
-import { Account } from '../../../utils/models.ts'
+import { db, schema } from 'hub:db'
+import { eq, and } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const permissions = event.context.admin?.role_id?.permissions || []
@@ -11,8 +12,14 @@ export default defineEventHandler(async (event) => {
   }
 
   const id = event.context.params?.id
+  if (!id) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Thiếu ID tài khoản.',
+    })
+  }
 
-  if (String(id) === String(event.context.admin?._id)) {
+  if (String(id) === String(event.context.admin?.id)) {
     throw createError({
       statusCode: 400,
       statusMessage: 'Bạn không thể tự xóa tài khoản của chính mình.',
@@ -20,19 +27,26 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const account = await Account.findById(id)
-    if (!account || account.deleted) {
+    const accounts = await db.select()
+      .from(schema.accounts)
+      .where(and(eq(schema.accounts.id, id), eq(schema.accounts.deleted, 0)))
+      .limit(1)
+    const account = accounts[0]
+    if (!account) {
       throw createError({
         statusCode: 404,
         statusMessage: 'Không tìm thấy tài khoản quản trị.',
       })
     }
 
-    account.deleted = true
-    account.deletedAt = new Date()
-    account.deletedBy = event.context.admin?._id
-
-    await account.save()
+    await db.update(schema.accounts)
+      .set({
+        deleted: 1,
+        deletedAt: new Date().toISOString(),
+        deletedBy: event.context.admin?.id,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(schema.accounts.id, id))
 
     return {
       success: true,

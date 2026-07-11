@@ -1,5 +1,6 @@
 import { createError, defineEventHandler } from 'h3'
-import { Account } from '../../../utils/models.ts'
+import { db, schema } from 'hub:db'
+import { eq, desc } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const permissions = event.context.admin?.role_id?.permissions || []
@@ -11,7 +12,30 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const accounts = await Account.find({}).populate('role_id').sort({ createdAt: 'desc' }).lean()
+    const rows = await db.select({
+      account: schema.accounts,
+      role: schema.roles,
+    })
+    .from(schema.accounts)
+    .leftJoin(schema.roles, eq(schema.accounts.role_id, schema.roles.id))
+    .where(eq(schema.accounts.deleted, 0))
+    .orderBy(desc(schema.accounts.createdAt))
+
+    const accounts = rows.map(row => {
+      let role = row.role || null
+      if (role && typeof role.permissions === 'string') {
+        try {
+          role.permissions = JSON.parse(role.permissions)
+        } catch {
+          role.permissions = []
+        }
+      }
+      return {
+        ...row.account,
+        role_id: role,
+      }
+    })
+
     return {
       success: true,
       accounts,

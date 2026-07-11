@@ -1,7 +1,8 @@
 import { createError, defineEventHandler, getQuery } from 'h3'
-import * as db from '../plugins/db'
+import { schema as rawSchema } from '../plugins/db'
 import * as helpers from '../utils/helpers'
-import * as models from '../utils/models'
+import { db, schema } from 'hub:db'
+import { sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   // 1. Kiểm tra bảo mật khi chạy ở môi trường Production
@@ -21,39 +22,46 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    await models.hubDatabase().exec(db.schema)
+    const queries = rawSchema
+      .split(';')
+      .map(q => q.trim())
+      .filter(q => q.length > 0)
+    for (const query of queries) {
+      await db.run(sql.raw(query))
+    }
 
-    await models.Role.deleteMany({})
-    await models.Account.deleteMany({})
-    await models.ProductCategory.deleteMany({})
-    await models.Product.deleteMany({})
+    await db.delete(schema.roles)
+    await db.delete(schema.accounts)
+    await db.delete(schema.productCategories)
+    await db.delete(schema.products)
 
-    const adminRole = new models.Role({
+    const adminPermissions = [
+      'products_view',
+      'products_create',
+      'products_edit',
+      'products_delete',
+      'categories_view',
+      'categories_create',
+      'categories_edit',
+      'categories_delete',
+      'accounts_view',
+      'accounts_create',
+      'accounts_edit',
+      'accounts_delete',
+      'roles_view',
+      'roles_create',
+      'roles_edit',
+      'roles_delete',
+      'orders_view',
+      'orders_edit',
+    ]
+
+    await db.insert(schema.roles).values({
       id: 'role-admin',
       title: 'Quản trị viên',
       description: 'Toàn quyền quản trị hệ thống',
-      permissions: [
-        'products_view',
-        'products_create',
-        'products_edit',
-        'products_delete',
-        'categories_view',
-        'categories_create',
-        'categories_edit',
-        'categories_delete',
-        'accounts_view',
-        'accounts_create',
-        'accounts_edit',
-        'accounts_delete',
-        'roles_view',
-        'roles_create',
-        'roles_edit',
-        'roles_delete',
-        'orders_view',
-        'orders_edit',
-      ],
+      permissions: JSON.stringify(adminPermissions) as any,
     })
-    await adminRole.save()
 
     // Sử dụng biến môi trường (Environment Variables) hoặc fallback về mặc định
     // eslint-disable-next-line node/prefer-global/process
@@ -61,7 +69,7 @@ export default defineEventHandler(async (event) => {
     // eslint-disable-next-line node/prefer-global/process
     const adminPassword = process.env.ADMIN_PASSWORD || 'admin123'
 
-    const adminAccount = new models.Account({
+    await db.insert(schema.accounts).values({
       id: 'account-admin',
       fullName: 'Super Admin',
       email: adminEmail,
@@ -71,9 +79,8 @@ export default defineEventHandler(async (event) => {
       avatar: '',
       status: 'active',
     })
-    await adminAccount.save()
 
-    const cat1 = new models.ProductCategory({
+    await db.insert(schema.productCategories).values({
       id: 'cat-1',
       title: 'Điện thoại',
       slug: 'dien-thoai',
@@ -81,7 +88,8 @@ export default defineEventHandler(async (event) => {
       status: 'active',
       position: 1,
     })
-    const cat2 = new models.ProductCategory({
+
+    await db.insert(schema.productCategories).values({
       id: 'cat-2',
       title: 'Laptop',
       slug: 'laptop',
@@ -89,10 +97,8 @@ export default defineEventHandler(async (event) => {
       status: 'active',
       position: 2,
     })
-    await cat1.save()
-    await cat2.save()
 
-    const p1 = new models.Product({
+    await db.insert(schema.products).values({
       id: 'prod-1',
       title: 'iPhone 15 Pro Max 256GB',
       slug: 'iphone-15-pro-max-256gb',
@@ -106,7 +112,7 @@ export default defineEventHandler(async (event) => {
       position: 1,
     })
 
-    const p2 = new models.Product({
+    await db.insert(schema.products).values({
       id: 'prod-2',
       title: 'MacBook Air M3 8GB 256GB',
       slug: 'macbook-air-m3-8gb-256gb',
@@ -120,7 +126,7 @@ export default defineEventHandler(async (event) => {
       position: 2,
     })
 
-    const p3 = new models.Product({
+    await db.insert(schema.products).values({
       id: 'prod-3',
       title: 'Samsung Galaxy S24 Ultra',
       slug: 'samsung-galaxy-s24-ultra',
@@ -133,10 +139,6 @@ export default defineEventHandler(async (event) => {
       status: 'active',
       position: 3,
     })
-
-    await p1.save()
-    await p2.save()
-    await p3.save()
 
     return {
       success: true,

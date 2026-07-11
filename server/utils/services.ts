@@ -1,26 +1,29 @@
+import { db, schema } from 'hub:db'
+import { eq, and, inArray, desc, asc, like, sql, gte, count, isNull } from 'drizzle-orm'
 import { escapeRegex } from './helpers.ts'
-import { Cart, Order, Product, ProductCategory } from './models.ts'
 
 // --- 1. Product & Category Service ---
 export const ProductService = {
   // Get products for Admin
   async getProductsAdmin(query: any) {
-    const filter: any = {}
+    const conditions: any[] = [eq(schema.products.deleted, 0)]
 
     // Status filter
     if (query.status === 'active' || query.status === 'inactive') {
-      filter.status = query.status
+      conditions.push(eq(schema.products.status, query.status))
     }
 
     // Search query
     if (query.q) {
-      filter.title = new RegExp(escapeRegex(query.q), 'i')
+      conditions.push(like(schema.products.title, `%${query.q}%`))
     }
 
     // Category filter
     if (query.category_id) {
-      filter.product_category_id = query.category_id
+      conditions.push(eq(schema.products.product_category_id, query.category_id))
     }
+
+    const whereClause = and(...conditions)
 
     // Pagination
     const limit = parseInt(query.limit) || 10
@@ -28,35 +31,64 @@ export const ProductService = {
     const skip = (page - 1) * limit
 
     // Sorting
-    let sort: any = { position: 'desc', createdAt: 'desc' }
+    let orderByClause: any[] = [desc(schema.products.position), desc(schema.products.createdAt)]
     if (query.sortKey && query.sortValue) {
-      sort = { [query.sortKey]: query.sortValue }
+      const col = schema.products[query.sortKey as keyof typeof schema.products.$inferSelect]
+      if (col) {
+        const orderDir = String(query.sortValue).toLowerCase() === 'desc' || query.sortValue === -1 ? desc(col) : asc(col)
+        orderByClause = [orderDir]
+      }
     }
 
-    const [products, total] = await Promise.all([
-      Product.find(filter).sort(sort).skip(skip).limit(limit).populate('product_category_id'),
-      Product.countDocuments(filter),
+    // Fetch total and paginated products
+    const [countRes, rows] = await Promise.all([
+      db.select({ value: count() }).from(schema.products).where(whereClause),
+      db.select({
+        product: schema.products,
+        category: schema.productCategories,
+      })
+      .from(schema.products)
+      .leftJoin(schema.productCategories, eq(schema.products.product_category_id, schema.productCategories.id))
+      .where(whereClause)
+      .orderBy(...orderByClause)
+      .limit(limit)
+      .offset(skip)
     ])
+
+    const total = countRes[0]?.value || 0
+    const products = rows.map(row => ({
+      ...row.product,
+      product_category_id: row.category || null,
+    }))
 
     return { products, total, page, limit, pages: Math.ceil(total / limit) }
   },
 
   // Get products for Client
   async getProductsClient(query: any) {
-    const filter: any = { status: 'active' }
+    const conditions: any[] = [eq(schema.products.status, 'active'), eq(schema.products.deleted, 0)]
 
     // Search query
     if (query.q) {
-      filter.title = new RegExp(escapeRegex(query.q), 'i')
+      conditions.push(like(schema.products.title, `%${query.q}%`))
     }
 
     // Category filter (includes subcategories)
     if (query.category_slug) {
-      const category = await ProductCategory.findOne({ slug: query.category_slug, status: 'active' })
+      const cats = await db.select()
+        .from(schema.productCategories)
+        .where(and(
+          eq(schema.productCategories.slug, query.category_slug),
+          eq(schema.productCategories.status, 'active'),
+          eq(schema.productCategories.deleted, 0)
+        ))
+        .limit(1)
+
+      const category = cats[0]
       if (category) {
         // Find all child category IDs recursively
-        const subCategoryIds = await this.getChildCategoryIds(category._id)
-        filter.product_category_id = { $in: [category._id, ...subCategoryIds] }
+        const subCategoryIds = await this.getChildCategoryIds(category.id)
+        conditions.push(inArray(schema.products.product_category_id, [category.id, ...subCategoryIds]))
       }
       else {
         // If category slug is not found, return empty
@@ -64,27 +96,40 @@ export const ProductService = {
       }
     }
 
+    const whereClause = and(...conditions)
+
     // Sorting
-    let sort: any = { position: 'desc', createdAt: 'desc' }
+    let orderByClause: any[] = [desc(schema.products.position), desc(schema.products.createdAt)]
     if (query.sort === 'price_asc')
-      sort = { price: 'asc' }
+      orderByClause = [asc(schema.products.price)]
     else if (query.sort === 'price_desc')
-      sort = { price: 'desc' }
+      orderByClause = [desc(schema.products.price)]
     else if (query.sort === 'title_asc')
-      sort = { title: 'asc' }
+      orderByClause = [asc(schema.products.title)]
     else if (query.sort === 'title_desc')
-      sort = { title: 'desc' }
+      orderByClause = [desc(schema.products.title)]
 
     const limit = parseInt(query.limit) || 12
     const page = parseInt(query.page) || 1
     const skip = (page - 1) * limit
 
-    // Query all matching products (Note: Price filters are applied in-memory or using Mongo aggregate for dynamic pricing)
-    const rawProducts = await Product.find(filter).sort(sort).populate('product_category_id')
+    // Query all matching products with categories
+    const rows = await db.select({
+      product: schema.products,
+      category: schema.productCategories,
+    })
+    .from(schema.products)
+    .leftJoin(schema.productCategories, eq(schema.products.product_category_id, schema.productCategories.id))
+    .where(whereClause)
+    .orderBy(...orderByClause)
+
+    const rawProducts = rows.map(row => ({
+      ...row.product,
+      product_category_id: row.category || null,
+    }))
 
     // Dynamic price calculation
-    const productsWithNewPrice = rawProducts.map((p: any) => {
-      const product = p.toObject()
+    const productsWithNewPrice = rawProducts.map((product: any) => {
       product.priceNew = Number.parseFloat((product.price * (1 - product.discountPercentage / 100)).toFixed(2))
       return product
     })
@@ -116,11 +161,17 @@ export const ProductService = {
     }
   },
 
-  async getChildCategoryIds(parentId: any): Promise<any[]> {
-    const children = await ProductCategory.find({ parent_id: parentId, status: 'active' })
-    let ids: any[] = children.map(c => c._id)
+  async getChildCategoryIds(parentId: string): Promise<string[]> {
+    const children = await db.select()
+      .from(schema.productCategories)
+      .where(and(
+        eq(schema.productCategories.parent_id, parentId),
+        eq(schema.productCategories.status, 'active'),
+        eq(schema.productCategories.deleted, 0)
+      ))
+    let ids: string[] = children.map(c => c.id)
     for (const child of children) {
-      const subIds = await this.getChildCategoryIds(child._id)
+      const subIds = await this.getChildCategoryIds(child.id)
       ids = [...ids, ...subIds]
     }
     return ids
@@ -128,44 +179,61 @@ export const ProductService = {
 
   // Soft delete product
   async deleteProduct(id: string, accountId: string) {
-    return Product.updateOne(
-      { _id: id },
-      {
-        deleted: true,
-        deletedAt: new Date(),
+    return db.update(schema.products)
+      .set({
+        deleted: 1,
+        deletedAt: new Date().toISOString(),
         deletedBy: accountId,
-      },
-    )
+      })
+      .where(eq(schema.products.id, id))
   },
 
   // Restore product with Cascading Restore
   async restoreProduct(id: string) {
-    const product = await Product.findOne({ _id: id, deleted: true })
+    const prods = await db.select()
+      .from(schema.products)
+      .where(and(eq(schema.products.id, id), eq(schema.products.deleted, 1)))
+      .limit(1)
+    const product = prods[0]
     if (!product)
       throw new Error('Sản phẩm không tồn tại trong thùng rác')
 
     // Check parent category
     if (product.product_category_id) {
-      const category = await ProductCategory.findOne({ _id: product.product_category_id, deleted: true })
+      const cats = await db.select()
+        .from(schema.productCategories)
+        .where(and(eq(schema.productCategories.id, product.product_category_id), eq(schema.productCategories.deleted, 1)))
+        .limit(1)
+      const category = cats[0]
       if (category) {
         // Automatically restore the category first
-        await this.restoreCategory(category._id.toString())
+        await this.restoreCategory(category.id)
       }
     }
 
-    return Product.updateOne({ _id: id, deleted: true }, { deleted: false, deletedAt: null, deletedBy: null })
+    return db.update(schema.products)
+      .set({ deleted: 0, deletedAt: null, deletedBy: null })
+      .where(eq(schema.products.id, id))
   },
 
   // Categories Tree construction
   async getCategoriesTree(filter: any = {}) {
-    const categories = await ProductCategory.find(filter).sort({ position: 'asc' }).lean()
+    const conditions: any[] = [eq(schema.productCategories.deleted, 0)]
+    if (filter.status === 'active') {
+      conditions.push(eq(schema.productCategories.status, 'active'))
+    }
+
+    const categories = await db.select()
+      .from(schema.productCategories)
+      .where(and(...conditions))
+      .orderBy(asc(schema.productCategories.position))
 
     const buildTree = (parentId: any): any[] => {
       return categories
         .filter((c: any) => String(c.parent_id || '') === String(parentId || ''))
         .map((c: any) => ({
           ...c,
-          children: buildTree(c._id),
+          children: buildTree(c.id),
         }))
     }
 
@@ -175,49 +243,77 @@ export const ProductService = {
   // Soft delete category with Cascade Check
   async deleteCategory(id: string, accountId: string) {
     // 1. Check if there are active child categories
-    const childCategory = await ProductCategory.findOne({ parent_id: id, deleted: false })
-    if (childCategory) {
-      throw new Error(`Không thể xóa danh mục này vì vẫn còn danh mục con: ${childCategory.title}`)
+    const childCats = await db.select()
+      .from(schema.productCategories)
+      .where(and(eq(schema.productCategories.parent_id, id), eq(schema.productCategories.deleted, 0)))
+      .limit(1)
+    if (childCats.length > 0) {
+      throw new Error(`Không thể xóa danh mục này vì vẫn còn danh mục con: ${childCats[0].title}`)
     }
 
     // 2. Check if there are active products inside this category
-    const product = await Product.findOne({ product_category_id: id, deleted: false })
-    if (product) {
-      throw new Error(`Không thể xóa danh mục này vì vẫn còn sản phẩm thuộc về nó: ${product.title}`)
+    const prods = await db.select()
+      .from(schema.products)
+      .where(and(eq(schema.products.product_category_id, id), eq(schema.products.deleted, 0)))
+      .limit(1)
+    if (prods.length > 0) {
+      throw new Error(`Không thể xóa danh mục này vì vẫn còn sản phẩm thuộc về nó: ${prods[0].title}`)
     }
 
-    return ProductCategory.updateOne(
-      { _id: id },
-      {
-        deleted: true,
-        deletedAt: new Date(),
+    return db.update(schema.productCategories)
+      .set({
+        deleted: 1,
+        deletedAt: new Date().toISOString(),
         deletedBy: accountId,
-      },
-    )
+      })
+      .where(eq(schema.productCategories.id, id))
   },
 
   // Cascading Restore Category
   async restoreCategory(id: string): Promise<any> {
-    const category = await ProductCategory.findOne({ _id: id, deleted: true })
+    const cats = await db.select()
+      .from(schema.productCategories)
+      .where(and(eq(schema.productCategories.id, id), eq(schema.productCategories.deleted, 1)))
+      .limit(1)
+    const category = cats[0]
     if (!category)
       return
 
     // Restore parent categories recursively
     if (category.parent_id) {
-      const parent = await ProductCategory.findOne({ _id: category.parent_id, deleted: true })
+      const parents = await db.select()
+        .from(schema.productCategories)
+        .where(and(eq(schema.productCategories.id, category.parent_id), eq(schema.productCategories.deleted, 1)))
+        .limit(1)
+      const parent = parents[0]
       if (parent) {
-        await this.restoreCategory(parent._id.toString())
+        await this.restoreCategory(parent.id)
       }
     }
 
-    return ProductCategory.updateOne({ _id: id, deleted: true }, { deleted: false, deletedAt: null, deletedBy: null })
+    return db.update(schema.productCategories)
+      .set({ deleted: 0, deletedAt: null, deletedBy: null })
+      .where(eq(schema.productCategories.id, id))
   },
 
   // Automatically update and arrange positions of categories
   async updateCategoryPositions(parentId: any) {
-    const categories = await ProductCategory.find({ parent_id: parentId, deleted: false }).sort({ position: 'asc' })
+    const conditions: any[] = [eq(schema.productCategories.deleted, 0)]
+    if (parentId === null) {
+      conditions.push(isNull(schema.productCategories.parent_id))
+    } else {
+      conditions.push(eq(schema.productCategories.parent_id, parentId))
+    }
+
+    const categories = await db.select()
+      .from(schema.productCategories)
+      .where(and(...conditions))
+      .orderBy(asc(schema.productCategories.position))
+
     for (let i = 0; i < categories.length; i++) {
-      await ProductCategory.updateOne({ _id: categories[i]._id }, { position: i + 1 })
+      await db.update(schema.productCategories)
+        .set({ position: i + 1 })
+        .where(eq(schema.productCategories.id, categories[i].id))
     }
   },
 }
@@ -228,19 +324,47 @@ export const CartService = {
     let cart: any = null
 
     if (userId) {
-      cart = await Cart.findOne({ user_id: userId })
+      const carts = await db.select()
+        .from(schema.carts)
+        .where(eq(schema.carts.user_id, userId))
+        .limit(1)
+      cart = carts[0]
     }
     else if (cartId) {
-      cart = await Cart.findOne({ _id: cartId })
+      const carts = await db.select()
+        .from(schema.carts)
+        .where(eq(schema.carts.id, cartId))
+        .limit(1)
+      cart = carts[0]
     }
 
     if (!cart) {
-      cart = new Cart({ user_id: userId, products: [] })
-      await cart.save()
+      const newCartId = crypto.randomUUID()
+      await db.insert(schema.carts).values({
+        id: newCartId,
+        user_id: userId,
+        products: '[]',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      })
+      const carts = await db.select().from(schema.carts).where(eq(schema.carts.id, newCartId)).limit(1)
+      cart = carts[0]
     }
     else if (userId && !cart.user_id) {
+      await db.update(schema.carts)
+        .set({ user_id: userId, updatedAt: new Date().toISOString() })
+        .where(eq(schema.carts.id, cart.id))
       cart.user_id = userId
-      await cart.save()
+    }
+
+    if (cart && typeof cart.products === 'string') {
+      try {
+        cart.products = JSON.parse(cart.products)
+      } catch {
+        cart.products = []
+      }
+    } else if (!cart.products) {
+      cart.products = []
     }
 
     return cart
@@ -250,8 +374,12 @@ export const CartService = {
     const cart = await this.getOrCreateCart(cartId, userId)
 
     // Check stock
-    const product = await Product.findById(productId)
-    if (!product || product.status !== 'active')
+    const prods = await db.select()
+      .from(schema.products)
+      .where(eq(schema.products.id, productId))
+      .limit(1)
+    const product = prods[0]
+    if (!product || product.status !== 'active' || product.deleted === 1)
       throw new Error('Sản phẩm không khả dụng')
 
     const itemIndex = cart.products.findIndex((p: any) => String(p.product_id) === productId)
@@ -269,13 +397,23 @@ export const CartService = {
       cart.products.push({ product_id: productId, quantity })
     }
 
-    await cart.save()
+    await db.update(schema.carts)
+      .set({
+        products: JSON.stringify(cart.products),
+        updatedAt: new Date().toISOString()
+      })
+      .where(eq(schema.carts.id, cart.id))
+
     return cart
   },
 
   async updateCartItem(cartId: string, productId: string, quantity: number, userId: string | null = null) {
     const cart = await this.getOrCreateCart(cartId, userId)
-    const product = await Product.findById(productId)
+    const prods = await db.select()
+      .from(schema.products)
+      .where(eq(schema.products.id, productId))
+      .limit(1)
+    const product = prods[0]
     if (!product)
       throw new Error('Sản phẩm không tồn tại')
 
@@ -291,7 +429,12 @@ export const CartService = {
       else {
         cart.products[itemIndex].quantity = quantity
       }
-      await cart.save()
+      await db.update(schema.carts)
+        .set({
+          products: JSON.stringify(cart.products),
+          updatedAt: new Date().toISOString()
+        })
+        .where(eq(schema.carts.id, cart.id))
     }
     return cart
   },
@@ -299,21 +442,48 @@ export const CartService = {
   async deleteCartItem(cartId: string, productId: string, userId: string | null = null) {
     const cart = await this.getOrCreateCart(cartId, userId)
     cart.products = cart.products.filter((p: any) => String(p.product_id) !== productId)
-    await cart.save()
+    await db.update(schema.carts)
+      .set({
+        products: JSON.stringify(cart.products),
+        updatedAt: new Date().toISOString()
+      })
+      .where(eq(schema.carts.id, cart.id))
     return cart
   },
 
   // Cart Merging Algorithm
   async mergeCarts(guestCartId: string, userId: string) {
-    const guestCart = await Cart.findOne({ _id: guestCartId })
-    if (!guestCart || guestCart.products.length === 0)
+    const guestCarts = await db.select()
+      .from(schema.carts)
+      .where(eq(schema.carts.id, guestCartId))
+      .limit(1)
+    const guestCart = guestCarts[0]
+    if (!guestCart)
+      return
+
+    let guestProducts: any[] = []
+    if (typeof guestCart.products === 'string') {
+      try {
+        guestProducts = JSON.parse(guestCart.products)
+      } catch {
+        guestProducts = []
+      }
+    } else if (Array.isArray(guestCart.products)) {
+      guestProducts = guestCart.products
+    }
+
+    if (guestProducts.length === 0)
       return
 
     const userCart = await this.getOrCreateCart(undefined, userId)
 
-    for (const guestItem of guestCart.products) {
-      const product = await Product.findById(guestItem.product_id)
-      if (!product || product.status !== 'active')
+    for (const guestItem of guestProducts) {
+      const prods = await db.select()
+        .from(schema.products)
+        .where(eq(schema.products.id, guestItem.product_id))
+        .limit(1)
+      const product = prods[0]
+      if (!product || product.status !== 'active' || product.deleted === 1)
         continue
 
       const userItemIndex = userCart.products.findIndex(
@@ -338,11 +508,20 @@ export const CartService = {
       }
     }
 
-    await userCart.save()
+    await db.update(schema.carts)
+      .set({
+        products: JSON.stringify(userCart.products),
+        updatedAt: new Date().toISOString()
+      })
+      .where(eq(schema.carts.id, userCart.id))
 
     // Clear guest cart
-    guestCart.products = []
-    await guestCart.save()
+    await db.update(schema.carts)
+      .set({
+        products: '[]',
+        updatedAt: new Date().toISOString()
+      })
+      .where(eq(schema.carts.id, guestCart.id))
   },
 }
 
@@ -350,23 +529,36 @@ export const CartService = {
 export const CheckoutService = {
   // Safe Checkout flow - Inventory check & atomic updates with transactions
   async processCheckout(cartId: string, userInfo: any, userId: string | null = null) {
-    return this.processCheckoutFallback(cartId, userInfo, userId)
-  },
+    return await db.transaction(async (tx) => {
+      const carts = await tx.select()
+        .from(schema.carts)
+        .where(eq(schema.carts.id, cartId))
+        .limit(1)
+      const cart = carts[0]
+      if (!cart) {
+        throw new Error('Giỏ hàng của bạn không tồn tại')
+      }
 
-  // Fallback for standalone Mongo instances (e.g. standard local setups)
-  async processCheckoutFallback(cartId: string, userInfo: any, userId: string | null = null) {
-    const cart = await Cart.findById(cartId)
-    if (!cart || cart.products.length === 0) {
-      throw new Error('Giỏ hàng của bạn đang trống')
-    }
+      let cartProducts: any[] = []
+      if (typeof cart.products === 'string') {
+        cartProducts = JSON.parse(cart.products)
+      } else if (Array.isArray(cart.products)) {
+        cartProducts = cart.products
+      }
 
-    const orderProducts: any[] = []
-    const rollbacks: { product_id: any, quantity: number }[] = []
+      if (cartProducts.length === 0) {
+        throw new Error('Giỏ hàng của bạn đang trống')
+      }
 
-    try {
-      for (const item of cart.products) {
-        const product = await Product.findById(item.product_id)
-        if (!product || product.status !== 'active') {
+      const orderProducts: any[] = []
+
+      for (const item of cartProducts) {
+        const prods = await tx.select()
+          .from(schema.products)
+          .where(eq(schema.products.id, item.product_id))
+          .limit(1)
+        const product = prods[0]
+        if (!product || product.status !== 'active' || product.deleted === 1) {
           throw new Error('Sản phẩm đã ngừng bán')
         }
 
@@ -374,50 +566,57 @@ export const CheckoutService = {
           throw new Error(`Sản phẩm ${product.title} hiện không đủ tồn kho. Yêu cầu: ${item.quantity}, Có sẵn: ${product.stock}`)
         }
 
-        // Atomic check and update
-        const updatedProduct = await Product.findOneAndUpdate(
-          { _id: product._id, stock: { $gte: item.quantity } },
-          { $inc: { stock: -item.quantity } },
-          { new: true },
-        )
-
-        if (!updatedProduct) {
-          throw new Error(`Sản phẩm ${product.title} đã hết hàng do có người đặt trước.`)
-        }
-
-        // Save for rollback if checkout fails later
-        rollbacks.push({ product_id: product._id, quantity: item.quantity })
+        // Update product stock
+        await tx.update(schema.products)
+          .set({
+            stock: product.stock - item.quantity,
+            updatedAt: new Date().toISOString()
+          })
+          .where(and(eq(schema.products.id, product.id), gte(schema.products.stock, item.quantity)))
 
         orderProducts.push({
-          product_id: product._id,
+          product_id: product.id,
           price: product.price,
           discountPercentage: product.discountPercentage,
           quantity: item.quantity,
         })
       }
 
-      const order = new Order({
+      const orderId = crypto.randomUUID()
+      await tx.insert(schema.orders).values({
+        id: orderId,
         user_id: userId,
         cart_id: cartId,
-        userInfo,
-        products: orderProducts,
+        userInfo: JSON.stringify(userInfo) as any,
+        products: JSON.stringify(orderProducts) as any,
         status: 'pending',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       })
 
-      await order.save()
+      // Clear cart
+      await tx.update(schema.carts)
+        .set({
+          products: '[]',
+          updatedAt: new Date().toISOString()
+        })
+        .where(eq(schema.carts.id, cartId))
 
-      cart.products = []
-      await cart.save()
+      // Return order
+      const orders = await tx.select()
+        .from(schema.orders)
+        .where(eq(schema.orders.id, orderId))
+        .limit(1)
+      
+      const order = orders[0]
+      if (order && typeof order.userInfo === 'string') {
+        order.userInfo = JSON.parse(order.userInfo)
+      }
+      if (order && typeof order.products === 'string') {
+        order.products = JSON.parse(order.products)
+      }
 
       return order
-    }
-    catch (error) {
-      // Manual rollback
-      console.log('[CheckoutService] Rolling back updates...')
-      for (const r of rollbacks) {
-        await Product.updateOne({ _id: r.product_id }, { $inc: { stock: r.quantity } })
-      }
-      throw error
-    }
+    })
   },
 }

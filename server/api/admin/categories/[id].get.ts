@@ -1,5 +1,6 @@
 import { createError, defineEventHandler, getRouterParam } from 'h3'
-import { ProductCategory } from '../../../utils/models.ts'
+import { db, schema } from 'hub:db'
+import { eq, and } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const permissions = event.context.admin?.role_id?.permissions || []
@@ -11,7 +12,18 @@ export default defineEventHandler(async (event) => {
   }
 
   const id = getRouterParam(event, 'id')
-  const category = await ProductCategory.findById(id).populate('parent_id')
+  if (!id) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Thiếu ID danh mục.',
+    })
+  }
+
+  const cats = await db.select()
+    .from(schema.productCategories)
+    .where(and(eq(schema.productCategories.id, id), eq(schema.productCategories.deleted, 0)))
+    .limit(1)
+  const category = cats[0]
   if (!category) {
     throw createError({
       statusCode: 404,
@@ -19,8 +31,21 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  // Populate parent_id
+  let parent: any = null
+  if (category.parent_id) {
+    const parents = await db.select()
+      .from(schema.productCategories)
+      .where(and(eq(schema.productCategories.id, category.parent_id), eq(schema.productCategories.deleted, 0)))
+      .limit(1)
+    parent = parents[0] || null
+  }
+
   return {
     success: true,
-    category,
+    category: {
+      ...category,
+      parent_id: parent,
+    },
   }
 })

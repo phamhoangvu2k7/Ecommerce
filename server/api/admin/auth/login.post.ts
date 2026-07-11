@@ -1,7 +1,8 @@
 import { createError, defineEventHandler, readBody, setCookie } from 'h3'
 import { comparePassword, getJwtSecret } from '../../../utils/helpers'
 import { signJwt } from '../../../utils/jwt'
-import { Account } from '../../../utils/models'
+import { db, schema } from 'hub:db'
+import { eq, and } from 'drizzle-orm'
 import { LoginValidation } from '../../../utils/validation'
 
 export default defineEventHandler(async (event) => {
@@ -18,8 +19,12 @@ export default defineEventHandler(async (event) => {
 
   const { email, password } = parsed.data
 
-  const account = await Account.findOne({ email }).populate('role_id')
-  if (!account || account.deleted) {
+  const accounts = await db.select()
+    .from(schema.accounts)
+    .where(and(eq(schema.accounts.email, email), eq(schema.accounts.deleted, 0)))
+    .limit(1)
+  const account = accounts[0]
+  if (!account) {
     throw createError({
       statusCode: 400,
       statusMessage: 'Email không tồn tại trong hệ thống',
@@ -40,9 +45,26 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  // Populate role_id
+  let role: any = null
+  if (account.role_id) {
+    const roles = await db.select()
+      .from(schema.roles)
+      .where(and(eq(schema.roles.id, account.role_id), eq(schema.roles.deleted, 0)))
+      .limit(1)
+    role = roles[0] || null
+    if (role && typeof role.permissions === 'string') {
+      try {
+        role.permissions = JSON.parse(role.permissions)
+      } catch {
+        role.permissions = []
+      }
+    }
+  }
+
   // Generate JWT token
   const token = await signJwt(
-    { id: account._id, role: 'admin' },
+    { id: account.id, role: 'admin' },
     getJwtSecret(),
     { expiresIn: '1d' },
   )
@@ -59,12 +81,12 @@ export default defineEventHandler(async (event) => {
     success: true,
     token,
     user: {
-      id: account._id,
+      id: account.id,
       fullName: account.fullName,
       email: account.email,
       phone: account.phone,
       avatar: account.avatar,
-      role: account.role_id,
+      role: role,
     },
   }
 })

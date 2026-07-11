@@ -1,6 +1,7 @@
 import { createError, defineEventHandler, getRouterParam, readBody } from 'h3'
 import { slugify } from '../../../utils/helpers.ts'
-import { AuditLog, ProductCategory } from '../../../utils/models.ts'
+import { db, schema } from 'hub:db'
+import { eq, and } from 'drizzle-orm'
 import { ProductCategoryValidation } from '../../../utils/validation.ts'
 
 export default defineEventHandler(async (event) => {
@@ -13,6 +14,13 @@ export default defineEventHandler(async (event) => {
   }
 
   const id = getRouterParam(event, 'id')
+  if (!id) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Thiếu ID danh mục.',
+    })
+  }
+
   const body = await readBody(event)
 
   const parsed = ProductCategoryValidation.safeParse(body)
@@ -27,19 +35,15 @@ export default defineEventHandler(async (event) => {
   if (parsed.data.parent_id === id) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Danh mục cha không thể là chính nó.',
+      statusMessage: 'Danh mục chi tiết không thể liên kết với chính nó.',
     })
   }
 
-  const category = await ProductCategory.findOneAndUpdate(
-    { _id: id },
-    {
-      ...parsed.data,
-      slug: slugify(parsed.data.title),
-      updatedBy: event.context.admin._id,
-    },
-    { new: true },
-  )
+  const cats = await db.select()
+    .from(schema.productCategories)
+    .where(and(eq(schema.productCategories.id, id), eq(schema.productCategories.deleted, 0)))
+    .limit(1)
+  const category = cats[0]
 
   if (!category) {
     throw createError({
@@ -48,17 +52,35 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  const updateData = {
+    ...parsed.data,
+    slug: slugify(parsed.data.title),
+    updatedBy: event.context.admin.id,
+    updatedAt: new Date().toISOString(),
+  }
+
+  await db.update(schema.productCategories)
+    .set(updateData)
+    .where(eq(schema.productCategories.id, id))
+
+  const updatedCats = await db.select()
+    .from(schema.productCategories)
+    .where(eq(schema.productCategories.id, id))
+    .limit(1)
+  const updatedCategory = updatedCats[0]
+
   // Log activity
-  const audit = new AuditLog({
-    account_id: event.context.admin._id,
+  await db.insert(schema.auditLogs).values({
+    id: crypto.randomUUID(),
+    account_id: event.context.admin.id,
     action: 'UPDATE_CATEGORY',
-    details: `Cập nhật danh mục: ${category.title} (ID: ${category._id})`,
+    details: `Cập nhật danh mục: ${updatedCategory?.title} (ID: ${id})`,
+    timestamp: new Date().toISOString(),
   })
-  await audit.save()
 
   return {
     success: true,
     message: 'Cập nhật danh mục sản phẩm thành công.',
-    category,
+    category: updatedCategory,
   }
 })

@@ -1,5 +1,5 @@
 import { createError, defineEventHandler, getRouterParam } from 'h3'
-import { AuditLog } from '../../../utils/models.ts'
+import { db, schema } from 'hub:db'
 import { ProductService } from '../../../utils/services.ts'
 
 export default defineEventHandler(async (event) => {
@@ -12,18 +12,25 @@ export default defineEventHandler(async (event) => {
   }
 
   const id = getRouterParam(event, 'id')
-  const adminId = event.context.admin._id.toString()
+  if (!id) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Thiếu ID danh mục.',
+    })
+  }
+  const adminId = event.context.admin.id
 
   try {
     await ProductService.deleteCategory(id, adminId)
 
     // Audit log
-    const audit = new AuditLog({
-      account_id: event.context.admin._id,
+    await db.insert(schema.auditLogs).values({
+      id: crypto.randomUUID(),
+      account_id: adminId,
       action: 'DELETE_CATEGORY',
       details: `Xóa mềm danh mục sản phẩm (ID: ${id})`,
+      timestamp: new Date().toISOString(),
     })
-    await audit.save()
 
     return {
       success: true,

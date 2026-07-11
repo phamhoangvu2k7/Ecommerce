@@ -7,7 +7,7 @@ definePageMeta({
 })
 
 interface Role {
-  _id: string
+  id: string
   title: string
   description: string
   permissions: string[]
@@ -100,7 +100,7 @@ async function fetchRoles() {
       if (roles.value.length > 0) {
         // Keep selection if exists, else select first
         if (selectedRole.value) {
-          const found = roles.value.find(r => r._id === selectedRole.value?._id)
+          const found = roles.value.find(r => r.id === selectedRole.value?.id)
           selectedRole.value = found ? { ...found } : { ...roles.value[0] }
         }
         else {
@@ -149,7 +149,7 @@ async function handleSavePermissions() {
     if (adminToken)
       headers.Authorization = `Bearer ${adminToken}`
 
-    const res = await fetch(`/api/admin/roles/${selectedRole.value._id}`, {
+    const res = await fetch(`/api/admin/roles/${selectedRole.value.id}`, {
       method: 'PATCH',
       headers,
       body: JSON.stringify({
@@ -204,7 +204,7 @@ async function handleCreateRole() {
       successMsg.value = 'Thêm nhóm quyền mới thành công!'
       await fetchRoles()
       // Select the new role
-      const newRole = roles.value.find(r => r._id === data.role._id)
+      const newRole = roles.value.find(r => r.id === data.role.id)
       if (newRole)
         selectedRole.value = { ...newRole }
       setTimeout(() => (successMsg.value = ''), 4000)
@@ -234,7 +234,7 @@ async function handleDeleteRole() {
     if (adminToken)
       headers.Authorization = `Bearer ${adminToken}`
 
-    const res = await fetch(`/api/admin/roles/${selectedRole.value._id}`, {
+    const res = await fetch(`/api/admin/roles/${selectedRole.value.id}`, {
       method: 'DELETE',
       headers,
     })
@@ -293,8 +293,8 @@ async function handleDeleteRole() {
           <div class="role-items">
             <div
               v-for="role in roles"
-              :key="role._id"
-              class="role-item-btn" :class="[selectedRole?._id === role._id ? 'active-role' : '']"
+              :key="role.id"
+              class="role-item-btn" :class="[selectedRole?.id === role.id ? 'active-role' : '']"
               @click="selectRole(role)"
             >
               <div class="role-item-title">

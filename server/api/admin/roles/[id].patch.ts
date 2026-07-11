@@ -1,5 +1,6 @@
 import { createError, defineEventHandler, readBody } from 'h3'
-import { Role } from '../../../utils/models.ts'
+import { db, schema } from 'hub:db'
+import { eq, and } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const permissions = event.context.admin?.role_id?.permissions || []
@@ -11,29 +12,59 @@ export default defineEventHandler(async (event) => {
   }
 
   const id = event.context.params?.id
+  if (!id) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Thiếu ID nhóm quyền.',
+    })
+  }
+
   const body = await readBody(event)
 
   try {
-    const role = await Role.findById(id)
-    if (!role || role.deleted) {
+    const roles = await db.select()
+      .from(schema.roles)
+      .where(and(eq(schema.roles.id, id), eq(schema.roles.deleted, 0)))
+      .limit(1)
+    const role = roles[0]
+    if (!role) {
       throw createError({
         statusCode: 404,
         statusMessage: 'Không tìm thấy nhóm quyền.',
       })
     }
 
+    const updateData: any = {}
     if (body.title !== undefined)
-      role.title = body.title
+      updateData.title = body.title
     if (body.description !== undefined)
-      role.description = body.description
+      updateData.description = body.description
     if (body.permissions !== undefined)
-      role.permissions = body.permissions
+      updateData.permissions = JSON.stringify(body.permissions)
+    
+    updateData.updatedAt = new Date().toISOString()
 
-    await role.save()
+    await db.update(schema.roles)
+      .set(updateData)
+      .where(eq(schema.roles.id, id))
+
+    const updatedRoles = await db.select()
+      .from(schema.roles)
+      .where(eq(schema.roles.id, id))
+      .limit(1)
+    const updatedRole = updatedRoles[0]
+
+    if (updatedRole && typeof updatedRole.permissions === 'string') {
+      try {
+        updatedRole.permissions = JSON.parse(updatedRole.permissions)
+      } catch {
+        updatedRole.permissions = []
+      }
+    }
 
     return {
       success: true,
-      role,
+      role: updatedRole,
     }
   }
   catch (err: any) {

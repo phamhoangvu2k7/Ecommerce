@@ -63,7 +63,7 @@ function formatPrice(value: number) {
       </div>
 
       <div v-else class="grid-products">
-        <ProductCard v-for="product in featuredProducts" :key="product._id" :product="product" />
+        <ProductCard v-for="product in featuredProducts" :key="product.id" :product="product" />
       </div>
     </section>
   </div>
