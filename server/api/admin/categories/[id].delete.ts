@@ -1,6 +1,7 @@
 import { createError, defineEventHandler, getRouterParam } from 'h3'
 import { db, schema } from 'hub:db'
-import { ProductService } from '../../../utils/services.ts'
+import { kv } from 'hub:kv'
+import { ProductService } from '../../../utils/services'
 
 export default defineEventHandler(async (event) => {
   const permissions = event.context.admin?.role_id?.permissions || []
@@ -22,6 +23,9 @@ export default defineEventHandler(async (event) => {
 
   try {
     await ProductService.deleteCategory(id, adminId)
+
+    // Invalidate categories cache in KV
+    await kv.del('cache:categories')
 
     // Audit log
     await db.insert(schema.auditLogs).values({

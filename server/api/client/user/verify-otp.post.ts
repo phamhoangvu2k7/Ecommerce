@@ -1,8 +1,7 @@
 import { createError, defineEventHandler, readBody } from 'h3'
-import { getJwtSecret } from '../../../utils/helpers.ts'
-import { signJwt } from '../../../utils/jwt.ts'
-import { db, schema } from 'hub:db'
-import { eq, and } from 'drizzle-orm'
+import { kv } from 'hub:kv'
+import { getJwtSecret } from '../../../utils/helpers'
+import { signJwt } from '../../../utils/jwt'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -15,12 +14,9 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const records = await db.select()
-    .from(schema.forgotPasswords)
-    .where(and(eq(schema.forgotPasswords.email, email), eq(schema.forgotPasswords.otp, otp)))
-    .limit(1)
-  const record = records[0]
-  if (!record) {
+  const savedOtp = await kv.get(`otp:forgot-password:${email}`)
+
+  if (!savedOtp || savedOtp !== otp) {
     throw createError({
       statusCode: 400,
       statusMessage: 'Mã OTP không đúng hoặc đã hết hạn.',
@@ -35,7 +31,7 @@ export default defineEventHandler(async (event) => {
   )
 
   // Consume (delete) the OTP so it can't be reused
-  await db.delete(schema.forgotPasswords).where(eq(schema.forgotPasswords.id, record.id))
+  await kv.del(`otp:forgot-password:${email}`)
 
   return {
     success: true,

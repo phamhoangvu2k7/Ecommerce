@@ -1,6 +1,7 @@
 import { createError, defineEventHandler, readBody } from 'h3'
 import { slugify } from '../../../utils/helpers.ts'
 import { db, schema } from 'hub:db'
+import { kv } from 'hub:kv'
 import { eq, and, desc, isNull } from 'drizzle-orm'
 import { ProductCategoryValidation } from '../../../utils/validation.ts'
 
@@ -57,6 +58,9 @@ export default defineEventHandler(async (event) => {
   }
 
   await db.insert(schema.productCategories).values(categoryData)
+
+  // Invalidate categories cache in KV
+  await kv.del('cache:categories')
 
   // Audit log
   await db.insert(schema.auditLogs).values({

@@ -1,6 +1,7 @@
 import { createError, defineEventHandler, readBody } from 'h3'
 import { db, schema } from 'hub:db'
-import { ProductService } from '../../../utils/services.ts'
+import { kv } from 'hub:kv'
+import { ProductService } from '../../../utils/services'
 
 export default defineEventHandler(async (event) => {
   const permissions = event.context.admin?.role_id?.permissions || []
@@ -31,6 +32,9 @@ export default defineEventHandler(async (event) => {
     else {
       throw new Error('Loại đối tượng khôi phục không hợp lệ.')
     }
+
+    // Invalidate categories cache in KV
+    await kv.del('cache:categories')
 
     // Log activity
     await db.insert(schema.auditLogs).values({

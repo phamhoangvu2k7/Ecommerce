@@ -1,7 +1,8 @@
+import { and, eq } from 'drizzle-orm'
 import { createError, defineEventHandler, readBody } from 'h3'
-import { generateOTP, sendMail } from '../../../utils/helpers.ts'
 import { db, schema } from 'hub:db'
-import { eq, and } from 'drizzle-orm'
+import { kv } from 'hub:kv'
+import { generateOTP, sendMail } from '../../../utils/helpers'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -26,20 +27,20 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  const limitKey = `rate_limit:otp:${email}`
+  const attempts = (await kv.get<number>(limitKey)) || 0
+  if (attempts >= 3) {
+    throw createError({
+      statusCode: 429,
+      statusMessage: 'Bạn đã yêu cầu gửi OTP quá nhiều lần. Vui lòng thử lại sau 5 phút.',
+    })
+  }
+
   // Generate 6-digit OTP
   const otp = generateOTP(6)
-  const expireAt = new Date(Date.now() + 3 * 60 * 1000) // 3 minutes TTL
 
-  // Delete older OTP records for this email and save new one
-  await db.delete(schema.forgotPasswords).where(eq(schema.forgotPasswords.email, email))
-  await db.insert(schema.forgotPasswords).values({
-    id: crypto.randomUUID(),
-    email,
-    otp,
-    expireAt: expireAt.toISOString(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  })
+  // Save OTP to Cloudflare KV with 3 minutes TTL (180 seconds)
+  await kv.set(`otp:forgot-password:${email}`, otp, { ttl: 180 })
 
   // Send Email
   const html = `
@@ -56,6 +57,8 @@ export default defineEventHandler(async (event) => {
 
   try {
     await sendMail(email, 'Mã OTP Khôi phục mật khẩu', html)
+    // Increment attempts counter in KV with 5 minutes TTL
+    await kv.set(limitKey, attempts + 1, { ttl: 300 })
   }
   catch (err: any) {
     console.error('[Mail] Error sending OTP email:', err)

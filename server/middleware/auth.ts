@@ -1,8 +1,9 @@
+import { and, eq } from 'drizzle-orm'
 import { createError, defineEventHandler, getHeader, parseCookies } from 'h3'
+import { db, schema } from 'hub:db'
+import { kv } from 'hub:kv'
 import { getJwtSecret } from '../utils/helpers'
 import { verifyJwt } from '../utils/jwt'
-import { db, schema } from 'hub:db'
-import { eq, and } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const path = event.path || ''
@@ -17,6 +18,14 @@ export default defineEventHandler(async (event) => {
   if (!token) {
     const cookies = parseCookies(event)
     token = cookies.token || ''
+  }
+
+  // 1.5. Check if the token is blacklisted in Cloudflare KV
+  if (token) {
+    const isBlacklisted = await kv.has(`blacklist:token:${token}`)
+    if (isBlacklisted) {
+      token = ''
+    }
   }
 
   // 2. Decode token and inject user/admin context
@@ -42,20 +51,24 @@ export default defineEventHandler(async (event) => {
               if (typeof role.permissions === 'string') {
                 try {
                   permissions = JSON.parse(role.permissions)
-                } catch {
+                }
+                catch {
                   permissions = []
                 }
-              } else if (Array.isArray(role.permissions)) {
+              }
+              else if (Array.isArray(role.permissions)) {
                 permissions = role.permissions
               }
               account.role_id = {
                 ...role,
-                permissions
+                permissions,
               } as any
-            } else {
+            }
+            else {
               account.role_id = null
             }
-          } else {
+          }
+          else {
             account.role_id = null
           }
           event.context.admin = account
