@@ -21,7 +21,6 @@ export interface OrderUserInfo {
   email?: string
 }
 
-const newLocal = '[]'
 // 1. Roles
 export const roles = sqliteTable('roles', {
   id: text('id').primaryKey(),

@@ -1,7 +1,6 @@
+import { and, asc, count, desc, eq, gte, inArray, isNull, like } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
 import { kv } from 'hub:kv'
-import { eq, and, inArray, desc, asc, like, sql, gte, count, isNull } from 'drizzle-orm'
-import { escapeRegex } from './helpers.ts'
 
 // --- 1. Product & Category Service ---
 export const ProductService = {
@@ -48,12 +47,12 @@ export const ProductService = {
         product: schema.products,
         category: schema.productCategories,
       })
-      .from(schema.products)
-      .leftJoin(schema.productCategories, eq(schema.products.product_category_id, schema.productCategories.id))
-      .where(whereClause)
-      .orderBy(...orderByClause)
-      .limit(limit)
-      .offset(skip)
+        .from(schema.products)
+        .leftJoin(schema.productCategories, eq(schema.products.product_category_id, schema.productCategories.id))
+        .where(whereClause)
+        .orderBy(...orderByClause)
+        .limit(limit)
+        .offset(skip),
     ])
 
     const total = countRes[0]?.value || 0
@@ -81,7 +80,7 @@ export const ProductService = {
         .where(and(
           eq(schema.productCategories.slug, query.category_slug),
           eq(schema.productCategories.status, 'active'),
-          eq(schema.productCategories.deleted, 0)
+          eq(schema.productCategories.deleted, 0),
         ))
         .limit(1)
 
@@ -119,10 +118,10 @@ export const ProductService = {
       product: schema.products,
       category: schema.productCategories,
     })
-    .from(schema.products)
-    .leftJoin(schema.productCategories, eq(schema.products.product_category_id, schema.productCategories.id))
-    .where(whereClause)
-    .orderBy(...orderByClause)
+      .from(schema.products)
+      .leftJoin(schema.productCategories, eq(schema.products.product_category_id, schema.productCategories.id))
+      .where(whereClause)
+      .orderBy(...orderByClause)
 
     const rawProducts = rows.map(row => ({
       ...row.product,
@@ -168,7 +167,7 @@ export const ProductService = {
       .where(and(
         eq(schema.productCategories.parent_id, parentId),
         eq(schema.productCategories.status, 'active'),
-        eq(schema.productCategories.deleted, 0)
+        eq(schema.productCategories.deleted, 0),
       ))
     let ids: string[] = children.map(c => c.id)
     for (const child of children) {
@@ -302,7 +301,8 @@ export const ProductService = {
     const conditions: any[] = [eq(schema.productCategories.deleted, 0)]
     if (parentId === null) {
       conditions.push(isNull(schema.productCategories.parent_id))
-    } else {
+    }
+    else {
       conditions.push(eq(schema.productCategories.parent_id, parentId))
     }
 
@@ -341,10 +341,12 @@ export const CartService = {
       if (cart && typeof cart.products === 'string') {
         try {
           cart.products = JSON.parse(cart.products)
-        } catch {
+        }
+        catch {
           cart.products = []
         }
-      } else if (cart && !cart.products) {
+      }
+      else if (cart && !cart.products) {
         cart.products = []
       }
 
@@ -353,7 +355,7 @@ export const CartService = {
         await db.insert(schema.carts).values({
           id: newCartId,
           user_id: userId,
-          products: '[]',
+          products: [] as any,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         })
@@ -399,13 +401,13 @@ export const CartService = {
     const itemIndex = cart.products.findIndex((p: any) => String(p.product_id) === productId)
     if (itemIndex > -1) {
       const newQty = cart.products[itemIndex].quantity + quantity
-      if (newQty > product.stock) {
+      if (newQty > (product.stock || 0)) {
         throw new Error(`Sản phẩm ${product.title} không đủ số lượng trong kho. Còn lại: ${product.stock}`)
       }
       cart.products[itemIndex].quantity = newQty
     }
     else {
-      if (quantity > product.stock) {
+      if (quantity > (product.stock || 0)) {
         throw new Error(`Sản phẩm ${product.title} không đủ số lượng trong kho. Còn lại: ${product.stock}`)
       }
       cart.products.push({ product_id: productId, quantity })
@@ -415,12 +417,13 @@ export const CartService = {
       // Update in KV
       cart.updatedAt = new Date().toISOString()
       await kv.set(`cart:guest:${cart.id}`, cart, { ttl: 604800 })
-    } else {
+    }
+    else {
       // Update in SQLite
       await db.update(schema.carts)
         .set({
-          products: JSON.stringify(cart.products),
-          updatedAt: new Date().toISOString()
+          products: JSON.stringify(cart.products) as any,
+          updatedAt: new Date().toISOString(),
         })
         .where(eq(schema.carts.id, cart.id))
     }
@@ -438,7 +441,7 @@ export const CartService = {
     if (!product)
       throw new Error('Sản phẩm không tồn tại')
 
-    if (quantity > product.stock) {
+    if (quantity > (product.stock || 0)) {
       throw new Error(`Sản phẩm ${product.title} không đủ số lượng trong kho. Còn lại: ${product.stock}`)
     }
 
@@ -455,12 +458,13 @@ export const CartService = {
         // Update in KV
         cart.updatedAt = new Date().toISOString()
         await kv.set(`cart:guest:${cart.id}`, cart, { ttl: 604800 })
-      } else {
+      }
+      else {
         // Update in SQLite
         await db.update(schema.carts)
           .set({
-            products: JSON.stringify(cart.products),
-            updatedAt: new Date().toISOString()
+            products: JSON.stringify(cart.products) as any,
+            updatedAt: new Date().toISOString(),
           })
           .where(eq(schema.carts.id, cart.id))
       }
@@ -476,12 +480,13 @@ export const CartService = {
       // Update in KV
       cart.updatedAt = new Date().toISOString()
       await kv.set(`cart:guest:${cart.id}`, cart, { ttl: 604800 })
-    } else {
+    }
+    else {
       // Update in SQLite
       await db.update(schema.carts)
         .set({
-          products: JSON.stringify(cart.products),
-          updatedAt: new Date().toISOString()
+          products: JSON.stringify(cart.products) as any,
+          updatedAt: new Date().toISOString(),
         })
         .where(eq(schema.carts.id, cart.id))
     }
@@ -499,7 +504,8 @@ export const CartService = {
     if (typeof guestProducts === 'string') {
       try {
         guestProducts = JSON.parse(guestProducts)
-      } catch {
+      }
+      catch {
         guestProducts = []
       }
     }
@@ -525,16 +531,16 @@ export const CartService = {
       if (userItemIndex > -1) {
         // Merge quantities and cap to stock
         let mergedQty = userCart.products[userItemIndex].quantity + guestItem.quantity
-        if (mergedQty > product.stock) {
-          mergedQty = product.stock
+        if (mergedQty > (product.stock || 0)) {
+          mergedQty = product.stock || 0
         }
         userCart.products[userItemIndex].quantity = mergedQty
       }
       else {
         // Add new item capped to stock
         let qty = guestItem.quantity
-        if (qty > product.stock) {
-          qty = product.stock
+        if (qty > (product.stock || 0)) {
+          qty = product.stock || 0
         }
         userCart.products.push({ product_id: guestItem.product_id, quantity: qty })
       }
@@ -542,8 +548,8 @@ export const CartService = {
 
     await db.update(schema.carts)
       .set({
-        products: JSON.stringify(userCart.products),
-        updatedAt: new Date().toISOString()
+        products: JSON.stringify(userCart.products) as any,
+        updatedAt: new Date().toISOString(),
       })
       .where(eq(schema.carts.id, userCart.id))
 
@@ -569,7 +575,8 @@ export const CheckoutService = {
       let cartProducts: any[] = []
       if (typeof cart.products === 'string') {
         cartProducts = JSON.parse(cart.products)
-      } else if (Array.isArray(cart.products)) {
+      }
+      else if (Array.isArray(cart.products)) {
         cartProducts = cart.products
       }
 
@@ -589,15 +596,15 @@ export const CheckoutService = {
           throw new Error('Sản phẩm đã ngừng bán')
         }
 
-        if (product.stock < item.quantity) {
-          throw new Error(`Sản phẩm ${product.title} hiện không đủ tồn kho. Yêu cầu: ${item.quantity}, Có sẵn: ${product.stock}`)
+        if ((product.stock || 0) < item.quantity) {
+          throw new Error(`Sản phẩm ${product.title} hiện không đủ tồn kho. Yêu cầu: ${item.quantity}, Có sẵn: ${product.stock || 0}`)
         }
 
         // Update product stock
         await tx.update(schema.products)
           .set({
-            stock: product.stock - item.quantity,
-            updatedAt: new Date().toISOString()
+            stock: (product.stock || 0) - item.quantity,
+            updatedAt: new Date().toISOString(),
           })
           .where(and(eq(schema.products.id, product.id), gte(schema.products.stock, item.quantity)))
 
@@ -625,7 +632,7 @@ export const CheckoutService = {
       await tx.update(schema.carts)
         .set({
           products: '[]',
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date().toISOString(),
         })
         .where(eq(schema.carts.id, cartId))
 
@@ -634,7 +641,7 @@ export const CheckoutService = {
         .from(schema.orders)
         .where(eq(schema.orders.id, orderId))
         .limit(1)
-      
+
       const order = orders[0]
       if (order && typeof order.userInfo === 'string') {
         order.userInfo = JSON.parse(order.userInfo)
