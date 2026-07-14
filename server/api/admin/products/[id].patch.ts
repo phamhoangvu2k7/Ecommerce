@@ -1,8 +1,9 @@
+import { and, eq } from 'drizzle-orm'
 import { createError, defineEventHandler, getRouterParam, readBody } from 'h3'
-import { slugify } from '../../../utils/helpers.ts'
 import { db, schema } from 'hub:db'
-import { eq, and } from 'drizzle-orm'
-import { ProductValidation } from '../../../utils/validation.ts'
+import { slugify } from '../../../utils/helpers'
+import { ProductService } from '../../../utils/services'
+import { ProductValidation } from '../../../utils/validation'
 
 export default defineEventHandler(async (event) => {
   const permissions = event.context.admin?.role_id?.permissions || []
@@ -55,6 +56,9 @@ export default defineEventHandler(async (event) => {
   await db.update(schema.products)
     .set(updateData)
     .where(eq(schema.products.id, id))
+
+  // Invalidate products cache
+  await ProductService.invalidateProductsCache()
 
   const updatedProds = await db.select()
     .from(schema.products)

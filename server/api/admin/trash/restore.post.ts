@@ -33,8 +33,9 @@ export default defineEventHandler(async (event) => {
       throw new Error('Loại đối tượng khôi phục không hợp lệ.')
     }
 
-    // Invalidate categories cache in KV
+    // Invalidate categories and products cache in KV
     await kv.del('cache:categories')
+    await ProductService.invalidateProductsCache()
 
     // Log activity
     await db.insert(schema.auditLogs).values({

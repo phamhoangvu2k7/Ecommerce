@@ -1,7 +1,8 @@
+import { and, desc, eq } from 'drizzle-orm'
 import { createError, defineEventHandler, readBody } from 'h3'
-import { slugify } from '../../../utils/helpers'
 import { db, schema } from 'hub:db'
-import { eq, and, desc } from 'drizzle-orm'
+import { slugify } from '../../../utils/helpers'
+import { ProductService } from '../../../utils/services'
 import { ProductValidation } from '../../../utils/validation'
 
 export default defineEventHandler(async (event) => {
@@ -56,6 +57,9 @@ export default defineEventHandler(async (event) => {
   }
 
   await db.insert(schema.products).values(productData)
+
+  // Invalidate products cache
+  await ProductService.invalidateProductsCache()
 
   // Log activity
   await db.insert(schema.auditLogs).values({

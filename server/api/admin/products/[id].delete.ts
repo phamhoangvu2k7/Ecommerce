@@ -1,6 +1,6 @@
 import { createError, defineEventHandler, getRouterParam } from 'h3'
 import { db, schema } from 'hub:db'
-import { ProductService } from '../../../utils/services.ts'
+import { ProductService } from '../../../utils/services'
 
 export default defineEventHandler(async (event) => {
   const permissions = event.context.admin?.role_id?.permissions || []
@@ -21,6 +21,9 @@ export default defineEventHandler(async (event) => {
   const adminId = event.context.admin.id
 
   await ProductService.deleteProduct(id, adminId)
+
+  // Invalidate products cache
+  await ProductService.invalidateProductsCache()
 
   // Log activity
   await db.insert(schema.auditLogs).values({

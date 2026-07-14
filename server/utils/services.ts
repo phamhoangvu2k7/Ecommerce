@@ -1,4 +1,5 @@
 import { db, schema } from 'hub:db'
+import { kv } from 'hub:kv'
 import { eq, and, inArray, desc, asc, like, sql, gte, count, isNull } from 'drizzle-orm'
 import { escapeRegex } from './helpers.ts'
 
@@ -316,6 +317,13 @@ export const ProductService = {
         .where(eq(schema.productCategories.id, categories[i].id))
     }
   },
+
+  async invalidateProductsCache() {
+    const keys = await kv.keys('cache:products:list:')
+    for (const key of keys) {
+      await kv.del(key)
+    }
+  },
 }
 
 // --- 2. Cart Service ---
@@ -329,42 +337,48 @@ export const CartService = {
         .where(eq(schema.carts.user_id, userId))
         .limit(1)
       cart = carts[0]
-    }
-    else if (cartId) {
-      const carts = await db.select()
-        .from(schema.carts)
-        .where(eq(schema.carts.id, cartId))
-        .limit(1)
-      cart = carts[0]
-    }
 
-    if (!cart) {
-      const newCartId = crypto.randomUUID()
-      await db.insert(schema.carts).values({
-        id: newCartId,
-        user_id: userId,
-        products: '[]',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      })
-      const carts = await db.select().from(schema.carts).where(eq(schema.carts.id, newCartId)).limit(1)
-      cart = carts[0]
-    }
-    else if (userId && !cart.user_id) {
-      await db.update(schema.carts)
-        .set({ user_id: userId, updatedAt: new Date().toISOString() })
-        .where(eq(schema.carts.id, cart.id))
-      cart.user_id = userId
-    }
-
-    if (cart && typeof cart.products === 'string') {
-      try {
-        cart.products = JSON.parse(cart.products)
-      } catch {
+      if (cart && typeof cart.products === 'string') {
+        try {
+          cart.products = JSON.parse(cart.products)
+        } catch {
+          cart.products = []
+        }
+      } else if (cart && !cart.products) {
         cart.products = []
       }
-    } else if (!cart.products) {
-      cart.products = []
+
+      if (!cart) {
+        const newCartId = crypto.randomUUID()
+        await db.insert(schema.carts).values({
+          id: newCartId,
+          user_id: userId,
+          products: '[]',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        })
+        const carts = await db.select().from(schema.carts).where(eq(schema.carts.id, newCartId)).limit(1)
+        cart = carts[0]
+        cart.products = []
+      }
+    }
+    else {
+      // Guest user (not logged in) - load from Cloudflare KV
+      if (cartId) {
+        cart = await kv.get(`cart:guest:${cartId}`)
+      }
+      if (!cart) {
+        const newCartId = crypto.randomUUID()
+        cart = {
+          id: newCartId,
+          user_id: null,
+          products: [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }
+        // Save to KV with TTL 7 days (604800 seconds)
+        await kv.set(`cart:guest:${newCartId}`, cart, { ttl: 604800 })
+      }
     }
 
     return cart
@@ -397,12 +411,19 @@ export const CartService = {
       cart.products.push({ product_id: productId, quantity })
     }
 
-    await db.update(schema.carts)
-      .set({
-        products: JSON.stringify(cart.products),
-        updatedAt: new Date().toISOString()
-      })
-      .where(eq(schema.carts.id, cart.id))
+    if (!userId) {
+      // Update in KV
+      cart.updatedAt = new Date().toISOString()
+      await kv.set(`cart:guest:${cart.id}`, cart, { ttl: 604800 })
+    } else {
+      // Update in SQLite
+      await db.update(schema.carts)
+        .set({
+          products: JSON.stringify(cart.products),
+          updatedAt: new Date().toISOString()
+        })
+        .where(eq(schema.carts.id, cart.id))
+    }
 
     return cart
   },
@@ -429,6 +450,34 @@ export const CartService = {
       else {
         cart.products[itemIndex].quantity = quantity
       }
+
+      if (!userId) {
+        // Update in KV
+        cart.updatedAt = new Date().toISOString()
+        await kv.set(`cart:guest:${cart.id}`, cart, { ttl: 604800 })
+      } else {
+        // Update in SQLite
+        await db.update(schema.carts)
+          .set({
+            products: JSON.stringify(cart.products),
+            updatedAt: new Date().toISOString()
+          })
+          .where(eq(schema.carts.id, cart.id))
+      }
+    }
+    return cart
+  },
+
+  async deleteCartItem(cartId: string, productId: string, userId: string | null = null) {
+    const cart = await this.getOrCreateCart(cartId, userId)
+    cart.products = cart.products.filter((p: any) => String(p.product_id) !== productId)
+
+    if (!userId) {
+      // Update in KV
+      cart.updatedAt = new Date().toISOString()
+      await kv.set(`cart:guest:${cart.id}`, cart, { ttl: 604800 })
+    } else {
+      // Update in SQLite
       await db.update(schema.carts)
         .set({
           products: JSON.stringify(cart.products),
@@ -439,37 +488,20 @@ export const CartService = {
     return cart
   },
 
-  async deleteCartItem(cartId: string, productId: string, userId: string | null = null) {
-    const cart = await this.getOrCreateCart(cartId, userId)
-    cart.products = cart.products.filter((p: any) => String(p.product_id) !== productId)
-    await db.update(schema.carts)
-      .set({
-        products: JSON.stringify(cart.products),
-        updatedAt: new Date().toISOString()
-      })
-      .where(eq(schema.carts.id, cart.id))
-    return cart
-  },
-
   // Cart Merging Algorithm
   async mergeCarts(guestCartId: string, userId: string) {
-    const guestCarts = await db.select()
-      .from(schema.carts)
-      .where(eq(schema.carts.id, guestCartId))
-      .limit(1)
-    const guestCart = guestCarts[0]
+    const guestCartKey = `cart:guest:${guestCartId}`
+    const guestCart = await kv.get<any>(guestCartKey)
     if (!guestCart)
       return
 
-    let guestProducts: any[] = []
-    if (typeof guestCart.products === 'string') {
+    let guestProducts: any[] = guestCart.products || []
+    if (typeof guestProducts === 'string') {
       try {
-        guestProducts = JSON.parse(guestCart.products)
+        guestProducts = JSON.parse(guestProducts)
       } catch {
         guestProducts = []
       }
-    } else if (Array.isArray(guestCart.products)) {
-      guestProducts = guestCart.products
     }
 
     if (guestProducts.length === 0)
@@ -515,13 +547,8 @@ export const CartService = {
       })
       .where(eq(schema.carts.id, userCart.id))
 
-    // Clear guest cart
-    await db.update(schema.carts)
-      .set({
-        products: '[]',
-        updatedAt: new Date().toISOString()
-      })
-      .where(eq(schema.carts.id, guestCart.id))
+    // Clear guest cart in KV
+    await kv.del(guestCartKey)
   },
 }
 

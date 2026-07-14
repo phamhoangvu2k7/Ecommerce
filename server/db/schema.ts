@@ -21,6 +21,7 @@ export interface OrderUserInfo {
   email?: string
 }
 
+const newLocal = '[]'
 // 1. Roles
 export const roles = sqliteTable('roles', {
   id: text('id').primaryKey(),
@@ -135,16 +136,6 @@ export const orders = sqliteTable('orders', {
   deletedBy: text('deletedBy'),
   createdBy: text('createdBy'),
   updatedBy: text('updatedBy'),
-  createdAt: text('createdAt').default(sql`(datetime('now', 'localtime'))`),
-  updatedAt: text('updatedAt').default(sql`(datetime('now', 'localtime'))`),
-})
-
-// 8. Forgot Passwords
-export const forgotPasswords = sqliteTable('forgot_passwords', {
-  id: text('id').primaryKey(),
-  email: text('email').notNull(),
-  otp: text('otp').notNull(),
-  expireAt: text('expireAt').notNull(),
   createdAt: text('createdAt').default(sql`(datetime('now', 'localtime'))`),
   updatedAt: text('updatedAt').default(sql`(datetime('now', 'localtime'))`),
 })
