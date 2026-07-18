@@ -1,6 +1,6 @@
+import { and, eq, sql } from 'drizzle-orm'
 import { createError, defineEventHandler, getRouterParam } from 'h3'
 import { db, schema } from 'hub:db'
-import { eq, and, sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
@@ -44,10 +44,12 @@ export default defineEventHandler(async (event) => {
     if (typeof order.products === 'string') {
       try {
         orderProducts = JSON.parse(order.products)
-      } catch {
+      }
+      catch {
         orderProducts = []
       }
-    } else if (Array.isArray(order.products)) {
+    }
+    else if (Array.isArray(order.products)) {
       orderProducts = order.products
     }
 

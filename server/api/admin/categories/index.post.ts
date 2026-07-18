@@ -1,8 +1,8 @@
+import { and, desc, eq, isNull } from 'drizzle-orm'
 import { createError, defineEventHandler, readBody } from 'h3'
-import { slugify } from '../../../utils/helpers.ts'
 import { db, schema } from 'hub:db'
 import { kv } from 'hub:kv'
-import { eq, and, desc, isNull } from 'drizzle-orm'
+import { slugify } from '../../../utils/helpers.ts'
 import { ProductCategoryValidation } from '../../../utils/validation.ts'
 
 export default defineEventHandler(async (event) => {
@@ -29,7 +29,8 @@ export default defineEventHandler(async (event) => {
     const conditions: any[] = [eq(schema.productCategories.deleted, 0)]
     if (parentId === null) {
       conditions.push(isNull(schema.productCategories.parent_id))
-    } else {
+    }
+    else {
       conditions.push(eq(schema.productCategories.parent_id, parentId))
     }
     const lastCategories = await db.select()

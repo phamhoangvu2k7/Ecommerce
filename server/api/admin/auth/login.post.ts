@@ -1,8 +1,8 @@
+import { and, eq } from 'drizzle-orm'
 import { createError, defineEventHandler, readBody, setCookie } from 'h3'
+import { db, schema } from 'hub:db'
 import { comparePassword, getJwtSecret } from '../../../utils/helpers'
 import { signJwt } from '../../../utils/jwt'
-import { db, schema } from 'hub:db'
-import { eq, and } from 'drizzle-orm'
 import { LoginValidation } from '../../../utils/validation'
 
 export default defineEventHandler(async (event) => {
@@ -56,7 +56,8 @@ export default defineEventHandler(async (event) => {
     if (role && typeof role.permissions === 'string') {
       try {
         role.permissions = JSON.parse(role.permissions)
-      } catch {
+      }
+      catch {
         role.permissions = []
       }
     }
@@ -86,7 +87,7 @@ export default defineEventHandler(async (event) => {
       email: account.email,
       phone: account.phone,
       avatar: account.avatar,
-      role: role,
+      role,
     },
   }
 })

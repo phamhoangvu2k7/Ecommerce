@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { defineEmits, defineProps } from 'vue'
 
-const props = defineProps({
+defineProps({
   node: { type: Object, required: true },
 })
 

@@ -1,8 +1,8 @@
+import { and, eq } from 'drizzle-orm'
 import { createError, defineEventHandler, getRouterParam, readBody } from 'h3'
-import { slugify } from '../../../utils/helpers.ts'
 import { db, schema } from 'hub:db'
 import { kv } from 'hub:kv'
-import { eq, and } from 'drizzle-orm'
+import { slugify } from '../../../utils/helpers.ts'
 import { ProductCategoryValidation } from '../../../utils/validation.ts'
 
 export default defineEventHandler(async (event) => {

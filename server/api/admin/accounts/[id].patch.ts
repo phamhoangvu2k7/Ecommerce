@@ -1,7 +1,7 @@
+import { and, eq } from 'drizzle-orm'
 import { createError, defineEventHandler, readBody } from 'h3'
-import { hashPassword } from '../../../utils/helpers.ts'
 import { db, schema } from 'hub:db'
-import { eq, and } from 'drizzle-orm'
+import { hashPassword } from '../../../utils/helpers.ts'
 
 export default defineEventHandler(async (event) => {
   const permissions = event.context.admin?.role_id?.permissions || []

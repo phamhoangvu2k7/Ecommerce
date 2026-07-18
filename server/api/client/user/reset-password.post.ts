@@ -1,8 +1,8 @@
+import { and, eq } from 'drizzle-orm'
 import { createError, defineEventHandler, readBody } from 'h3'
-import { getJwtSecret, hashPassword } from '../../../utils/helpers.ts'
-import { verifyJwt } from '../../../utils/jwt.ts'
 import { db, schema } from 'hub:db'
-import { eq, and } from 'drizzle-orm'
+import { getJwtSecret, hashPassword } from '../../../utils/helpers'
+import { verifyJwt } from '../../../utils/jwt'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
   try {
     const decoded: any = await verifyJwt(resetToken, getJwtSecret())
     if (decoded.role !== 'reset-password') {
-      throw new Error()
+      throw new Error('Vai trò của mã khôi phục không hợp lệ.')
     }
 
     const email = decoded.email
@@ -53,7 +53,7 @@ export default defineEventHandler(async (event) => {
       message: 'Đổi mật khẩu mới thành công. Hãy đăng nhập lại bằng mật khẩu mới.',
     }
   }
-  catch (err) {
+  catch {
     throw createError({
       statusCode: 400,
       statusMessage: 'Mã xác thực đổi mật khẩu đã hết hạn hoặc không hợp lệ.',

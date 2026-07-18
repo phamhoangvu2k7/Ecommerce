@@ -1,6 +1,6 @@
+import { and, eq } from 'drizzle-orm'
 import { createError, defineEventHandler, readBody } from 'h3'
 import { db, schema } from 'hub:db'
-import { eq, and } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const permissions = event.context.admin?.role_id?.permissions || []
@@ -41,7 +41,7 @@ export default defineEventHandler(async (event) => {
       updateData.description = body.description
     if (body.permissions !== undefined)
       updateData.permissions = JSON.stringify(body.permissions)
-    
+
     updateData.updatedAt = new Date().toISOString()
 
     await db.update(schema.roles)
@@ -57,7 +57,8 @@ export default defineEventHandler(async (event) => {
     if (updatedRole && typeof updatedRole.permissions === 'string') {
       try {
         updatedRole.permissions = JSON.parse(updatedRole.permissions)
-      } catch {
+      }
+      catch {
         updatedRole.permissions = []
       }
     }

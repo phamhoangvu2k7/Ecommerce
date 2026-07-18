@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import SkeletonDetail from '~/components/SkeletonDetail.vue'
-import { useCartStore } from '~/stores/cart.ts'
 import { resolveImageUrl } from '~/composables/useImageUrl'
+import { useCartStore } from '~/stores/cart'
 
 const route = useRoute()
-const router = useRouter()
 const cartStore = useCartStore()
 
 const product = ref<any>(null)
@@ -29,6 +28,7 @@ onMounted(async () => {
       errorMsg.value = data.message || data.statusMessage || 'Lỗi tải chi tiết sản phẩm.'
     }
   }
+  // eslint-disable-next-line unused-imports/no-unused-vars
   catch (err) {
     errorMsg.value = 'Không thể kết nối đến máy chủ.'
   }

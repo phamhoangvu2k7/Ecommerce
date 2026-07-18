@@ -1,4 +1,4 @@
-import { and, desc, eq } from 'drizzle-orm'
+import { desc, eq } from 'drizzle-orm'
 import { createError, defineEventHandler, readBody } from 'h3'
 import { db, schema } from 'hub:db'
 import { slugify } from '../../../utils/helpers'

@@ -1,6 +1,6 @@
+import { desc, eq } from 'drizzle-orm'
 import { createError, defineEventHandler } from 'h3'
 import { db, schema } from 'hub:db'
-import { eq, desc } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const permissions = event.context.admin?.role_id?.permissions || []
@@ -17,15 +17,17 @@ export default defineEventHandler(async (event) => {
       .where(eq(schema.roles.deleted, 0))
       .orderBy(desc(schema.roles.createdAt))
 
-    const parsedRoles = roles.map(role => {
+    const parsedRoles = roles.map((role) => {
       let permissions: string[] = []
       if (typeof role.permissions === 'string') {
         try {
           permissions = JSON.parse(role.permissions)
-        } catch {
+        }
+        catch {
           permissions = []
         }
-      } else if (Array.isArray(role.permissions)) {
+      }
+      else if (Array.isArray(role.permissions)) {
         permissions = role.permissions
       }
       return {
@@ -39,7 +41,7 @@ export default defineEventHandler(async (event) => {
       roles: parsedRoles,
     }
   }
-  catch (err) {
+  catch {
     throw createError({
       statusCode: 500,
       statusMessage: 'Lỗi hệ thống khi tải danh sách nhóm quyền.',

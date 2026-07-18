@@ -1,6 +1,6 @@
+import { eq } from 'drizzle-orm'
 import { createError, defineEventHandler } from 'h3'
 import { db, schema } from 'hub:db'
-import { eq } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const permissions = event.context.admin?.role_id?.permissions || []
@@ -16,9 +16,9 @@ export default defineEventHandler(async (event) => {
       product: schema.products,
       category: schema.productCategories,
     })
-    .from(schema.products)
-    .leftJoin(schema.productCategories, eq(schema.products.product_category_id, schema.productCategories.id))
-    .where(eq(schema.products.deleted, 1)),
+      .from(schema.products)
+      .leftJoin(schema.productCategories, eq(schema.products.product_category_id, schema.productCategories.id))
+      .where(eq(schema.products.deleted, 1)),
 
     db.select()
       .from(schema.productCategories)

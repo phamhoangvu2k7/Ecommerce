@@ -1,8 +1,8 @@
+import { and, eq } from 'drizzle-orm'
 import { createError, defineEventHandler, readBody } from 'h3'
+import { db, schema } from 'hub:db'
 import { hashPassword } from '../../../utils/helpers.ts'
 import { RegisterValidation } from '../../../utils/validation.ts'
-import { db, schema } from 'hub:db'
-import { eq, and } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)

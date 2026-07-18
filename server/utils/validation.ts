@@ -1,5 +1,4 @@
 import { z } from 'zod'
-import { stripImageDomain } from '~/server/utils/helpers.ts'
 
 export const ProductValidation = z.object({
   title: z.string().min(1, 'Tiêu đề không được để trống'),

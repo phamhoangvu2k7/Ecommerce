@@ -1,14 +1,14 @@
+import { and, eq, inArray } from 'drizzle-orm'
 import { defineEventHandler, parseCookies, setCookie } from 'h3'
-import { CartService } from '../../../utils/services.ts'
 import { db, schema } from 'hub:db'
-import { eq, and, inArray } from 'drizzle-orm'
+import { CartService } from '../../../utils/services'
 
 export default defineEventHandler(async (event) => {
   const cookies = parseCookies(event)
   const guestCartId = cookies.cartId
   const user = event.context.user
 
-  let cart = await CartService.getOrCreateCart(guestCartId, user ? user.id : null)
+  const cart = await CartService.getOrCreateCart(guestCartId, user ? user.id : null)
 
   // Set guest cart cookie if not set
   if (!user && String(cart.id) !== guestCartId) {
@@ -26,7 +26,7 @@ export default defineEventHandler(async (event) => {
       .from(schema.products)
       .where(and(
         inArray(schema.products.id, productIds),
-        eq(schema.products.deleted, 0)
+        eq(schema.products.deleted, 0),
       ))
   }
 

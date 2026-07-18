@@ -1,8 +1,8 @@
+import { sql } from 'drizzle-orm'
 import { createError, defineEventHandler, getQuery } from 'h3'
+import { db, schema } from 'hub:db'
 import { schema as rawSchema } from '../plugins/db'
 import * as helpers from '../utils/helpers'
-import { db, schema } from 'hub:db'
-import { sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   // 1. Kiểm tra bảo mật khi chạy ở môi trường Production

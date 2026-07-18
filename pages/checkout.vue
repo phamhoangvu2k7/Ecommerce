@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useCartStore } from '~/stores/cart.ts'
 import { resolveImageUrl } from '~/composables/useImageUrl'
+import { useCartStore } from '~/stores/cart.ts'
 
 definePageMeta({
   middleware: ['auth'],

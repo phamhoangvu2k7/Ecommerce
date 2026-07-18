@@ -1,6 +1,6 @@
+import { and, desc, eq, inArray } from 'drizzle-orm'
 import { createError, defineEventHandler } from 'h3'
 import { db, schema } from 'hub:db'
-import { eq, and, desc, inArray } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const user = event.context.user
@@ -16,15 +16,17 @@ export default defineEventHandler(async (event) => {
     .where(and(eq(schema.orders.user_id, user.id), eq(schema.orders.deleted, 0)))
     .orderBy(desc(schema.orders.createdAt))
 
-  const parsedOrders = orders.map(order => {
+  const parsedOrders = orders.map((order) => {
     let orderProducts: any[] = []
     if (typeof order.products === 'string') {
       try {
         orderProducts = JSON.parse(order.products)
-      } catch {
+      }
+      catch {
         orderProducts = []
       }
-    } else if (Array.isArray(order.products)) {
+    }
+    else if (Array.isArray(order.products)) {
       orderProducts = order.products
     }
 
@@ -32,10 +34,12 @@ export default defineEventHandler(async (event) => {
     if (typeof order.userInfo === 'string') {
       try {
         userInfo = JSON.parse(order.userInfo)
-      } catch {
+      }
+      catch {
         userInfo = {}
       }
-    } else if (order.userInfo) {
+    }
+    else if (order.userInfo) {
       userInfo = order.userInfo
     }
 
@@ -53,7 +57,7 @@ export default defineEventHandler(async (event) => {
       .where(inArray(schema.products.id, productIds))
     const productMap = new Map(products.map(p => [p.id, p]))
 
-    parsedOrders.forEach(o => {
+    parsedOrders.forEach((o) => {
       o.products.forEach((p: any) => {
         p.product_id = productMap.get(p.product_id) || null
       })

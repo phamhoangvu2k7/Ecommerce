@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { resolveImageUrl } from '~/composables/useImageUrl'
-const props = defineProps<{
+
+defineProps<{
   order: {
     id: string
     createdAt: string

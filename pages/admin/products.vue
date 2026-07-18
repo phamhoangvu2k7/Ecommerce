@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { resolveImageUrl } from '~/composables/useImageUrl'
+
 definePageMeta({
   layout: 'admin',
   middleware: ['admin'],

@@ -1,6 +1,6 @@
+import { and, count, eq, ne } from 'drizzle-orm'
 import { createError, defineEventHandler } from 'h3'
 import { db, schema } from 'hub:db'
-import { eq, and, count, ne } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const permissions = event.context.admin?.role_id?.permissions || []
@@ -41,10 +41,12 @@ export default defineEventHandler(async (event) => {
     if (typeof order.products === 'string') {
       try {
         orderProducts = JSON.parse(order.products)
-      } catch {
+      }
+      catch {
         orderProducts = []
       }
-    } else if (Array.isArray(order.products)) {
+    }
+    else if (Array.isArray(order.products)) {
       orderProducts = order.products
     }
 

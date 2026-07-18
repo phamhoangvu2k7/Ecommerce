@@ -44,7 +44,7 @@ export default defineEventHandler(async (event) => {
       },
     }
   }
-  catch (err) {
+  catch {
     throw createError({
       statusCode: 500,
       statusMessage: 'Lỗi hệ thống khi tạo nhóm quyền.',

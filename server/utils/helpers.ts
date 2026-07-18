@@ -1,5 +1,4 @@
 import { compareSync, hashSync } from 'bcrypt-edge'
-import { blob } from 'hub:blob'
 import { Resend } from 'resend'
 import { randomUUID } from 'uncrypto'
 
