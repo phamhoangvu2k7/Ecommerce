@@ -15,9 +15,11 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  const cleanEmail = String(email).trim().toLowerCase()
+
   const users = await db.select()
     .from(schema.users)
-    .where(and(eq(schema.users.email, email), eq(schema.users.deleted, 0)))
+    .where(and(eq(schema.users.email, cleanEmail), eq(schema.users.deleted, 0)))
     .limit(1)
   const user = users[0]
   if (!user) {
@@ -27,7 +29,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const limitKey = `rate_limit:otp:${email}`
+  const limitKey = `rate_limit:otp:${cleanEmail}`
   const attempts = (await kv.get<number>(limitKey)) || 0
   if (attempts >= 3) {
     throw createError({
@@ -39,8 +41,8 @@ export default defineEventHandler(async (event) => {
   // Generate 6-digit OTP
   const otp = generateOTP(6)
 
-  // Save OTP to Cloudflare KV with 3 minutes TTL (180 seconds)
-  await kv.set(`otp:forgot-password:${email}`, otp, { ttl: 180 })
+  // Save OTP to Cloudflare KV as string with 3 minutes TTL (180 seconds)
+  await kv.set(`otp:forgot-password:${cleanEmail}`, String(otp), { ttl: 180 })
 
   // Send Email
   const html = `
@@ -56,7 +58,7 @@ export default defineEventHandler(async (event) => {
   `
 
   try {
-    await sendMail(email, 'Mã OTP Khôi phục mật khẩu', html)
+    await sendMail(cleanEmail, 'Mã OTP Khôi phục mật khẩu', html)
     // Increment attempts counter in KV with 5 minutes TTL
     await kv.set(limitKey, attempts + 1, { ttl: 300 })
   }

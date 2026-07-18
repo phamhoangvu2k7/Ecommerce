@@ -1,5 +1,6 @@
 import { compareSync, hashSync } from 'bcrypt-edge'
 import { blob } from 'hub:blob'
+import { Resend } from 'resend'
 import { randomUUID } from 'uncrypto'
 
 export function hashPassword(password: string): string {
@@ -25,35 +26,37 @@ export function escapeRegex(text: string): string {
 
 export async function sendMail(to: string, subject: string, htmlContent: string) {
   // eslint-disable-next-line node/prefer-global/process
-  const mailUser = process.env.EMAIL_USER || 'no-reply@example.com'
+  const apiKey = process.env.RESEND_API_KEY
   // eslint-disable-next-line node/prefer-global/process
-  const brevoKey = process.env.BREVO_API_KEY || ''
+  const fromEmail = process.env.EMAIL_FROM || 'onboarding@resend.dev'
 
-  if (brevoKey) {
-    try {
-      const res = await $fetch('https://api.brevo.com/v3/smtp/email', {
-        method: 'POST',
-        headers: {
-          'accept': 'application/json',
-          'api-key': brevoKey,
-          'content-type': 'application/json',
-        },
-        body: {
-          sender: { name: 'Product Management', email: mailUser },
-          to: [{ email: to }],
-          subject,
-          htmlContent,
-        },
-      })
-      return res
-    }
-    catch (err) {
-      console.error('[Mail] Failed to send email via Brevo:', err)
-    }
+  // Nếu không có API Key, chuyển sang chế độ Mock log ở Console (Hỗ trợ chạy Offline/Local)
+  if (!apiKey) {
+    console.warn('[Mail Warning] RESEND_API_KEY chưa được cấu hình trong .env. Email sẽ được in ra console.')
+    return { id: `mock-id-${Date.now()}` }
   }
 
-  // Mock mode / Fallback
-  return { messageId: `mock-id-${Date.now()}` }
+  const resend = new Resend(apiKey)
+
+  try {
+    const response = await resend.emails.send({
+      from: `Product Management <${fromEmail}>`,
+      to: [to],
+      subject,
+      html: htmlContent,
+    })
+
+    if (response.error) {
+      console.error('[Resend Error]', response.error)
+      throw new Error(response.error.message)
+    }
+
+    return response.data
+  }
+  catch (err) {
+    console.error('[Mail Exception] Lỗi khi gửi email qua Resend:', err)
+    throw err
+  }
 }
 
 // eslint-disable-next-line node/prefer-global/buffer

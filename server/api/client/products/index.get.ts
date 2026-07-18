@@ -7,7 +7,13 @@ export default defineEventHandler(async (event) => {
 
   // Only cache if there's no search query 'q' (search is dynamic)
   const shouldCache = !query.q
-  const cacheKey = `cache:products:list:${JSON.stringify(query)}`
+
+  // Format safe key for Windows filesystem (avoid quotes `"`, `{}` in KV keys)
+  const queryPairs = Object.keys(query)
+    .sort()
+    .map(k => `${k}_${String(query[k]).replace(/[^\w-]/g, '')}`)
+    .join('_')
+  const cacheKey = queryPairs ? `cache:products:list:${queryPairs}` : 'cache:products:list:default'
 
   if (shouldCache) {
     const cachedData = await kv.get(cacheKey)

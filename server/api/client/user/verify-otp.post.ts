@@ -14,9 +14,12 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const savedOtp = await kv.get(`otp:forgot-password:${email}`)
+  const cleanEmail = String(email).trim().toLowerCase()
+  const cleanOtp = String(otp).trim()
 
-  if (!savedOtp || savedOtp !== otp) {
+  const savedOtp = await kv.get(`otp:forgot-password:${cleanEmail}`)
+
+  if (!savedOtp || String(savedOtp).trim() !== cleanOtp) {
     throw createError({
       statusCode: 400,
       statusMessage: 'Mã OTP không đúng hoặc đã hết hạn.',
@@ -25,13 +28,13 @@ export default defineEventHandler(async (event) => {
 
   // Issue temporary JWT reset token valid for 10 minutes
   const resetToken = await signJwt(
-    { email, role: 'reset-password' },
+    { email: cleanEmail, role: 'reset-password' },
     getJwtSecret(),
     { expiresIn: '10m' },
   )
 
   // Consume (delete) the OTP so it can't be reused
-  await kv.del(`otp:forgot-password:${email}`)
+  await kv.del(`otp:forgot-password:${cleanEmail}`)
 
   return {
     success: true,
