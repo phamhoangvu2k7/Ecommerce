@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",
+    "@react-email/render": "^2.1.0",
     "bcrypt-edge": "^0.1.1",
     "drizzle-orm": "^0.45.2",
     "jose": "^6.2.3",
