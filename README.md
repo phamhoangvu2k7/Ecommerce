@@ -14,7 +14,7 @@
   <img src="https://img.shields.io/badge/TypeScript-5.x-blue" alt="TypeScript version" />
 </p>
 
-Đây là dự án website bán hàng (E-Commerce) hoàn chỉnh được xây dựng trên nền tảng **Nuxt 3** và **Nuxt Hub** sử dụng ngôn ngữ **TypeScript**. Hệ thống bao gồm đầy đủ cả giao diện mua sắm dành cho khách hàng lẫn trang quản trị (Admin Dashboard) dành cho người quản lý. Dữ liệu của trang web được lưu trữ và đồng bộ thông qua cơ sở dữ liệu **SQLite (Cloudflare D1)**, ảnh sản phẩm được quản lý bằng **Nuxt Hub Blob (Cloudflare R2)**, và hệ thống gửi mã OTP xác nhận tài khoản qua email thông qua **Brevo API** (hoặc hiển thị log preview dưới console khi chạy ở local).
+Dự án website bán hàng (E-Commerce) được xây dựng trên nền tảng **Nuxt 3** và **Nuxt Hub** sử dụng ngôn ngữ **TypeScript**. Hệ thống bao gồm giao diện mua sắm dành cho khách hàng và trang quản trị (Admin Dashboard) dành cho người quản lý. Dữ liệu của trang web được lưu trữ thông qua cơ sở dữ liệu **SQLite (Cloudflare D1)**, ảnh sản phẩm được quản lý bằng **Nuxt Hub Blob (Cloudflare R2)**, và hệ thống gửi mã OTP xác nhận tài khoản qua email thông qua **Resend API** (hoặc hiển thị log dưới console khi chạy ở môi trường phát triển).
 
 ---
 
@@ -30,36 +30,111 @@ https://github.com/user-attachments/assets/554ebff2-0e78-4b56-b3a6-c5e5e9245e93
 
 ---
 
-## Các tính năng nổi bật của dự án
+## Các tính năng của dự án
 
-Hệ thống được phát triển với nhiều tính năng thực tế của một trang thương mại điện tử chuyên nghiệp:
+Dự án tích hợp các tính năng cơ bản và thực tế của một ứng dụng thương mại điện tử:
 
-* **Trải nghiệm mượt mà**: Nhờ sức mạnh của Nuxt 3 và Vue 3, các trang web được chuyển hướng cực kỳ nhanh chóng mà không cần tải lại toàn bộ trang (Single Page Application). Ngoài ra trang web còn hỗ trợ giao diện tối (Dark Mode) thời thượng, giúp bảo vệ mắt khi sử dụng vào ban đêm.
-* **Tự động gộp giỏ hàng**: Khi khách chưa đăng nhập tài khoản (khách vãng lai), họ vẫn có thể thêm sản phẩm vào giỏ hàng tạm thời. Ngay sau khi họ đăng nhập thành công, hệ thống sẽ tự động gộp tất cả sản phẩm từ giỏ hàng tạm này vào giỏ hàng chính trong tài khoản cá nhân của họ.
-* **Quy trình đặt hàng thông minh & Tránh lệch kho**: Để đảm bảo tính chính xác, hệ thống luôn kiểm tra số lượng tồn kho thực tế trong database ngay tại thời điểm khách hàng bấm đặt hàng. Nếu sản phẩm đã hết hoặc không đủ số lượng, hệ thống sẽ ngăn chặn việc tạo đơn. 
-* **Tự động hoàn kho khi hủy đơn**: Nếu khách hàng hoặc quản trị viên hủy đơn hàng, hệ thống sẽ tự động cộng ngược lại số lượng sản phẩm của đơn hàng đó vào kho để người khác có thể mua.
-* **Quản lý danh mục sản phẩm nhiều cấp**: Hỗ trợ tạo danh mục theo cấu trúc hình cây (cha - con) không giới hạn cấp độ. Hệ thống có cơ chế bảo vệ: bạn không được phép xóa một danh mục nếu trong danh mục đó hoặc các danh mục con của nó vẫn còn chứa sản phẩm đang bán.
-* **Thùng rác thông minh (Xóa mềm)**: Khi bạn xóa sản phẩm hay danh mục, chúng không bị mất vĩnh viễn ngay lập tức mà được đưa vào "Thùng rác". Quản trị viên có thể xem danh sách thùng rác này và chọn khôi phục lại dữ liệu bất kỳ lúc nào hoặc xóa hẳn nếu muốn.
-* **Mã hóa và bảo mật bằng JWT**: Mọi tài khoản đều được mã hóa mật khẩu an toàn bằng `bcrypt-edge` trước khi lưu vào database. Khi đăng nhập, hệ thống cấp mã Token JWT để nhận diện và phân quyền truy cập cho người dùng.
-* **Khôi phục mật khẩu bằng OTP**: Khi khách hàng quên mật khẩu, hệ thống sẽ tạo một mã OTP ngẫu nhiên gửi trực tiếp vào email đăng ký của khách hàng thông qua dịch vụ **Brevo API**. Mã OTP này có thời hạn sử dụng trong vòng 3 phút để đảm bảo an toàn.
+* **Giao diện Responsive & Dark Mode**: Hỗ trợ hiển thị trên các thiết bị khác nhau (máy tính, máy tính bảng, điện thoại) và chuyển đổi giao diện sáng/tối (Dark Mode).
+* **Đồng bộ giỏ hàng**: Cho phép khách vãng lai thêm sản phẩm vào giỏ hàng tạm thời, sau đó tự động gộp vào giỏ hàng của tài khoản cá nhân sau khi đăng nhập thành công.
+* **Kiểm tra tồn kho**: Hệ thống kiểm tra số lượng tồn kho thực tế trong database trước khi cho phép tạo đơn hàng để tránh tình trạng lệch kho.
+* **Hoàn trả kho**: Tự động cập nhật tăng lại số lượng sản phẩm của kho hàng khi đơn hàng tương ứng bị hủy.
+* **Quản lý danh mục đa cấp**: Hỗ trợ tạo danh mục theo cấu trúc cha - con. Không cho phép xóa danh mục nếu danh mục đó hoặc các danh mục con trực thuộc vẫn đang chứa sản phẩm đang bán.
+* **Thùng rác (Xóa mềm)**: Hỗ trợ cơ chế xóa mềm cho sản phẩm và danh mục để quản trị viên có thể khôi phục lại hoặc xóa vĩnh viễn khi cần.
+* **Bảo mật bằng JWT**: Mật khẩu người dùng được mã hóa bằng `bcrypt-edge`. Xác thực và phân quyền truy cập thông qua mã thông báo JWT.
+* **Xác thực OTP qua email**: Gửi mã OTP xác nhận khi người dùng yêu cầu khôi phục mật khẩu (sử dụng dịch vụ Resend API), mã có thời hạn hiệu lực trong vòng 3 phút.
 
 ---
 
 ## Công nghệ sử dụng trong dự án
 
 ### Phía Server (Backend)
-* **Framework**: Nuxt 3 Server Routes (hoạt động trên nền Nitro v3 & h3) kết hợp **Nuxt Hub** tối ưu cho Cloudflare.
+* **Framework**: Nuxt 3 Server Routes (hoạt động trên nền Nitro v3 & h3) kết hợp với **Nuxt Hub**.
 * **Database & ORM**: **SQLite (Cloudflare D1)** kết hợp với **Drizzle ORM** (thông qua `hub:db`).
 * **KV Storage**: **Cloudflare KV** hỗ trợ lưu trữ Key-Value (ví dụ: OTP, Caching).
-* **Mã hóa mật khẩu**: `bcrypt-edge` (Đảm bảo hoạt động tương thích hoàn toàn trên môi trường Cloudflare Workers / Edge Runtime).
-* **Tạo và xác thực Token**: Token JWT bảo mật.
-* **Gửi Email OTP**: Tích hợp **Brevo API** (gửi email trực tiếp) hoặc hiển thị log preview dưới console khi chạy ở chế độ dev.
-* **Kiểm tra dữ liệu đầu vào (Validation)**: Zod 3.x (Giúp tự động kiểm tra định dạng email, mật khẩu, dữ liệu gửi lên từ client).
+* **Mã hóa mật khẩu**: `bcrypt-edge` (tương thích hoàn toàn trên môi trường Cloudflare Workers / Edge Runtime).
+* **Xác thực**: Token JWT (thư viện `jose`).
+* **Gửi Email OTP**: Sử dụng dịch vụ **Resend API** (hoặc hiển thị log dưới console khi chạy ở môi trường phát triển).
+* **Kiểm tra dữ liệu đầu vào (Validation)**: Zod 3.x (kiểm tra định dạng email, mật khẩu, dữ liệu gửi lên từ client).
 
 ### Phía Giao diện (Frontend)
 * **Framework chính**: Nuxt 3 (Vue 3 Composition API).
 * **Quản lý trạng thái (State Management)**: Pinia 2.x.
-* **Thiết kế giao diện**: CSS thuần (Vanilla CSS) viết tỉ mỉ, hỗ trợ Responsive trên cả điện thoại, máy tính bảng và màn hình máy tính.
+* **Giao diện**: CSS thuần (Vanilla CSS), thiết kế tương thích với các kích thước màn hình (Responsive).
+
+---
+
+## Danh sách các API sử dụng trong dự án
+
+Dưới đây là danh sách các endpoint API được xây dựng trong hệ thống, phân loại theo chức năng:
+
+### 1. API dành cho khách hàng (Client)
+
+| Phương thức | Đường dẫn (Endpoint) | Chức năng |
+| :--- | :--- | :--- |
+| **Xác thực & Tài khoản** | | |
+| `POST` | `/api/client/user/register` | Đăng ký tài khoản khách hàng mới |
+| `POST` | `/api/client/user/login` | Đăng nhập tài khoản |
+| `POST` | `/api/client/user/logout` | Đăng xuất tài khoản |
+| `GET` | `/api/client/user/me` | Lấy thông tin tài khoản hiện tại |
+| `POST` | `/api/client/user/forgot-password` | Gửi yêu cầu mã OTP khôi phục mật khẩu |
+| `POST` | `/api/client/user/verify-otp` | Xác thực mã OTP |
+| `POST` | `/api/client/user/reset-password` | Đặt lại mật khẩu mới |
+| `GET` | `/api/client/user/orders` | Lấy danh sách đơn hàng đã mua |
+| `POST` | `/api/client/user/orders/:id/cancel` | Hủy đơn hàng |
+| **Sản phẩm & Danh mục** | | |
+| `GET` | `/api/client/products` | Lấy danh sách sản phẩm (hỗ trợ lọc, tìm kiếm, phân trang) |
+| `GET` | `/api/client/products/:id` | Lấy thông tin chi tiết sản phẩm |
+| `GET` | `/api/client/categories` | Lấy danh sách danh mục sản phẩm (cấu trúc hình cây) |
+| **Giỏ hàng** | | |
+| `GET` | `/api/client/cart` | Lấy danh sách sản phẩm trong giỏ hàng hiện tại |
+| `POST` | `/api/client/cart/add` | Thêm sản phẩm vào giỏ hàng |
+| `POST` | `/api/client/cart/update` | Cập nhật số lượng sản phẩm trong giỏ hàng |
+| `POST` | `/api/client/cart/delete` | Xóa sản phẩm khỏi giỏ hàng |
+| **Thanh toán & Đặt hàng** | | |
+| `POST` | `/api/client/checkout` | Tạo đơn hàng mới |
+
+### 2. API dành cho quản trị viên (Admin)
+
+| Phương thức | Đường dẫn (Endpoint) | Chức năng |
+| :--- | :--- | :--- |
+| **Xác thực** | | |
+| `POST` | `/api/admin/auth/login` | Đăng nhập tài khoản quản trị |
+| `POST` | `/api/admin/auth/logout` | Đăng xuất tài khoản quản trị |
+| `GET` | `/api/admin/auth/me` | Lấy thông tin tài khoản quản trị hiện tại |
+| **Quản lý Tài khoản (Accounts)** | | |
+| `GET` | `/api/admin/accounts` | Lấy danh sách các tài khoản quản trị |
+| `POST` | `/api/admin/accounts` | Tạo tài khoản quản trị mới |
+| `PATCH` | `/api/admin/accounts/:id` | Cập nhật thông tin tài khoản |
+| `DELETE` | `/api/admin/accounts/:id` | Xóa tài khoản quản trị (xóa mềm) |
+| **Quản lý Danh mục (Categories)** | | |
+| `GET` | `/api/admin/categories` | Lấy danh sách các danh mục sản phẩm |
+| `POST` | `/api/admin/categories` | Tạo danh mục sản phẩm mới |
+| `GET` | `/api/admin/categories/:id` | Lấy chi tiết danh mục |
+| `PATCH` | `/api/admin/categories/:id` | Cập nhật thông tin danh mục |
+| `DELETE` | `/api/admin/categories/:id` | Xóa danh mục sản phẩm (xóa mềm) |
+| **Quản lý Sản phẩm (Products)** | | |
+| `GET` | `/api/admin/products` | Lấy danh sách các sản phẩm |
+| `POST` | `/api/admin/products` | Thêm sản phẩm mới |
+| `GET` | `/api/admin/products/:id` | Lấy thông tin chi tiết sản phẩm |
+| `PATCH` | `/api/admin/products/:id` | Cập nhật thông tin sản phẩm |
+| `DELETE` | `/api/admin/products/:id` | Xóa sản phẩm (xóa mềm) |
+| **Quản lý Vai trò & Quyền (Roles)** | | |
+| `GET` | `/api/admin/roles` | Lấy danh sách các vai trò hệ thống |
+| `POST` | `/api/admin/roles` | Tạo vai trò mới |
+| `PATCH` | `/api/admin/roles/:id` | Cập nhật thông tin và phân quyền vai trò |
+| `DELETE` | `/api/admin/roles/:id` | Xóa vai trò |
+| **Thùng rác (Trash)** | | |
+| `GET` | `/api/admin/trash` | Lấy danh sách sản phẩm và danh mục đã xóa mềm |
+| `POST` | `/api/admin/trash/restore` | Khôi phục sản phẩm hoặc danh mục đã xóa mềm |
+| **Thống kê & Tiện ích** | | |
+| `GET` | `/api/admin/dashboard` | Lấy dữ liệu thống kê tổng quan (Dashboard) |
+| `POST` | `/api/admin/upload` | Tải tệp tin/hình ảnh lên (Blob storage) |
+
+### 3. API Khởi tạo dữ liệu (Seeding)
+
+| Phương thức | Đường dẫn (Endpoint) | Chức năng |
+| :--- | :--- | :--- |
+| `GET` | `/api/seed` | Khởi tạo dữ liệu mẫu cho cơ sở dữ liệu (tài khoản, sản phẩm, danh mục) |
 
 ---
 
@@ -88,14 +163,14 @@ npm install
 Tạo một file mới hoàn toàn có tên là `.env` nằm ở thư mục gốc của dự án (cùng cấp với file `nuxt.config.ts`). Sao chép nội dung dưới đây và điền các thông tin của bạn:
 
 ```env
-# Khóa bí mật dùng để mã hóa Token JWT (Bạn điền chữ gì cũng được, nên dùng chữ dài và phức tạp)
+# Khóa bí mật dùng để mã hóa Token JWT
 JWT_SECRET=chuoi_ky_tu_bi_mat_ngau_nhien_dung_cho_token_jwt
 
-# Email người gửi OTP (Nếu không điền, OTP sẽ hiển thị ở terminal khi có yêu cầu gửi)
-EMAIL_USER=sender@example.com
+# API Key của Resend để gửi email OTP (Tùy chọn, nếu không khai báo OTP sẽ in ra terminal)
+RESEND_API_KEY=re_xxxxxxxxxxxx
 
-# API key của Brevo để gửi mail (Tùy chọn)
-BREVO_API_KEY=xkeysib-xxxxxxxxx
+# Email người gửi (Tùy chọn, mặc định: onboarding@resend.dev)
+EMAIL_FROM=onboarding@resend.dev
 ```
 
 **Bước 4: Chạy dự án ở chế độ phát triển (Development)**
@@ -115,8 +190,6 @@ http://localhost:3000/api/seed
 ---
 
 ## Cấu trúc thư mục của dự án
-
-Cấu trúc thư mục của dự án Nuxt 3 được tổ chức khoa học để quản lý cả frontend lẫn backend trong cùng một nơi:
 
 ```text
 ├── server/                 # Thư mục chứa toàn bộ logic Backend
@@ -245,23 +318,23 @@ erDiagram
 
 ---
 
-## Phân quyền chi tiết trong hệ thống
+## Phân quyền trong hệ thống
 
-Hệ thống phân quyền truy cập chặt chẽ thông qua Token JWT và Middleware bảo mật ở cả hai phía Client lẫn Server:
+Hệ thống phân quyền truy cập thông qua JWT và Middleware ở cả Client lẫn Server:
 
 1. **Khách hàng (Client)**:
    * Có quyền duyệt xem sản phẩm, tìm kiếm, lọc danh mục sản phẩm.
    * Thêm sản phẩm vào giỏ hàng cá nhân, tiến hành điền thông tin đặt hàng.
    * Xem và quản lý thông tin tài khoản cá nhân, xem danh sách lịch sử đơn hàng đã đặt và có quyền gửi yêu cầu hủy đơn hàng.
 
-2. **Editor (Biên tập viên quản trị)**:
+2. **Editor (Biên tập viên)**:
    * Có quyền đăng nhập vào hệ thống trang quản trị Admin Dashboard.
    * Được quyền xem danh sách sản phẩm, danh mục, đơn hàng của hệ thống.
    * Được quyền thêm sản phẩm mới, cập nhật chỉnh sửa thông tin sản phẩm và danh mục sản phẩm.
    * *Hạn chế*: Không có quyền xóa sản phẩm/danh mục (chỉ admin mới được xóa), không được quản lý các tài khoản quản trị khác và không được thay đổi cấu hình phân quyền hệ thống.
 
-3. **Admin (Quản trị viên tối cao)**:
-   * Có toàn bộ mọi quyền hạn của Editor.
+3. **Admin (Quản trị viên)**:
+   * Có đầy đủ quyền hạn của Editor.
    * Có quyền xóa sản phẩm, danh mục sản phẩm (đưa vào thùng rác) và dọn sạch thùng rác (xóa vĩnh viễn).
    * Quản lý danh sách tài khoản Admin & Editor khác (Tạo mới, sửa thông tin, khóa tài khoản).
    * Tạo mới các vai trò quản trị (Role) và phân chia chi tiết các quyền hạn tương ứng cho từng vai trò đó.
