@@ -30,6 +30,9 @@ export default defineNuxtConfig({
       blob: true,
     },
   },
+  experimental: {
+    payloadExtraction: false,
+  },
   css: ['~/assets/css/style.css'],
   app: {
     head: {
