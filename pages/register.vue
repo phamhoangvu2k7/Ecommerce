@@ -89,11 +89,11 @@ async function handleRegister() {
 
         <div class="input-group">
           <label class="input-label">Số điện thoại</label>
-          <input v-model="phone" type="tel" placeholder="Nhập số điện thoại" class="premium-input">
+          <input v-model="phone" type="tel" placeholder="Nhập số điện thoại liên hệ" class="premium-input">
         </div>
 
-        <button type="submit" :disabled="loading" class="btn btn-primary w-full mt-4">
-          {{ loading ? 'Đang tạo tài khoản...' : 'Đăng ký tài khoản' }}
+        <button type="submit" :disabled="loading" class="btn btn-primary w-full mt-3">
+          {{ loading ? 'Đang tạo tài khoản...' : 'Tạo tài khoản ngay' }}
         </button>
       </form>
 
@@ -111,40 +111,45 @@ async function handleRegister() {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem 0;
+  padding: 2.25rem 0;
 }
 
 .register-card {
   width: 100%;
-  max-width: 440px;
-  padding: 2.5rem;
+  max-width: 430px;
+  padding: 2.25rem 2rem;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
 }
 
 .card-title {
   font-size: 1.5rem;
-  font-weight: 700;
-  color: #fff;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--text-main);
   margin-bottom: 0.25rem;
   text-align: center;
 }
 
 .card-subtitle {
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   color: var(--text-muted);
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.75rem;
 }
 
 .card-footer {
   text-align: center;
-  margin-top: 2rem;
-  font-size: 0.9rem;
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.875rem;
   color: var(--text-muted);
 }
 
 .login-link {
-  color: var(--primary);
-  font-weight: 600;
+  color: var(--text-main);
+  font-weight: 700;
 }
 
 .login-link:hover {
@@ -155,13 +160,13 @@ async function handleRegister() {
   width: 100%;
 }
 
-.mt-4 {
-  margin-top: 1rem;
+.mt-3 {
+  margin-top: 0.75rem;
 }
 
 @media (max-width: 576px) {
   .register-card {
-    padding: 1.5rem;
+    padding: 1.5rem 1.25rem;
   }
 }
 </style>

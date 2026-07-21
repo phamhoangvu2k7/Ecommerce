@@ -52,7 +52,7 @@ async function handleLogin() {
   <div class="admin-login-page">
     <div class="login-card premium-card glass-panel fade-in-item">
       <h2 class="card-title">
-        ⚡ Hệ thống Quản trị
+        ⚡ Control Panel
       </h2>
       <p class="card-subtitle">
         Đăng nhập tài khoản quản lý của bạn
@@ -73,7 +73,7 @@ async function handleLogin() {
           <input v-model="password" type="password" placeholder="Nhập mật khẩu" class="premium-input" required>
         </div>
 
-        <button type="submit" :disabled="loading" class="btn btn-primary w-full mt-6">
+        <button type="submit" :disabled="loading" class="btn btn-primary w-full mt-4">
           {{ loading ? 'Đang xác thực...' : 'Đăng nhập vào Hệ thống' }}
         </button>
       </form>
@@ -87,39 +87,38 @@ async function handleLogin() {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background-color: #0b0f19;
+  background-color: var(--bg-app);
 }
 
 .login-card {
   width: 100%;
-  max-width: 420px;
-  padding: 2.5rem;
-  border-color: rgba(99, 102, 241, 0.2);
+  max-width: 410px;
+  padding: 2.25rem 2rem;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
 }
 
 .card-title {
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: #fff;
+  font-size: 1.55rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text-main);
   margin-bottom: 0.25rem;
   text-align: center;
-  background: linear-gradient(to right, #818cf8, #c084fc);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
 }
 
 .card-subtitle {
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   color: var(--text-muted);
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.75rem;
 }
 
 .w-full {
   width: 100%;
 }
 
-.mt-6 {
-  margin-top: 1.5rem;
+.mt-4 {
+  margin-top: 1rem;
 }
 </style>

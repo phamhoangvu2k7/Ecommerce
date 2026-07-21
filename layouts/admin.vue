@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { useAuthStore } from '~/stores/auth.ts'
+import { useAuthStore } from '~/stores/auth'
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -30,7 +30,8 @@ function handleLogout() {
     <!-- Sidebar -->
     <aside class="admin-sidebar" :class="{ 'sidebar-open': isSidebarOpen }">
       <div class="sidebar-brand">
-        ⚡ Control Panel
+        <span class="brand-icon">⚡</span>
+        <span class="brand-name">Control Panel</span>
       </div>
 
       <!-- Admin Profile info -->
@@ -50,27 +51,33 @@ function handleLogout() {
 
       <nav class="sidebar-menu">
         <NuxtLink to="/admin/dashboard" class="menu-item">
-          📊 Tổng quan
+          <span class="menu-icon">📊</span>
+          <span>Tổng quan</span>
         </NuxtLink>
         <NuxtLink to="/admin/products" class="menu-item">
-          📦 Sản phẩm
+          <span class="menu-icon">📦</span>
+          <span>Sản phẩm</span>
         </NuxtLink>
         <NuxtLink to="/admin/categories" class="menu-item">
-          🗂️ Danh mục
+          <span class="menu-icon">🗂️</span>
+          <span>Danh mục</span>
         </NuxtLink>
         <NuxtLink to="/admin/trash" class="menu-item">
-          🗑️ Thùng rác
+          <span class="menu-icon">🗑️</span>
+          <span>Thùng rác</span>
         </NuxtLink>
         <NuxtLink to="/admin/roles" class="menu-item">
-          🔑 Nhóm quyền
+          <span class="menu-icon">🔑</span>
+          <span>Nhóm quyền</span>
         </NuxtLink>
         <NuxtLink to="/admin/accounts" class="menu-item">
-          👥 Tài khoản Admin
+          <span class="menu-icon">👥</span>
+          <span>Tài khoản Admin</span>
         </NuxtLink>
       </nav>
 
       <div class="sidebar-footer">
-        <button class="btn btn-secondary w-full" @click="handleLogout">
+        <button class="btn btn-secondary w-full btn-logout" @click="handleLogout">
           🚪 Đăng xuất
         </button>
       </div>
@@ -92,7 +99,7 @@ function handleLogout() {
           </div>
         </div>
         <div class="header-status">
-          <span class="badge badge-active">Hệ thống Đang Chạy</span>
+          <span class="badge badge-active">🟢 Live System</span>
         </div>
       </header>
 
@@ -107,53 +114,59 @@ function handleLogout() {
 .admin-layout {
   display: flex;
   min-height: 100vh;
-  background-color: #0b0f19;
+  background-color: var(--bg-app);
 }
 
 /* Sidebar */
 .admin-sidebar {
   width: 260px;
-  background-color: #0e1626;
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: var(--bg-card);
+  border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  padding: 1.5rem;
+  padding: 1.25rem 1rem;
   flex-shrink: 0;
 }
 
 .sidebar-brand {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: #fff;
-  margin-bottom: 2rem;
-  text-align: center;
-  background: linear-gradient(to right, #818cf8, #c084fc);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text-main);
+  margin-bottom: 1.5rem;
+  padding: 0 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.brand-icon {
+  font-size: 1.25rem;
 }
 
 .sidebar-user {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 1rem;
-  background-color: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  margin-bottom: 2rem;
+  padding: 0.75rem 0.85rem;
+  background-color: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
 }
 
 .user-avatar {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   background-color: var(--primary);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  color: white;
-  font-size: 1.2rem;
+  font-weight: 800;
+  color: #ffffff;
+  font-size: 1rem;
+  flex-shrink: 0;
 }
 
 .user-info {
@@ -163,9 +176,9 @@ function handleLogout() {
 }
 
 .user-name {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-main);
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -173,35 +186,53 @@ function handleLogout() {
 
 .user-role {
   font-size: 0.75rem;
-  color: var(--text-muted);
+  font-weight: 500;
+  color: var(--text-dim);
 }
 
 .sidebar-menu {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.35rem;
   flex: 1;
 }
 
 .menu-item {
   display: flex;
   align-items: center;
-  padding: 0.75rem 1rem;
+  gap: 0.65rem;
+  padding: 0.65rem 0.85rem;
   color: var(--text-muted);
-  font-weight: 500;
+  font-size: 0.9rem;
+  font-weight: 600;
   border-radius: 8px;
-  transition: all var(--transition-speed);
+  transition: all var(--transition-speed) ease;
+}
+
+.menu-icon {
+  font-size: 0.95rem;
 }
 
 .menu-item:hover, .router-link-active {
-  color: white;
-  background-color: rgba(99, 102, 241, 0.1);
+  color: var(--text-main);
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+.router-link-active {
   border-left: 3px solid var(--primary);
-  padding-left: calc(1rem - 3px);
+  padding-left: calc(0.85rem - 3px);
+  background-color: rgba(79, 70, 229, 0.12);
 }
 
 .sidebar-footer {
   margin-top: auto;
+  padding-top: 1rem;
+}
+
+.btn-logout {
+  font-size: 0.85rem;
+  padding: 0.55rem;
+  border-radius: 8px;
 }
 
 .w-full {
@@ -217,13 +248,13 @@ function handleLogout() {
 }
 
 .admin-header {
-  height: 70px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  height: 64px;
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 2rem;
-  background-color: #0e1626;
+  padding: 0 1.75rem;
+  background-color: var(--bg-card);
 }
 
 .header-left {
@@ -236,23 +267,24 @@ function handleLogout() {
   display: none;
   background: transparent;
   border: none;
-  color: #fff;
-  font-size: 1.5rem;
+  color: var(--text-main);
+  font-size: 1.4rem;
   cursor: pointer;
   padding: 0;
   line-height: 1;
 }
 
 .header-title {
-  font-weight: 600;
-  font-size: 1.1rem;
-  color: #fff;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  font-size: 1.05rem;
+  color: var(--text-main);
 }
 
 .admin-content {
   flex: 1;
-  padding: 2rem;
-  background-color: #0b0f19;
+  padding: 1.75rem;
+  background-color: var(--bg-app);
 }
 
 /* Sidebar Overlay */
@@ -262,7 +294,7 @@ function handleLogout() {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   z-index: 998;
@@ -289,11 +321,11 @@ function handleLogout() {
   }
 
   .admin-header {
-    padding: 0 1.25rem;
+    padding: 0 1.15rem;
   }
 
   .admin-content {
-    padding: 1.25rem;
+    padding: 1.15rem;
   }
 }
 </style>

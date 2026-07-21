@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { useAuthStore } from '~/stores/auth.ts'
-import { useCartStore } from '~/stores/cart.ts'
+import { useAuthStore } from '~/stores/auth'
+import { useCartStore } from '~/stores/cart'
 
 const authStore = useAuthStore()
 const cartStore = useCartStore()
@@ -34,7 +34,8 @@ function handleLogout() {
     <header class="premium-nav">
       <div class="container nav-container">
         <NuxtLink to="/" class="nav-logo">
-          ⚡ Premium Store
+          <span class="logo-icon">⚡</span>
+          <span class="logo-text">NitroStore</span>
         </NuxtLink>
 
         <!-- Mobile Menu Toggle Button -->
@@ -57,7 +58,7 @@ function handleLogout() {
             Sản phẩm
           </NuxtLink>
           <NuxtLink to="/cart" class="nav-link style-cart-link">
-            Giỏ hàng
+            <span>Giỏ hàng</span>
             <span v-if="cartCount > 0" class="cart-badge">{{ cartCount }}</span>
           </NuxtLink>
 
@@ -91,7 +92,7 @@ function handleLogout() {
 
     <footer class="client-footer">
       <div class="container footer-content">
-        <p>&copy; 2026 Premium Product Management. Powered by Nitro & Vue.</p>
+        <p>&copy; 2026 NitroStore Commerce &middot; Crafted with Hallmark Aesthetics</p>
       </div>
     </footer>
   </div>
@@ -104,51 +105,62 @@ function handleLogout() {
   flex-direction: column;
 }
 
+.logo-icon {
+  font-size: 1.25rem;
+}
+
+.logo-text {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text-main);
+}
+
 .client-content {
   flex: 1;
-  padding: 2rem 0;
+  padding: 2.25rem 0;
 }
 
 .style-cart-link {
-  position: relative;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.35rem;
 }
 
 .cart-badge {
   background-color: var(--primary);
-  color: white;
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 0.15rem 0.4rem;
+  color: #ffffff;
+  font-size: 0.725rem;
+  font-weight: 800;
+  padding: 0.1rem 0.45rem;
   border-radius: 999px;
+  line-height: 1.2;
 }
 
 .user-profile-link {
-  color: var(--primary);
+  color: var(--text-main);
   font-weight: 600;
 }
 
 .btn-logout-sm {
-  padding: 0.4rem 0.8rem;
-  font-size: 0.85rem;
-  border-radius: 6px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.825rem;
+  border-radius: 8px;
 }
 
 .btn-sm {
-  padding: 0.4rem 1rem;
-  font-size: 0.85rem;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.825rem;
   border-radius: 8px;
 }
 
 .client-footer {
   border-top: 1px solid var(--border-color);
-  padding: 1.5rem 0;
+  padding: 1.75rem 0;
   text-align: center;
-  color: var(--text-muted);
-  font-size: 0.875rem;
-  background-color: rgba(11, 15, 25, 0.5);
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  font-weight: 500;
+  background-color: rgba(9, 13, 22, 0.6);
 }
 
 /* Mobile Toggle (Hamburger) */
@@ -198,10 +210,10 @@ function handleLogout() {
 
   .nav-links {
     position: absolute;
-    top: 70px;
+    top: 64px;
     left: 0;
     right: 0;
-    background: rgba(11, 15, 25, 0.98);
+    background: rgba(9, 13, 22, 0.98);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border-top: 1px solid var(--border-color);
@@ -214,7 +226,7 @@ function handleLogout() {
     transform: translateY(-100%);
     opacity: 0;
     pointer-events: none;
-    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
   }
 
   .nav-links.menu-active {
@@ -224,7 +236,7 @@ function handleLogout() {
   }
 
   .nav-link {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
   }
 }
 </style>

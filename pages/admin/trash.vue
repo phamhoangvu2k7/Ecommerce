@@ -83,7 +83,7 @@ function formatPrice(value: number) {
 
 <template>
   <div class="admin-trash-page">
-    <div class="page-header mb-8">
+    <div class="page-header mb-6">
       <h1 class="h1-title">
         Thùng rác hệ thống
       </h1>
@@ -141,15 +141,17 @@ function formatPrice(value: number) {
             </tr>
             <tr v-for="product in deletedProducts" :key="product.id" class="table-row">
               <td>
-                <img :src="resolveImageUrl(product.thumbnail)" :alt="product.title" class="table-thumbnail">
+                <div class="table-img-box">
+                  <img :src="resolveImageUrl(product.thumbnail)" :alt="product.title" class="table-thumbnail">
+                </div>
               </td>
-              <td class="font-semibold text-white">
+              <td class="font-bold text-main">
                 {{ product.title }}
               </td>
               <td class="text-muted">
                 {{ product.product_category_id?.title || 'Không danh mục' }}
               </td>
-              <td>{{ formatPrice(product.price) }}</td>
+              <td class="font-bold">{{ formatPrice(product.price) }}</td>
               <td>
                 <button class="btn btn-primary btn-restore" @click="handleRestore('product', product.id)">
                   🔄 Khôi phục
@@ -180,7 +182,7 @@ function formatPrice(value: number) {
               </td>
             </tr>
             <tr v-for="cat in deletedCategories" :key="cat.id" class="table-row">
-              <td class="font-semibold text-white">
+              <td class="font-bold text-main">
                 🗂️ {{ cat.title }}
               </td>
               <td class="text-muted">
@@ -201,16 +203,17 @@ function formatPrice(value: number) {
 </template>
 
 <style scoped>
-.mb-8 { margin-bottom: 2rem; }
 .mb-6 { margin-bottom: 1.5rem; }
 .text-muted { color: var(--text-muted); font-size: 0.9rem; }
+.text-main { color: var(--text-main); }
+.font-bold { font-weight: 700; }
 .text-center { text-align: center; }
 .py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
 
 /* Tabs switcher styling */
 .trash-tabs {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   border-bottom: 1px solid var(--border-color);
   padding-bottom: 1px;
 }
@@ -220,20 +223,20 @@ function formatPrice(value: number) {
   border: none;
   color: var(--text-muted);
   font-family: var(--font-family);
-  font-size: 0.95rem;
-  font-weight: 600;
-  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 0.65rem 0.85rem;
   cursor: pointer;
-  transition: all var(--transition-speed);
+  transition: all var(--transition-speed) ease;
   border-bottom: 2px solid transparent;
 }
 
 .tab-btn:hover {
-  color: white;
+  color: var(--text-main);
 }
 
 .active-tab {
-  color: var(--primary);
+  color: var(--text-main);
   border-bottom-color: var(--primary);
 }
 
@@ -241,37 +244,52 @@ function formatPrice(value: number) {
 .overflow-x {
   overflow-x: auto;
 }
+.table-card {
+  border-radius: 14px;
+  padding: 0;
+}
 .premium-table {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
 }
 .premium-table th {
-  padding: 1rem;
-  font-size: 0.85rem;
-  font-weight: 600;
+  padding: 0.85rem 1.15rem;
+  font-size: 0.775rem;
+  font-weight: 700;
   text-transform: uppercase;
-  color: var(--text-muted);
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
   border-bottom: 1px solid var(--border-color);
+  background-color: rgba(0, 0, 0, 0.15);
 }
 .premium-table td {
-  padding: 1rem;
+  padding: 0.85rem 1.15rem;
   border-bottom: 1px solid var(--border-color);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 .table-row:hover {
-  background-color: rgba(255, 255, 255, 0.01);
-}
-.table-thumbnail {
-  width: 48px;
-  height: 48px;
-  object-fit: contain;
-  border-radius: 6px;
   background-color: rgba(255, 255, 255, 0.02);
 }
-.btn-restore {
-  padding: 0.4rem 0.8rem;
-  font-size: 0.85rem;
+.table-img-box {
+  width: 44px;
+  height: 44px;
   border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background-color: rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem;
+}
+.table-thumbnail {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+.btn-restore {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.825rem;
+  border-radius: 8px;
 }
 </style>

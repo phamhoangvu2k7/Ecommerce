@@ -94,13 +94,13 @@ function formatPrice(value: number) {
             Sản phẩm
           </RouterLink>
           <span class="bread-sep">/</span>
-          <span class="bread-active">{{ product.product_category_id?.title }}</span>
+          <span class="bread-active">{{ product.product_category_id?.title || 'Chi tiết' }}</span>
         </nav>
 
         <h1 class="product-title">
           {{ product.title }}
         </h1>
-        <p class="product-category">
+        <p class="product-category" v-if="product.product_category_id?.title">
           Danh mục: <strong>{{ product.product_category_id?.title }}</strong>
         </p>
 
@@ -133,16 +133,16 @@ function formatPrice(value: number) {
         <!-- Add to cart block -->
         <div v-if="product.stock > 0" class="cart-actions-block">
           <div class="qty-selector">
-            <button class="btn btn-secondary btn-qty" @click="quantity > 1 ? quantity-- : null">
+            <button class="btn-qty" aria-label="Giảm số lượng" @click="quantity > 1 ? quantity-- : null">
               -
             </button>
-            <input v-model="quantity" type="number" readonly class="qty-input">
-            <button class="btn btn-secondary btn-qty" @click="quantity < product.stock ? quantity++ : null">
+            <input v-model="quantity" type="number" readonly class="qty-input" aria-label="Số lượng sản phẩm">
+            <button class="btn-qty" aria-label="Tăng số lượng" @click="quantity < product.stock ? quantity++ : null">
               +
             </button>
           </div>
           <button :disabled="addingToCart" class="btn btn-primary btn-add" @click="handleAddToCart">
-            {{ addingToCart ? 'Đang thêm...' : 'Thêm vào giỏ hàng 🛒' }}
+            {{ addingToCart ? 'Đang xử lý...' : 'Thêm vào giỏ hàng 🛒' }}
           </button>
         </div>
 
@@ -162,84 +162,99 @@ function formatPrice(value: number) {
 <style scoped>
 .detail-container {
   display: flex;
-  gap: 3rem;
-  margin-top: 1rem;
+  gap: 2.75rem;
+  margin-top: 0.5rem;
 }
 
 @media (max-width: 768px) {
   .detail-container {
     flex-direction: column;
-    gap: 2rem;
+    gap: 1.75rem;
   }
 }
 
 /* Image Column */
 .image-column {
   flex: 1;
-  max-width: 500px;
-  height: 450px;
+  max-width: 480px;
+  height: 420px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: 1.75rem;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  background: rgba(19, 27, 46, 0.6);
 }
 
 .detail-img {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-  border-radius: 12px;
+  transition: transform 0.35s ease;
+}
+
+.image-column:hover .detail-img {
+  transform: scale(1.03);
 }
 
 /* Info Column */
 .info-column {
-  flex: 1.2;
+  flex: 1.25;
   display: flex;
   flex-direction: column;
 }
 
 .breadcrumb {
   display: flex;
-  gap: 0.5rem;
-  font-size: 0.85rem;
+  gap: 0.4rem;
+  font-size: 0.825rem;
+  color: var(--text-dim);
+  margin-bottom: 1.25rem;
+  align-items: center;
+}
+
+.bread-link {
   color: var(--text-muted);
-  margin-bottom: 1.5rem;
+  font-weight: 500;
+  transition: color var(--transition-speed) ease;
 }
 
 .bread-link:hover {
-  color: white;
+  color: var(--text-main);
 }
 
 .bread-active {
-  color: var(--primary);
-  font-weight: 500;
+  color: var(--text-main);
+  font-weight: 700;
 }
 
 .product-title {
-  font-size: 2.25rem;
-  font-weight: 700;
-  color: #fff;
+  font-size: 2.1rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--text-main);
   line-height: 1.2;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
 }
 
 .product-category {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   color: var(--text-muted);
-  margin-bottom: 1rem;
+  margin-bottom: 0.85rem;
 }
 
 .status-stock {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.35rem;
 }
 
 /* Price block */
 .price-section {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: rgba(0, 0, 0, 0.2);
   border: 1px solid var(--border-color);
-  padding: 1.25rem;
+  padding: 1.15rem 1.35rem;
   border-radius: 12px;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.35rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -248,35 +263,38 @@ function formatPrice(value: number) {
 .prices {
   display: flex;
   align-items: baseline;
-  gap: 1rem;
+  gap: 0.85rem;
 }
 
 .price-new {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--primary);
+  font-size: 1.85rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
 }
 
 .price-old {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   text-decoration: line-through;
   color: var(--text-muted);
+  font-weight: 500;
 }
 
 .discount-label {
-  background-color: rgba(239, 68, 68, 0.1);
+  background-color: rgba(239, 68, 68, 0.12);
   color: var(--danger);
-  font-size: 0.8rem;
+  font-size: 0.775rem;
   font-weight: 700;
-  padding: 0.25rem 0.5rem;
+  padding: 0.25rem 0.6rem;
   border-radius: 6px;
+  border: 1px solid rgba(239, 68, 68, 0.25);
 }
 
 /* Cart action selectors */
 .cart-actions-block {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  gap: 0.85rem;
+  margin-bottom: 1.75rem;
 }
 
 .qty-selector {
@@ -284,29 +302,37 @@ function formatPrice(value: number) {
   border: 1px solid var(--border-color);
   border-radius: 10px;
   overflow: hidden;
-  height: 48px;
-  background-color: rgba(15, 23, 42, 0.6);
+  height: 46px;
+  background-color: rgba(0, 0, 0, 0.2);
+  align-items: center;
 }
 
 .btn-qty {
   width: 40px;
   height: 100%;
-  border-radius: 0;
-  padding: 0;
-  font-size: 1.2rem;
-  font-weight: 500;
+  border: none;
+  background: transparent;
+  color: var(--text-main);
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color var(--transition-speed) ease;
+}
+
+.btn-qty:hover {
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 .qty-input {
-  width: 50px;
+  width: 48px;
   border: none;
   background: transparent;
-  color: white;
+  color: var(--text-main);
   text-align: center;
-  font-weight: 700;
+  font-weight: 800;
   outline: none;
   font-family: var(--font-family);
-  font-size: 1rem;
+  font-size: 0.95rem;
 }
 
 .qty-input::-webkit-outer-spin-button,
@@ -317,27 +343,29 @@ function formatPrice(value: number) {
 
 .btn-add {
   flex: 1;
-  height: 48px;
+  height: 46px;
+  font-size: 0.95rem;
 }
 
 /* Description Section */
 .description-section {
   border-top: 1px solid var(--border-color);
-  padding-top: 1.5rem;
-  margin-top: 1.5rem;
+  padding-top: 1.35rem;
+  margin-top: 1rem;
 }
 
 .section-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #fff;
-  margin-bottom: 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--text-main);
+  margin-bottom: 0.65rem;
 }
 
 .description-text {
   color: var(--text-muted);
-  font-size: 0.95rem;
-  line-height: 1.6;
+  font-size: 0.925rem;
+  line-height: 1.65;
   white-space: pre-line;
 }
 
@@ -351,26 +379,26 @@ function formatPrice(value: number) {
 
 @media (max-width: 768px) {
   .product-title {
-    font-size: 1.75rem;
+    font-size: 1.7rem;
   }
 
   .image-column {
     max-width: 100%;
     height: auto;
     aspect-ratio: 1 / 1;
-    padding: 1.5rem;
+    padding: 1.25rem;
   }
 }
 
 @media (max-width: 480px) {
   .product-title {
-    font-size: 1.5rem;
+    font-size: 1.45rem;
   }
 
   .price-section {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.75rem;
+    gap: 0.6rem;
   }
 
   .cart-actions-block {

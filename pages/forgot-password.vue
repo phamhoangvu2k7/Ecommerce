@@ -152,7 +152,7 @@ async function handleResetPassword() {
           <label class="input-label">Địa chỉ Email tài khoản</label>
           <input v-model="email" type="email" placeholder="example@gmail.com" class="premium-input" required>
         </div>
-        <button type="submit" :disabled="loading" class="btn btn-primary w-full mt-4">
+        <button type="submit" :disabled="loading" class="btn btn-primary w-full mt-3">
           {{ loading ? 'Đang gửi mã...' : 'Nhận mã OTP' }}
         </button>
       </form>
@@ -163,7 +163,7 @@ async function handleResetPassword() {
           <label class="input-label">Mã OTP (6 chữ số)</label>
           <input v-model="otp" type="text" placeholder="Nhập mã OTP" class="premium-input" required maxlength="6">
         </div>
-        <button type="submit" :disabled="loading" class="btn btn-primary w-full mt-4">
+        <button type="submit" :disabled="loading" class="btn btn-primary w-full mt-3">
           {{ loading ? 'Đang xác thực...' : 'Xác thực OTP' }}
         </button>
         <button type="button" class="btn btn-secondary w-full mt-2" @click="step = 1">
@@ -181,7 +181,7 @@ async function handleResetPassword() {
           <label class="input-label">Xác nhận mật khẩu mới</label>
           <input v-model="confirmPassword" type="password" placeholder="Nhập lại mật khẩu mới" class="premium-input" required minlength="6">
         </div>
-        <button type="submit" :disabled="loading" class="btn btn-primary w-full mt-4">
+        <button type="submit" :disabled="loading" class="btn btn-primary w-full mt-3">
           {{ loading ? 'Đang cập nhật...' : 'Xác nhận Đổi mật khẩu' }}
         </button>
       </form>
@@ -200,40 +200,45 @@ async function handleResetPassword() {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 3rem 0;
+  padding: 2.25rem 0;
 }
 
 .forgot-card {
   width: 100%;
-  max-width: 440px;
-  padding: 2.5rem;
+  max-width: 430px;
+  padding: 2.25rem 2rem;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
 }
 
 .card-title {
   font-size: 1.5rem;
-  font-weight: 700;
-  color: #fff;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--text-main);
   margin-bottom: 0.25rem;
   text-align: center;
 }
 
 .card-subtitle {
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   color: var(--text-muted);
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.75rem;
 }
 
 .card-footer {
   text-align: center;
-  margin-top: 2rem;
-  font-size: 0.9rem;
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.875rem;
   color: var(--text-muted);
 }
 
 .login-link {
-  color: var(--primary);
-  font-weight: 600;
+  color: var(--text-main);
+  font-weight: 700;
 }
 
 .login-link:hover {
@@ -244,8 +249,8 @@ async function handleResetPassword() {
   width: 100%;
 }
 
-.mt-4 {
-  margin-top: 1rem;
+.mt-3 {
+  margin-top: 0.75rem;
 }
 
 .mt-2 {
@@ -254,7 +259,7 @@ async function handleResetPassword() {
 
 @media (max-width: 576px) {
   .forgot-card {
-    padding: 1.5rem;
+    padding: 1.5rem 1.25rem;
   }
 }
 </style>

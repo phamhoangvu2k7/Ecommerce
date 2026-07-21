@@ -307,7 +307,7 @@ function changePage(page: number) {
 
 <template>
   <div class="admin-products-page">
-    <div class="page-header mb-8">
+    <div class="page-header mb-6">
       <div class="title-block">
         <h1 class="h1-title">
           Quản lý sản phẩm
@@ -336,7 +336,7 @@ function changePage(page: number) {
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Tìm kiếm sản phẩm..."
+            placeholder="Tìm kiếm theo tên sản phẩm..."
             class="premium-input"
             @keyup.enter="handleSearch"
           >
@@ -372,13 +372,13 @@ function changePage(page: number) {
             <th>Danh mục</th>
             <th>Giá gốc</th>
             <th width="100">
-              Khuyến mãi
+              Giảm giá
             </th>
             <th width="100">
-              Kho
+              Tồn kho
             </th>
             <th>Trạng thái</th>
-            <th width="150" class="text-center">
+            <th width="140" class="text-center">
               Hành động
             </th>
           </tr>
@@ -396,7 +396,9 @@ function changePage(page: number) {
           </tr>
           <tr v-for="product in products" :key="product.id" class="table-row">
             <td>
-              <img :src="resolveImageUrl(product.thumbnail)" :alt="product.title" class="table-thumbnail">
+              <div class="table-img-box">
+                <img :src="resolveImageUrl(product.thumbnail)" :alt="product.title" class="table-thumbnail">
+              </div>
             </td>
             <td>
               <div class="product-title-cell">
@@ -407,23 +409,23 @@ function changePage(page: number) {
             <td class="text-muted">
               {{ product.product_category_id?.title || 'Không danh mục' }}
             </td>
-            <td class="font-semibold">
+            <td class="font-bold">
               {{ formatPrice(product.price) }}
             </td>
             <td class="text-center">
               <span class="discount-percent">-{{ product.discountPercentage }}%</span>
             </td>
-            <td class="text-center">
+            <td class="text-center font-bold">
               {{ product.stock }}
             </td>
             <td>
               <span class="badge" :class="[product.status === 'active' ? 'badge-active' : 'badge-inactive']">
-                {{ product.status === 'active' ? 'Hoạt động' : 'Dừng' }}
+                {{ product.status === 'active' ? 'Hoạt động' : 'Tạm dừng' }}
               </span>
             </td>
             <td class="text-center">
               <div class="table-actions">
-                <button class="btn btn-secondary btn-action" title="Sửa" @click="openEditModal(product.id)">
+                <button class="btn btn-secondary btn-action" title="Chỉnh sửa" @click="openEditModal(product.id)">
                   ✏️
                 </button>
                 <button class="btn btn-danger btn-action" title="Xóa" @click="handleDeleteProduct(product.id)">
@@ -439,11 +441,11 @@ function changePage(page: number) {
     <!-- Pagination -->
     <div v-if="totalPages > 1" class="pagination-container mt-6">
       <button :disabled="currentPage === 1" class="btn btn-secondary btn-pag" @click="changePage(currentPage - 1)">
-        Trước
+        Trang trước
       </button>
       <span class="pag-info">Trang {{ currentPage }} / {{ totalPages }}</span>
       <button :disabled="currentPage === totalPages" class="btn btn-secondary btn-pag" @click="changePage(currentPage + 1)">
-        Sau
+        Trang sau
       </button>
     </div>
 
@@ -455,7 +457,7 @@ function changePage(page: number) {
             {{ isEditing ? 'Cập nhật sản phẩm' : 'Thêm sản phẩm mới' }}
           </h3>
           <button class="btn btn-secondary btn-close-modal" @click="showModal = false">
-            ✖
+            ✕
           </button>
         </div>
 
@@ -478,13 +480,13 @@ function changePage(page: number) {
               </select>
             </div>
             <div class="input-group">
-              <label class="input-label">Trạng thái hoạt động</label>
+              <label class="input-label">Trạng thái</label>
               <select v-model="formStatus" class="premium-input">
                 <option value="active">
                   Hoạt động
                 </option>
                 <option value="inactive">
-                  Dừng hoạt động
+                  Tạm dừng
                 </option>
               </select>
             </div>
@@ -492,11 +494,11 @@ function changePage(page: number) {
 
           <div class="form-row-3">
             <div class="input-group">
-              <label class="input-label">Giá gốc (VND) *</label>
+              <label class="input-label">Giá gốc (VNĐ) *</label>
               <input v-model="formPrice" type="number" min="0" class="premium-input" required>
             </div>
             <div class="input-group">
-              <label class="input-label">Khuyến mãi (%)</label>
+              <label class="input-label">Giảm giá (%)</label>
               <input v-model="formDiscount" type="number" min="0" max="100" class="premium-input">
             </div>
             <div class="input-group">
@@ -515,17 +517,17 @@ function changePage(page: number) {
                   <input type="file" accept="image/*" class="file-hidden" @change="handleFileUpload">
                 </label>
               </div>
-              <span v-if="uploading" class="text-uploading">Đang tải ảnh lên Cloudflare R2...</span>
+              <span v-if="uploading" class="text-uploading">Đang tải ảnh lên R2...</span>
             </div>
             <div class="input-group">
-              <label class="input-label">Vị trí sắp xếp (Thứ tự)</label>
+              <label class="input-label">Vị trí sắp xếp</label>
               <input v-model="formPosition" type="number" class="premium-input">
             </div>
           </div>
 
           <div class="input-group">
             <label class="input-label">Mô tả sản phẩm</label>
-            <textarea v-model="formDescription" rows="4" class="premium-input text-area-input" placeholder="Nhập mô tả sản phẩm" />
+            <textarea v-model="formDescription" rows="4" class="premium-input text-area-input" placeholder="Nhập mô tả chi tiết sản phẩm" />
           </div>
 
           <div class="modal-footer">
@@ -533,7 +535,7 @@ function changePage(page: number) {
               Hủy
             </button>
             <button type="submit" class="btn btn-primary">
-              Lưu lại
+              Lưu dữ liệu
             </button>
           </div>
         </form>
@@ -543,7 +545,6 @@ function changePage(page: number) {
 </template>
 
 <style scoped>
-.mb-8 { margin-bottom: 2rem; }
 .mb-6 { margin-bottom: 1.5rem; }
 .mt-6 { margin-top: 1.5rem; }
 
@@ -557,14 +558,18 @@ function changePage(page: number) {
   color: var(--text-muted);
   font-size: 0.9rem;
 }
+.font-bold {
+  font-weight: 700;
+}
 
 /* Filters Card */
 .filter-card {
-  padding: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
 }
 .filters-row {
   display: flex;
-  gap: 1rem;
+  gap: 0.85rem;
 }
 .search-item { flex: 1.5; }
 .select-item { flex: 1; }
@@ -573,46 +578,61 @@ function changePage(page: number) {
 .overflow-x {
   overflow-x: auto;
 }
+.table-card {
+  border-radius: 14px;
+  padding: 0;
+}
 .premium-table {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
 }
 .premium-table th {
-  padding: 1rem;
-  font-size: 0.85rem;
-  font-weight: 600;
+  padding: 0.85rem 1.15rem;
+  font-size: 0.775rem;
+  font-weight: 700;
   text-transform: uppercase;
-  color: var(--text-muted);
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
   border-bottom: 1px solid var(--border-color);
+  background-color: rgba(0, 0, 0, 0.15);
 }
 .premium-table td {
-  padding: 1rem;
+  padding: 0.85rem 1.15rem;
   border-bottom: 1px solid var(--border-color);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 .table-row:hover {
-  background-color: rgba(255, 255, 255, 0.01);
+  background-color: rgba(255, 255, 255, 0.02);
+}
+.table-img-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background-color: rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem;
 }
 .table-thumbnail {
-  width: 50px;
-  height: 50px;
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
-  border-radius: 6px;
-  background-color: rgba(255, 255, 255, 0.02);
 }
 .product-title-cell {
   display: flex;
   flex-direction: column;
 }
 .product-title-text {
-  font-weight: 600;
-  color: #fff;
+  font-weight: 700;
+  color: var(--text-main);
 }
 .product-position-text {
   font-size: 0.75rem;
-  color: var(--text-muted);
-  margin-top: 0.15rem;
+  color: var(--text-dim);
+  margin-top: 0.1rem;
 }
 .discount-percent {
   color: var(--danger);
@@ -621,11 +641,12 @@ function changePage(page: number) {
 .table-actions {
   display: flex;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 .btn-action {
-  padding: 0.4rem;
+  padding: 0.35rem;
   border-radius: 6px;
+  font-size: 0.8rem;
 }
 
 /* Pagination */
@@ -633,10 +654,10 @@ function changePage(page: number) {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
-.btn-pag { padding: 0.5rem 1rem; font-size: 0.85rem; }
-.pag-info { font-size: 0.9rem; color: var(--text-muted); }
+.btn-pag { padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 8px; }
+.pag-info { font-size: 0.875rem; color: var(--text-muted); font-weight: 600; }
 
 /* Modal Backdrop */
 .modal-backdrop {
@@ -655,10 +676,11 @@ function changePage(page: number) {
 }
 .modal-content {
   width: 100%;
-  max-width: 680px;
+  max-width: 660px;
   max-height: 90vh;
   overflow-y: auto;
-  padding: 2rem;
+  padding: 1.75rem;
+  border-radius: 16px;
 }
 .modal-header {
   display: flex;
@@ -666,16 +688,18 @@ function changePage(page: number) {
   align-items: center;
   border-bottom: 1px solid var(--border-color);
   padding-bottom: 0.75rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 .modal-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--text-main);
 }
 .btn-close-modal {
-  padding: 0.35rem 0.5rem;
+  padding: 0.25rem 0.5rem;
   border-radius: 6px;
+  font-size: 0.85rem;
 }
 .modal-form {
   display: flex;
@@ -684,12 +708,12 @@ function changePage(page: number) {
 .form-row-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: 0.85rem;
 }
 .form-row-3 {
   display: grid;
   grid-template-columns: 1.2fr 0.8fr 1fr;
-  gap: 1rem;
+  gap: 0.85rem;
 }
 .text-area-input {
   resize: vertical;
@@ -697,13 +721,13 @@ function changePage(page: number) {
 .modal-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
 }
 
 .upload-input-wrapper {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .btn-upload {
@@ -713,6 +737,8 @@ function changePage(page: number) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  padding: 0.55rem 0.85rem;
+  font-size: 0.85rem;
 }
 
 .file-hidden {
@@ -726,7 +752,7 @@ function changePage(page: number) {
 }
 
 .text-uploading {
-  font-size: 0.8rem;
+  font-size: 0.775rem;
   color: var(--primary);
   margin-top: 0.25rem;
   display: block;

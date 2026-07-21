@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import CartItem from '~/components/CartItem.vue'
-import { useCartStore } from '~/stores/cart.ts'
+import { useCartStore } from '~/stores/cart'
 
 const cartStore = useCartStore()
 const router = useRouter()
@@ -65,7 +65,7 @@ function proceedToCheckout() {
 
 <template>
   <div class="cart-page container">
-    <h1 class="h1-title mb-8">
+    <h1 class="h1-title mb-6">
       Giỏ hàng của bạn
     </h1>
 
@@ -77,7 +77,7 @@ function proceedToCheckout() {
         🛒
       </div>
       <p class="empty-text">
-        Giỏ hàng của bạn đang trống.
+        Giỏ hàng của bạn hiện đang trống.
       </p>
       <RouterLink to="/products" class="btn btn-primary">
         Khám phá sản phẩm ngay
@@ -106,7 +106,7 @@ function proceedToCheckout() {
 
           <div class="summary-row">
             <span>Tạm tính</span>
-            <span>{{ formatPrice(cartStore.totalAmount) }}</span>
+            <span class="summary-val">{{ formatPrice(cartStore.totalAmount) }}</span>
           </div>
           <div class="summary-row">
             <span>Phí vận chuyển</span>
@@ -114,14 +114,14 @@ function proceedToCheckout() {
           </div>
           <div class="summary-divider" />
           <div class="summary-row total-row">
-            <span>Tổng cộng</span>
+            <span>Tổng thanh toán</span>
             <span class="total-price">{{
               formatPrice(cartStore.totalAmount)
             }}</span>
           </div>
 
           <button
-            class="btn btn-primary btn-checkout w-full mt-6"
+            class="btn btn-primary btn-checkout w-full mt-5"
             @click="proceedToCheckout"
           >
             Tiến hành thanh toán 💳
@@ -140,31 +140,34 @@ function proceedToCheckout() {
 </template>
 
 <style scoped>
-.mb-8 {
-  margin-bottom: 2rem;
+.mb-6 {
+  margin-bottom: 1.75rem;
 }
 
 .empty-cart-state {
   text-align: center;
-  padding: 4rem 2rem;
-  max-width: 600px;
-  margin: 2rem auto;
+  padding: 3.5rem 2rem;
+  max-width: 540px;
+  margin: 1.5rem auto;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
 }
 
 .empty-icon {
-  font-size: 4rem;
-  margin-bottom: 1rem;
+  font-size: 3.25rem;
+  margin-bottom: 0.75rem;
 }
 
 .empty-text {
   color: var(--text-muted);
-  font-size: 1.1rem;
-  margin-bottom: 2rem;
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 1.5rem;
 }
 
 .cart-layout {
   display: flex;
-  gap: 2rem;
+  gap: 1.75rem;
 }
 
 @media (max-width: 992px) {
@@ -177,7 +180,7 @@ function proceedToCheckout() {
   flex: 1.8;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.85rem;
 }
 
 /* Summary Card */
@@ -187,14 +190,16 @@ function proceedToCheckout() {
 
 .summary-card {
   position: sticky;
-  top: 90px;
+  top: 85px;
+  border-radius: 14px;
 }
 
 .summary-title {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #fff;
-  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--text-main);
+  margin-bottom: 1.25rem;
   border-bottom: 1px solid var(--border-color);
   padding-bottom: 0.75rem;
 }
@@ -202,41 +207,50 @@ function proceedToCheckout() {
 .summary-row {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 1rem;
-  font-size: 0.95rem;
+  margin-bottom: 0.85rem;
+  font-size: 0.9rem;
   color: var(--text-muted);
+}
+
+.summary-val {
+  color: var(--text-main);
+  font-weight: 600;
 }
 
 .success-text {
   color: var(--success);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .summary-divider {
   border-bottom: 1px solid var(--border-color);
-  margin: 1.25rem 0;
+  margin: 1rem 0;
 }
 
 .total-row {
-  color: #fff;
-  font-weight: 700;
+  color: var(--text-main);
+  font-weight: 800;
+  align-items: baseline;
 }
 
 .total-price {
-  font-size: 1.3rem;
-  color: var(--primary);
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
 }
 
-.mt-6 {
-  margin-top: 1.5rem;
+.mt-5 {
+  margin-top: 1.25rem;
 }
 
 .mt-3 {
-  margin-top: 0.75rem;
+  margin-top: 0.65rem;
 }
 
-.block-nav {
-  display: block;
+.btn-checkout {
+  padding: 0.75rem;
+  font-size: 0.95rem;
 }
 
 .w-full {

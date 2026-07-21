@@ -71,7 +71,7 @@ async function handleCancelOrder(orderId: string) {
 
 <template>
   <div class="orders-page container">
-    <h1 class="h1-title mb-8">
+    <h1 class="h1-title mb-6">
       Lịch sử đơn hàng
     </h1>
 
@@ -102,32 +102,37 @@ async function handleCancelOrder(orderId: string) {
 </template>
 
 <style scoped>
-.mb-8 {
-  margin-bottom: 2rem;
+.mb-6 {
+  margin-bottom: 1.75rem;
 }
 
-.loading-state, .empty-orders {
+.empty-orders {
   text-align: center;
   color: var(--text-muted);
-  padding: 4rem 2rem;
+  padding: 3.5rem 2rem;
+  max-width: 540px;
+  margin: 1.5rem auto;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
 }
 
 .empty-icon {
-  font-size: 4rem;
-  margin-bottom: 1rem;
+  font-size: 3.25rem;
+  margin-bottom: 0.75rem;
 }
 
 .empty-text {
-  font-size: 1.1rem;
+  font-size: 1rem;
+  font-weight: 500;
   color: var(--text-muted);
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .orders-list {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  max-width: 800px;
+  gap: 1.25rem;
+  max-width: 820px;
   margin: 0 auto;
 }
 </style>

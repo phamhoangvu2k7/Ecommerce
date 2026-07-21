@@ -257,7 +257,7 @@ async function handleDeleteRole() {
 
 <template>
   <div class="roles-page">
-    <div class="page-header mb-8">
+    <div class="page-header mb-6">
       <div class="title-block">
         <h1 class="h1-title">
           Nhóm quyền & Phân quyền
@@ -287,7 +287,7 @@ async function handleDeleteRole() {
       <!-- Left List of Roles -->
       <div class="roles-sidebar">
         <div class="premium-card list-card">
-          <h3 class="list-title mb-4">
+          <h3 class="list-title mb-3">
             Danh sách vai trò
           </h3>
           <div class="role-items">
@@ -311,7 +311,7 @@ async function handleDeleteRole() {
       <!-- Right Permissions Matrix Editor -->
       <div v-if="selectedRole" class="permissions-editor">
         <div class="premium-card editor-card">
-          <div class="editor-header mb-6">
+          <div class="editor-header mb-5">
             <div class="editor-title-block">
               <h2 class="role-details-title">
                 {{ selectedRole.title }}
@@ -323,7 +323,7 @@ async function handleDeleteRole() {
             <div class="editor-actions">
               <button
                 v-if="selectedRole.title !== 'Admin'"
-                class="btn btn-danger"
+                class="btn btn-secondary btn-delete-role"
                 @click="handleDeleteRole"
               >
                 🗑️ Xóa vai trò
@@ -339,7 +339,7 @@ async function handleDeleteRole() {
           </div>
 
           <!-- Edit Role Metadata inline -->
-          <div class="metadata-fields mb-6">
+          <div class="metadata-fields mb-5">
             <div class="form-row-2">
               <div class="input-group">
                 <label class="input-label">Tên nhóm quyền *</label>
@@ -367,7 +367,7 @@ async function handleDeleteRole() {
             <div
               v-for="cat in permissionCategories"
               :key="cat.title"
-              class="matrix-category mb-6"
+              class="matrix-category mb-5"
             >
               <h4 class="category-heading mb-3">
                 {{ cat.title }}
@@ -380,7 +380,7 @@ async function handleDeleteRole() {
                   @click="togglePermission(perm.key)"
                 >
                   <div class="tile-icon">
-                    {{ selectedRole.permissions.includes(perm.key) ? '✅' : '⬛' }}
+                    {{ selectedRole.permissions.includes(perm.key) ? '☑️' : '⏹️' }}
                   </div>
                   <div class="tile-label">
                     {{ perm.label }}
@@ -401,7 +401,7 @@ async function handleDeleteRole() {
             Thêm nhóm quyền mới
           </h3>
           <button class="btn btn-secondary btn-close-modal" @click="showCreateModal = false">
-            ✖
+            ✕
           </button>
         </div>
 
@@ -431,10 +431,9 @@ async function handleDeleteRole() {
 </template>
 
 <style scoped>
-.mb-8 { margin-bottom: 2rem; }
 .mb-6 { margin-bottom: 1.5rem; }
-.mb-4 { margin-bottom: 1rem; }
-.mb-3 { margin-bottom: 0.75rem; }
+.mb-5 { margin-bottom: 1.25rem; }
+.mb-3 { margin-bottom: 0.65rem; }
 
 .page-header {
   display: flex;
@@ -449,50 +448,52 @@ async function handleDeleteRole() {
 
 .roles-layout {
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 270px 1fr;
   gap: 1.5rem;
   align-items: start;
 }
 
 /* Sidebar lists of roles */
 .list-card {
-  padding: 1.25rem;
+  padding: 1.15rem;
+  border-radius: 14px;
 }
 .list-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--text-main);
   border-bottom: 1px solid var(--border-color);
-  padding-bottom: 0.5rem;
+  padding-bottom: 0.65rem;
 }
 .role-items {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.6rem;
 }
 .role-item-btn {
-  padding: 0.75rem 1rem;
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.01);
+  padding: 0.75rem 0.85rem;
+  border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.15);
   border: 1px solid var(--border-color);
   cursor: pointer;
-  transition: all var(--transition-speed);
+  transition: all var(--transition-speed) ease;
 }
 .role-item-btn:hover {
-  background-color: rgba(255, 255, 255, 0.03);
-  border-color: rgba(99, 102, 241, 0.2);
+  background-color: rgba(255, 255, 255, 0.04);
+  border-color: var(--border-color-hover);
 }
 .active-role {
-  background-color: rgba(99, 102, 241, 0.1) !important;
+  background-color: rgba(79, 70, 229, 0.15) !important;
   border-color: var(--primary) !important;
 }
 .role-item-title {
-  font-weight: 600;
-  color: #fff;
-  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
+  font-size: 0.9rem;
 }
 .role-item-desc {
-  font-size: 0.75rem;
+  font-size: 0.775rem;
   margin-top: 0.15rem;
   white-space: nowrap;
   overflow: hidden;
@@ -501,71 +502,83 @@ async function handleDeleteRole() {
 
 /* Editor Section */
 .editor-card {
-  padding: 2rem;
+  padding: 1.75rem;
+  border-radius: 16px;
 }
 .editor-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid var(--border-color);
-  padding-bottom: 1rem;
+  padding-bottom: 0.85rem;
 }
 .role-details-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #fff;
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
 }
 .editor-actions {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.65rem;
+}
+
+.btn-delete-role {
+  color: var(--danger);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.btn-delete-role:hover {
+  background-color: rgba(239, 68, 68, 0.1);
 }
 
 .form-row-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: 0.85rem;
 }
 
 /* Matrix layout checkboxes grid */
 .category-heading {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--text-main);
   border-left: 3px solid var(--primary);
   padding-left: 0.5rem;
 }
 .matrix-checkbox-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 0.65rem;
 }
 .checkbox-tile {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  border-radius: 10px;
-  background-color: rgba(15, 23, 42, 0.4);
+  gap: 0.65rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.15);
   border: 1px solid var(--border-color);
   cursor: pointer;
-  transition: all var(--transition-speed);
+  transition: all var(--transition-speed) ease;
   user-select: none;
 }
 .checkbox-tile:hover {
-  background-color: rgba(255, 255, 255, 0.02);
-  border-color: rgba(255, 255, 255, 0.15);
+  background-color: rgba(255, 255, 255, 0.04);
+  border-color: var(--border-color-hover);
 }
 .tile-checked {
-  background-color: rgba(16, 185, 129, 0.08) !important;
+  background-color: rgba(16, 185, 129, 0.12) !important;
   border-color: rgba(16, 185, 129, 0.3) !important;
 }
 .tile-icon {
-  font-size: 1.1rem;
+  font-size: 0.95rem;
 }
 .tile-label {
   font-size: 0.85rem;
-  font-weight: 500;
-  color: #fff;
+  font-weight: 600;
+  color: var(--text-main);
 }
 
 /* Modals */
@@ -585,8 +598,9 @@ async function handleDeleteRole() {
 }
 .modal-content {
   width: 100%;
-  max-width: 500px;
-  padding: 2rem;
+  max-width: 480px;
+  padding: 1.75rem;
+  border-radius: 16px;
 }
 .modal-header {
   display: flex;
@@ -594,21 +608,23 @@ async function handleDeleteRole() {
   align-items: center;
   border-bottom: 1px solid var(--border-color);
   padding-bottom: 0.75rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 .modal-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--text-main);
 }
 .modal-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
 }
 .btn-close-modal {
-  padding: 0.35rem 0.5rem;
+  padding: 0.25rem 0.5rem;
   border-radius: 6px;
+  font-size: 0.85rem;
 }
 </style>

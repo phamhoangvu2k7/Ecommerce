@@ -217,13 +217,13 @@ async function handleDeleteAccount(account: Account) {
 
 <template>
   <div class="accounts-page">
-    <div class="page-header mb-8">
+    <div class="page-header mb-6">
       <div class="title-block">
         <h1 class="h1-title">
           Tài khoản Quản trị
         </h1>
         <p class="text-muted">
-          Danh sách nhân viên, biên tập viên và quản trị viên quản lý hệ thống.
+          Danh sách nhân viên và quản trị viên quản lý hệ thống.
         </p>
       </div>
       <button class="btn btn-primary" @click="openCreateModal">
@@ -250,9 +250,9 @@ async function handleDeleteAccount(account: Account) {
             <th>Họ và tên</th>
             <th>Email tài khoản</th>
             <th>Số điện thoại</th>
-            <th>Nhóm quyền (Vai trò)</th>
+            <th>Nhóm quyền</th>
             <th>Trạng thái</th>
-            <th width="150" class="text-center">
+            <th width="140" class="text-center">
               Thao tác
             </th>
           </tr>
@@ -274,10 +274,10 @@ async function handleDeleteAccount(account: Account) {
                 {{ acc.fullName.charAt(0) }}
               </div>
             </td>
-            <td class="font-semibold text-white">
+            <td class="font-bold text-main">
               {{ acc.fullName }}
             </td>
-            <td class="text-glow-indigo font-semibold">
+            <td class="font-semibold text-main">
               {{ acc.email }}
             </td>
             <td class="text-muted">
@@ -285,7 +285,7 @@ async function handleDeleteAccount(account: Account) {
             </td>
             <td>
               <span class="role-badge">
-                🔑 {{ acc.role_id?.title || 'Chưa phân vai trò' }}
+                🔑 {{ acc.role_id?.title || 'Chưa phân quyền' }}
               </span>
             </td>
             <td>
@@ -295,7 +295,7 @@ async function handleDeleteAccount(account: Account) {
             </td>
             <td class="text-center">
               <div class="table-actions">
-                <button class="btn btn-secondary btn-action" title="Sửa" @click="openEditModal(acc)">
+                <button class="btn btn-secondary btn-action" title="Chỉnh sửa" @click="openEditModal(acc)">
                   ✏️
                 </button>
                 <button
@@ -318,10 +318,10 @@ async function handleDeleteAccount(account: Account) {
       <div class="modal-content premium-card glass-panel fade-in-item">
         <div class="modal-header">
           <h3 class="modal-title">
-            {{ isEditing ? 'Cập nhật tài khoản quản trị' : 'Thêm tài khoản quản trị mới' }}
+            {{ isEditing ? 'Cập nhật tài khoản' : 'Thêm tài khoản mới' }}
           </h3>
           <button class="btn btn-secondary btn-close-modal" @click="showModal = false">
-            ✖
+            ✕
           </button>
         </div>
 
@@ -378,7 +378,7 @@ async function handleDeleteAccount(account: Account) {
               Hủy
             </button>
             <button type="submit" class="btn btn-primary">
-              Lưu lại
+              Lưu dữ liệu
             </button>
           </div>
         </form>
@@ -388,9 +388,12 @@ async function handleDeleteAccount(account: Account) {
 </template>
 
 <style scoped>
-.mb-8 { margin-bottom: 2rem; }
+.mb-6 { margin-bottom: 1.5rem; }
 .text-center { text-align: center; }
 .py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+.text-main { color: var(--text-main); }
+.font-bold { font-weight: 700; }
+.font-semibold { font-weight: 600; }
 
 .page-header {
   display: flex;
@@ -407,26 +410,32 @@ async function handleDeleteAccount(account: Account) {
 .overflow-x {
   overflow-x: auto;
 }
+.table-card {
+  border-radius: 14px;
+  padding: 0;
+}
 .premium-table {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
 }
 .premium-table th {
-  padding: 1rem;
-  font-size: 0.85rem;
-  font-weight: 600;
+  padding: 0.85rem 1.15rem;
+  font-size: 0.775rem;
+  font-weight: 700;
   text-transform: uppercase;
-  color: var(--text-muted);
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
   border-bottom: 1px solid var(--border-color);
+  background-color: rgba(0, 0, 0, 0.15);
 }
 .premium-table td {
-  padding: 1rem;
+  padding: 0.85rem 1.15rem;
   border-bottom: 1px solid var(--border-color);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 .table-row:hover {
-  background-color: rgba(255, 255, 255, 0.01);
+  background-color: rgba(255, 255, 255, 0.02);
 }
 
 .user-avatar-sm {
@@ -437,22 +446,18 @@ async function handleDeleteAccount(account: Account) {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  color: white;
+  font-weight: 800;
+  color: #ffffff;
   font-size: 0.9rem;
 }
 
-.text-glow-indigo {
-  color: #818cf8;
-}
-
 .role-badge {
-  background-color: rgba(99, 102, 241, 0.1);
-  border: 1px solid rgba(99, 102, 241, 0.2);
-  color: #a5b4fc;
-  padding: 0.25rem 0.5rem;
+  background-color: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 0.2rem 0.55rem;
   border-radius: 6px;
-  font-size: 0.8rem;
+  font-size: 0.775rem;
   font-weight: 600;
   display: inline-flex;
   align-items: center;
@@ -461,11 +466,12 @@ async function handleDeleteAccount(account: Account) {
 .table-actions {
   display: flex;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 .btn-action {
-  padding: 0.4rem;
+  padding: 0.35rem;
   border-radius: 6px;
+  font-size: 0.8rem;
 }
 
 /* Modals */
@@ -485,8 +491,9 @@ async function handleDeleteAccount(account: Account) {
 }
 .modal-content {
   width: 100%;
-  max-width: 600px;
-  padding: 2rem;
+  max-width: 580px;
+  padding: 1.75rem;
+  border-radius: 16px;
 }
 .modal-header {
   display: flex;
@@ -494,12 +501,13 @@ async function handleDeleteAccount(account: Account) {
   align-items: center;
   border-bottom: 1px solid var(--border-color);
   padding-bottom: 0.75rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 .modal-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--text-main);
 }
 .modal-form {
   display: flex;
@@ -508,16 +516,17 @@ async function handleDeleteAccount(account: Account) {
 .form-row-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: 0.85rem;
 }
 .modal-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
 }
 .btn-close-modal {
-  padding: 0.35rem 0.5rem;
+  padding: 0.25rem 0.5rem;
   border-radius: 6px;
+  font-size: 0.85rem;
 }
 </style>

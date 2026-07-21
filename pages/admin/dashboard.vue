@@ -41,7 +41,7 @@ function formatPrice(value: number) {
 
 <template>
   <div class="admin-dashboard-page">
-    <div class="dashboard-header mb-8">
+    <div class="dashboard-header mb-6">
       <h1 class="h1-title">
         Tổng quan số liệu
       </h1>
@@ -68,7 +68,7 @@ function formatPrice(value: number) {
           <div class="stat-label">
             Tổng doanh thu
           </div>
-          <div class="stat-value text-glow-indigo">
+          <div class="stat-value text-accent">
             {{ formatPrice(stats.orders.revenue) }}
           </div>
         </div>
@@ -139,25 +139,27 @@ function formatPrice(value: number) {
 </template>
 
 <style scoped>
-.mb-8 {
-  margin-bottom: 2rem;
+.mb-6 {
+  margin-bottom: 1.75rem;
 }
 
 .text-muted {
   color: var(--text-muted);
-  font-size: 0.95rem;
+  font-size: 0.925rem;
+  margin-top: 0.25rem;
 }
 
 .loading-state {
   text-align: center;
   color: var(--text-muted);
   padding: 4rem 0;
+  font-weight: 500;
 }
 
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
 @media (min-width: 1200px) {
@@ -169,20 +171,22 @@ function formatPrice(value: number) {
 .stat-card {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
-  padding: 2rem 1.5rem;
+  gap: 1.15rem;
+  padding: 1.5rem 1.25rem;
+  border-radius: 14px;
 }
 
 .stat-icon {
-  width: 56px;
-  height: 56px;
-  background-color: rgba(255, 255, 255, 0.03);
+  width: 52px;
+  height: 52px;
+  background-color: rgba(0, 0, 0, 0.2);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.75rem;
+  font-size: 1.6rem;
+  flex-shrink: 0;
 }
 
 .stat-content {
@@ -191,27 +195,28 @@ function formatPrice(value: number) {
 }
 
 .stat-label {
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: 0.775rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
-  margin-bottom: 0.25rem;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+  margin-bottom: 0.2rem;
 }
 
 .stat-value {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #fff;
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
   line-height: 1.2;
 }
 
-.text-glow-indigo {
-  color: #818cf8;
+.text-accent {
+  color: var(--text-main);
 }
 
 .sub-value {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 500;
   color: var(--text-muted);
 }

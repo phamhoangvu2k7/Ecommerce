@@ -79,7 +79,7 @@ function getStatusClass(status: string) {
     <!-- Order Header -->
     <div class="order-header">
       <div class="order-meta">
-        <span class="order-id">Mã đơn: <strong>{{ order.id }}</strong></span>
+        <span class="order-id">Mã đơn: <strong>#{{ order.id }}</strong></span>
         <span class="order-date">Ngày đặt: {{ new Date(order.createdAt).toLocaleDateString("vi-VN") }}</span>
       </div>
       <div class="order-status">
@@ -92,11 +92,14 @@ function getStatusClass(status: string) {
     <!-- Products in Order -->
     <div class="order-products">
       <div v-for="item in order.products" :key="item.product_id?.id" class="order-product-item">
-        <img
-          :src="resolveImageUrl(item.product_id?.thumbnail)"
-          :alt="item.product_id?.title || 'Sản phẩm'"
-          class="prod-img"
-        >
+        <div class="prod-img-box">
+          <img
+            :src="resolveImageUrl(item.product_id?.thumbnail)"
+            :alt="item.product_id?.title || 'Sản phẩm'"
+            class="prod-img"
+            loading="lazy"
+          >
+        </div>
         <div class="prod-details">
           <h4 class="prod-title">
             {{ item.product_id?.title || 'Sản phẩm đã bị xóa' }}
@@ -114,21 +117,22 @@ function getStatusClass(status: string) {
     <!-- Order Footer -->
     <div class="order-footer">
       <div class="shipping-info">
-        <p>📍 Người nhận: <strong>{{ order.userInfo.fullName }}</strong> ({{ order.userInfo.phone }})</p>
-        <p>🏠 Địa chỉ: {{ order.userInfo.address }}</p>
+        <p class="shipping-recipient">📍 {{ order.userInfo.fullName }} <span class="phone-tag">({{ order.userInfo.phone }})</span></p>
+        <p class="shipping-address">🏠 {{ order.userInfo.address }}</p>
       </div>
       <div class="order-action-total">
         <div class="order-total-price">
-          Tổng thanh toán: <strong>{{ formatPrice(calculateOrderTotal(order.products)) }}</strong>
+          <span class="total-label">Tổng thanh toán:</span>
+          <strong class="total-val">{{ formatPrice(calculateOrderTotal(order.products)) }}</strong>
         </div>
 
         <button
           v-if="order.status === 'pending'"
-          class="btn btn-danger btn-cancel-order"
+          class="btn btn-secondary btn-cancel-order"
           aria-label="Hủy đơn hàng"
           @click="emit('cancel', order.id)"
         >
-          Hủy đơn hàng 🗑️
+          Hủy đơn hàng
         </button>
       </div>
     </div>
@@ -137,7 +141,8 @@ function getStatusClass(status: string) {
 
 <style scoped>
 .order-card {
-  padding: 1.5rem;
+  padding: 1.35rem;
+  border-radius: 14px;
 }
 
 .order-header {
@@ -145,79 +150,115 @@ function getStatusClass(status: string) {
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid var(--border-color);
-  padding-bottom: 0.75rem;
+  padding-bottom: 0.85rem;
   margin-bottom: 1rem;
 }
 
 .order-meta {
   display: flex;
-  gap: 1.5rem;
-  font-size: 0.9rem;
+  gap: 1.25rem;
+  font-size: 0.875rem;
   color: var(--text-muted);
+  align-items: center;
 }
 
 .order-id {
-  color: #fff;
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.order-id strong {
+  font-family: monospace;
+  font-size: 0.925rem;
+}
+
+.order-date {
+  font-size: 0.825rem;
 }
 
 /* Custom Status Badges */
 .badge-pending {
-  background-color: rgba(245, 158, 11, 0.15);
+  background-color: rgba(245, 158, 11, 0.12);
   color: var(--warning);
+  border: 1px solid rgba(245, 158, 11, 0.25);
 }
 
 .badge-processing {
-  background-color: rgba(99, 102, 241, 0.15);
+  background-color: rgba(79, 70, 229, 0.12);
   color: var(--primary);
+  border: 1px solid rgba(79, 70, 229, 0.25);
 }
 
 .badge-shipping {
-  background-color: rgba(59, 130, 246, 0.15);
+  background-color: rgba(59, 130, 246, 0.12);
   color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.25);
 }
 
 /* Order Products list */
 .order-products {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin-bottom: 1.25rem;
+  gap: 0.6rem;
+  margin-bottom: 1.15rem;
 }
 
 .order-product-item {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.9rem;
   padding: 0.5rem 0;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+}
+
+.order-product-item:last-child {
+  border-bottom: none;
+}
+
+.prod-img-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background-color: rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  flex-shrink: 0;
 }
 
 .prod-img {
-  width: 50px;
-  height: 50px;
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
-  border-radius: 6px;
-  background-color: rgba(255, 255, 255, 0.02);
 }
 
 .prod-details {
   flex: 1;
+  min-width: 0;
 }
 
 .prod-title {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.15rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .prod-price-qty {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
+  font-weight: 500;
 }
 
 .prod-total {
-  font-weight: 600;
-  color: #fff;
-  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-main);
+  font-size: 0.925rem;
 }
 
 /* Order Footer details */
@@ -227,7 +268,7 @@ function getStatusClass(status: string) {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
 .shipping-info {
@@ -236,27 +277,55 @@ function getStatusClass(status: string) {
   line-height: 1.5;
 }
 
+.shipping-recipient {
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.phone-tag {
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.shipping-address {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin-top: 0.2rem;
+}
+
 .order-action-total {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 0.75rem;
+  gap: 0.65rem;
 }
 
 .order-total-price {
-  font-size: 1.05rem;
+  font-size: 0.9rem;
   color: var(--text-muted);
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
 }
 
-.order-total-price strong {
-  color: var(--primary);
-  font-size: 1.25rem;
+.total-val {
+  color: var(--text-main);
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 .btn-cancel-order {
-  padding: 0.4rem 1rem;
-  font-size: 0.85rem;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.8rem;
   border-radius: 8px;
+  color: var(--danger);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.btn-cancel-order:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.35);
 }
 
 @media (max-width: 576px) {
@@ -268,13 +337,14 @@ function getStatusClass(status: string) {
 
   .order-meta {
     flex-direction: column;
-    gap: 0.25rem;
+    align-items: flex-start;
+    gap: 0.2rem;
   }
 
   .order-footer {
     flex-direction: column;
     align-items: flex-start;
-    gap: 1rem;
+    gap: 0.85rem;
   }
 
   .order-action-total {
@@ -284,7 +354,6 @@ function getStatusClass(status: string) {
 
   .btn-cancel-order {
     width: 100%;
-    max-width: 200px;
   }
 }
 </style>

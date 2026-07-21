@@ -28,6 +28,7 @@ onMounted(async () => {
     <!-- Hero Section -->
     <section class="hero-section glass-panel fade-in-item">
       <div class="hero-content">
+        <div class="hero-pill">✨ Tuyển chọn sản phẩm chính hãng 2026</div>
         <h1 class="hero-title">
           Trải nghiệm Mua sắm Premium
         </h1>
@@ -38,10 +39,9 @@ onMounted(async () => {
           <RouterLink to="/products" class="btn btn-primary">
             Mua sắm ngay 🚀
           </RouterLink>
-          <a href="#featured" class="btn btn-secondary">Xem sản phẩm nổi bật</a>
+          <a href="#featured" class="btn btn-secondary">Xem sản phẩm mới</a>
         </div>
       </div>
-      <div class="hero-glowing-blob" />
     </section>
 
     <!-- Featured Products -->
@@ -69,31 +69,46 @@ onMounted(async () => {
 <style scoped>
 .hero-section {
   position: relative;
-  padding: 4rem 3rem;
-  margin-bottom: 4rem;
-  overflow: hidden;
+  padding: 4rem 3.5rem;
+  margin-bottom: 3.5rem;
+  border-radius: 20px;
   display: flex;
   align-items: center;
+  border: 1px solid var(--border-color);
+  background: rgba(19, 27, 46, 0.6);
 }
 
 .hero-content {
   position: relative;
   z-index: 2;
-  max-width: 600px;
+  max-width: 620px;
+}
+
+.hero-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--primary);
+  background-color: var(--primary-glow);
+  border: 1px solid rgba(79, 70, 229, 0.25);
+  border-radius: 999px;
+  margin-bottom: 1.25rem;
 }
 
 .hero-title {
   font-size: 3rem;
   font-weight: 800;
-  line-height: 1.2;
-  margin-bottom: 1.5rem;
-  background: linear-gradient(135deg, #ffffff 40%, #818cf8 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.035em;
+  line-height: 1.15;
+  margin-bottom: 1.25rem;
+  color: var(--text-main);
 }
 
 .hero-subtitle {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   color: var(--text-muted);
   margin-bottom: 2rem;
   line-height: 1.6;
@@ -104,36 +119,26 @@ onMounted(async () => {
   gap: 1rem;
 }
 
-.hero-glowing-blob {
-  position: absolute;
-  top: -20%;
-  right: -10%;
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, rgba(192, 132, 252, 0.05) 70%, transparent 100%);
-  filter: blur(40px);
-  z-index: 1;
-}
-
 .featured-section {
-  margin-bottom: 5rem;
+  margin-bottom: 4rem;
 }
 
 .section-header {
-  margin-bottom: 2.5rem;
+  margin-bottom: 2.25rem;
   text-align: center;
 }
 
 .section-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #fff;
-  margin-bottom: 0.5rem;
+  font-size: 1.85rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--text-main);
+  margin-bottom: 0.4rem;
 }
 
 .section-subtitle {
   color: var(--text-muted);
-  font-size: 0.95rem;
+  font-size: 0.925rem;
 }
 
 @media (max-width: 768px) {
@@ -149,12 +154,12 @@ onMounted(async () => {
   }
 
   .hero-title {
-    font-size: 2rem;
+    font-size: 2.1rem;
     margin-bottom: 1rem;
   }
 
   .hero-subtitle {
-    font-size: 1rem;
+    font-size: 0.95rem;
     margin-bottom: 1.5rem;
   }
 

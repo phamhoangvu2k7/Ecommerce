@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { resolveImageUrl } from '~/composables/useImageUrl'
-import { useCartStore } from '~/stores/cart.ts'
+import { useCartStore } from '~/stores/cart'
 
 definePageMeta({
   middleware: ['auth'],
@@ -84,6 +84,7 @@ async function handleCheckout() {
       errorMsg.value = data.message || data.statusMessage || 'Lỗi đặt hàng, vui lòng kiểm tra tồn kho.'
     }
   }
+  // eslint-disable-next-line unused-imports/no-unused-vars
   catch (err: any) {
     errorMsg.value = 'Có lỗi xảy ra trong quá trình đặt hàng.'
   }
@@ -99,7 +100,7 @@ function formatPrice(value: number) {
 
 <template>
   <div class="checkout-page container">
-    <h1 class="h1-title mb-8">
+    <h1 class="h1-title mb-6">
       Thanh toán đơn hàng
     </h1>
 
@@ -107,10 +108,10 @@ function formatPrice(value: number) {
       <div class="success-icon">
         🎉
       </div>
-      <p class="font-semibold text-lg">
+      <p class="font-semibold text-lg text-main">
         {{ successMsg }}
       </p>
-      <p class="text-sm mt-2 text-muted">
+      <p class="text-sm mt-2 text-dim">
         Đang chuyển hướng về trang Đơn hàng cá nhân...
       </p>
     </div>
@@ -148,7 +149,7 @@ function formatPrice(value: number) {
             />
           </div>
 
-          <button type="submit" :disabled="loading" class="btn btn-primary btn-submit-checkout w-full mt-6">
+          <button type="submit" :disabled="loading" class="btn btn-primary btn-submit-checkout w-full mt-5">
             {{ loading ? 'Đang xử lý đặt hàng...' : 'Xác nhận Đặt hàng (Thanh toán COD) 📦' }}
           </button>
         </form>
@@ -163,7 +164,9 @@ function formatPrice(value: number) {
 
           <div class="summary-items-list">
             <div v-for="item in cartStore.products" :key="item.product_id" class="summary-item">
-              <img :src="resolveImageUrl(item.thumbnail)" :alt="item.title" class="sum-item-img">
+              <div class="sum-img-box">
+                <img :src="resolveImageUrl(item.thumbnail)" :alt="item.title" class="sum-item-img">
+              </div>
               <div class="sum-item-details">
                 <h4 class="sum-item-title">
                   {{ item.title }}
@@ -179,7 +182,7 @@ function formatPrice(value: number) {
           <div class="pricing-rows">
             <div class="summary-row">
               <span>Tạm tính</span>
-              <span>{{ formatPrice(cartStore.totalAmount) }}</span>
+              <span class="summary-val">{{ formatPrice(cartStore.totalAmount) }}</span>
             </div>
             <div class="summary-row">
               <span>Giao hàng</span>
@@ -198,12 +201,12 @@ function formatPrice(value: number) {
 </template>
 
 <style scoped>
-.mb-8 {
-  margin-bottom: 2rem;
+.mb-6 {
+  margin-bottom: 1.75rem;
 }
 
 .max-w-xl {
-  max-width: 36rem;
+  max-width: 34rem;
 }
 
 .mx-auto {
@@ -212,18 +215,27 @@ function formatPrice(value: number) {
 }
 
 .py-6 {
-  padding-top: 1.5rem;
-  padding-bottom: 1.5rem;
+  padding-top: 1.75rem;
+  padding-bottom: 1.75rem;
 }
 
 .success-icon {
-  font-size: 3rem;
+  font-size: 2.75rem;
   margin-bottom: 0.5rem;
+}
+
+.text-main {
+  color: var(--text-main);
+  font-size: 1.1rem;
+}
+
+.text-dim {
+  color: var(--text-dim);
 }
 
 .checkout-layout {
   display: flex;
-  gap: 2rem;
+  gap: 1.75rem;
 }
 
 @media (max-width: 992px) {
@@ -234,7 +246,8 @@ function formatPrice(value: number) {
 
 .shipping-section {
   flex: 1.5;
-  padding: 2rem;
+  padding: 1.75rem;
+  border-radius: 16px;
 }
 
 .text-area-input {
@@ -245,11 +258,16 @@ function formatPrice(value: number) {
   flex: 1;
 }
 
+.summary-card {
+  border-radius: 14px;
+}
+
 .section-title {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #fff;
-  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--text-main);
+  margin-bottom: 1.25rem;
 }
 
 .border-b {
@@ -261,108 +279,128 @@ function formatPrice(value: number) {
 .summary-items-list {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
   max-height: 250px;
   overflow-y: auto;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
   padding-right: 0.25rem;
 }
 
 .summary-item {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
+}
+
+.sum-img-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background-color: rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem;
+  flex-shrink: 0;
 }
 
 .sum-item-img {
-  width: 50px;
-  height: 50px;
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
-  border-radius: 6px;
-  background-color: rgba(255, 255, 255, 0.02);
 }
 
 .sum-item-details {
   flex: 1;
+  min-width: 0;
 }
 
 .sum-item-title {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-main);
   margin-bottom: 0.15rem;
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
-  max-width: 200px;
 }
 
 .sum-item-qty-price {
   display: flex;
   justify-content: space-between;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
 }
 
 .sum-item-total {
-  font-weight: 600;
-  color: #fff;
+  font-weight: 700;
+  color: var(--text-main);
 }
 
 /* Pricing summary rows */
 .pricing-rows {
   border-top: 1px solid var(--border-color);
-  padding-top: 1.25rem;
+  padding-top: 1rem;
 }
 
 .summary-row {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 0.75rem;
-  font-size: 0.95rem;
+  margin-bottom: 0.65rem;
+  font-size: 0.9rem;
   color: var(--text-muted);
+}
+
+.summary-val {
+  color: var(--text-main);
+  font-weight: 600;
 }
 
 .success-text {
   color: var(--success);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .summary-divider {
   border-bottom: 1px solid var(--border-color);
-  margin: 1rem 0;
+  margin: 0.85rem 0;
 }
 
 .total-row {
-  color: #fff;
-  font-weight: 700;
+  color: var(--text-main);
+  font-weight: 800;
+  align-items: baseline;
 }
 
 .total-price {
   font-size: 1.3rem;
-  color: var(--primary);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
+}
+
+.btn-submit-checkout {
+  padding: 0.75rem;
+  font-size: 0.95rem;
 }
 
 .w-full {
   width: 100%;
 }
 
-.mt-6 {
-  margin-top: 1.5rem;
+.mt-5 {
+  margin-top: 1.25rem;
 }
 
 @media (max-width: 576px) {
   .shipping-section {
-    padding: 1.25rem;
+    padding: 1.15rem;
   }
 
   .section-title {
-    font-size: 1.1rem;
-    margin-bottom: 1rem;
-  }
-
-  .sum-item-title {
-    max-width: 150px;
+    font-size: 1.05rem;
+    margin-bottom: 0.9rem;
   }
 }
 </style>

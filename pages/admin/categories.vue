@@ -172,12 +172,12 @@ async function handleDeleteCategory(id: string) {
 
 <template>
   <div class="admin-categories-page">
-    <div class="page-header mb-8">
+    <div class="page-header mb-6">
       <h1 class="h1-title">
         Quản lý danh mục
       </h1>
       <p class="text-muted">
-        Xem cấu trúc phân cấp danh mục sản phẩm dạng cây.
+        Xem và điều chỉnh cấu trúc phân cấp danh mục sản phẩm.
       </p>
     </div>
 
@@ -243,13 +243,13 @@ async function handleDeleteCategory(id: string) {
 
           <div class="form-row-2">
             <div class="input-group">
-              <label class="input-label">Trạng thái hoạt động</label>
+              <label class="input-label">Trạng thái</label>
               <select v-model="formStatus" class="premium-input">
                 <option value="active">
                   Hoạt động
                 </option>
                 <option value="inactive">
-                  Dừng hoạt động
+                  Tạm dừng
                 </option>
               </select>
             </div>
@@ -266,7 +266,7 @@ async function handleDeleteCategory(id: string) {
 
           <div class="form-actions">
             <button v-if="isEditing" type="button" class="btn btn-secondary" @click="resetForm">
-              Hủy chỉnh sửa
+              Hủy
             </button>
             <button type="submit" class="btn btn-primary">
               {{ isEditing ? 'Lưu cập nhật' : 'Tạo mới' }}
@@ -279,13 +279,13 @@ async function handleDeleteCategory(id: string) {
 </template>
 
 <style scoped>
-.mb-8 { margin-bottom: 2rem; }
+.mb-6 { margin-bottom: 1.75rem; }
 .text-muted { color: var(--text-muted); font-size: 0.9rem; }
-.border-b { border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 1.5rem; }
+.border-b { border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 1.25rem; }
 
 .categories-layout {
   display: flex;
-  gap: 2rem;
+  gap: 1.75rem;
 }
 
 @media (max-width: 992px) {
@@ -297,18 +297,21 @@ async function handleDeleteCategory(id: string) {
 .categories-tree-section {
   flex: 1.3;
   padding: 1.5rem;
+  border-radius: 14px;
 }
 
 .category-form-section {
   flex: 1;
   padding: 1.5rem;
   align-self: flex-start;
+  border-radius: 14px;
 }
 
 .section-title {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--text-main);
 }
 
 .category-form {
@@ -319,7 +322,7 @@ async function handleDeleteCategory(id: string) {
 .form-row-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: 0.85rem;
 }
 
 .text-area-input {
@@ -329,14 +332,15 @@ async function handleDeleteCategory(id: string) {
 .form-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 0.75rem;
-  margin-top: 1rem;
+  gap: 0.65rem;
+  margin-top: 0.75rem;
 }
 
 /* Tree Component styles */
 .tree-container {
-  max-height: 500px;
+  max-height: 520px;
   overflow-y: auto;
+  padding-right: 0.25rem;
 }
 
 .tree-root {

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
-import { useAuthStore } from '~/stores/auth.ts'
-import { useCartStore } from '~/stores/cart.ts'
+import { useAuthStore } from '~/stores/auth'
+import { useCartStore } from '~/stores/cart'
 
 const authStore = useAuthStore()
 const cartStore = useCartStore()
@@ -46,6 +46,7 @@ async function handleLogin() {
       errorMsg.value = data.message || data.statusMessage || 'Đăng nhập thất bại.'
     }
   }
+  // eslint-disable-next-line unused-imports/no-unused-vars
   catch (err: any) {
     errorMsg.value = 'Có lỗi xảy ra khi kết nối máy chủ.'
   }
@@ -86,7 +87,7 @@ async function handleLogin() {
           </RouterLink>
         </div>
 
-        <button type="submit" :disabled="loading" class="btn btn-primary w-full mt-4">
+        <button type="submit" :disabled="loading" class="btn btn-primary w-full mt-2">
           {{ loading ? 'Đang xử lý...' : 'Đăng nhập' }}
         </button>
       </form>
@@ -105,56 +106,63 @@ async function handleLogin() {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 3rem 0;
+  padding: 2.5rem 0;
 }
 
 .login-card {
   width: 100%;
-  max-width: 420px;
-  padding: 2.5rem;
+  max-width: 410px;
+  padding: 2.25rem 2rem;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
 }
 
 .card-title {
   font-size: 1.5rem;
-  font-weight: 700;
-  color: #fff;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--text-main);
   margin-bottom: 0.25rem;
   text-align: center;
 }
 
 .card-subtitle {
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   color: var(--text-muted);
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.75rem;
 }
 
 .form-options {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .forgot-link {
-  font-size: 0.85rem;
-  color: var(--primary);
+  font-size: 0.825rem;
+  color: var(--text-muted);
   font-weight: 500;
+  transition: color var(--transition-speed) ease;
 }
 
 .forgot-link:hover {
+  color: var(--text-main);
   text-decoration: underline;
 }
 
 .card-footer {
   text-align: center;
-  margin-top: 2rem;
-  font-size: 0.9rem;
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.875rem;
   color: var(--text-muted);
 }
 
 .register-link {
-  color: var(--primary);
-  font-weight: 600;
+  color: var(--text-main);
+  font-weight: 700;
 }
 
 .register-link:hover {
@@ -165,13 +173,13 @@ async function handleLogin() {
   width: 100%;
 }
 
-.mt-4 {
-  margin-top: 1rem;
+.mt-2 {
+  margin-top: 0.5rem;
 }
 
 @media (max-width: 576px) {
   .login-card {
-    padding: 1.5rem;
+    padding: 1.5rem 1.25rem;
   }
 }
 </style>

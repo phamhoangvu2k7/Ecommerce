@@ -136,8 +136,8 @@ function changePage(page: number) {
 
         <!-- Categories Filter -->
         <div class="filter-group">
-          <label class="input-label">Danh mục</label>
-          <select v-model="selectedCategory" class="premium-input">
+          <label class="input-label">Danh mục sản phẩm</label>
+          <select v-model="selectedCategory" class="premium-input select-input">
             <option value="">
               Tất cả danh mục
             </option>
@@ -149,10 +149,10 @@ function changePage(page: number) {
 
         <!-- Price Range Filter -->
         <div class="filter-group">
-          <label class="input-label">Khoảng giá (Triệu VND)</label>
+          <label class="input-label">Khoảng giá (VNĐ)</label>
           <div class="price-range-inputs">
             <input v-model="priceMin" type="number" placeholder="Từ" class="premium-input price-input">
-            <span class="price-sep">-</span>
+            <span class="price-sep">&ndash;</span>
             <input v-model="priceMax" type="number" placeholder="Đến" class="premium-input price-input">
           </div>
           <button class="btn btn-secondary btn-apply-price w-full" @click="handlePriceFilter">
@@ -163,7 +163,7 @@ function changePage(page: number) {
         <!-- Sorting -->
         <div class="filter-group">
           <label class="input-label">Sắp xếp theo</label>
-          <select v-model="sortOrder" class="premium-input">
+          <select v-model="sortOrder" class="premium-input select-input">
             <option value="position_desc">
               Nổi bật nhất
             </option>
@@ -198,7 +198,7 @@ function changePage(page: number) {
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Tìm kiếm sản phẩm..."
+            placeholder="Tìm kiếm theo tên sản phẩm..."
             class="premium-input search-input"
             @keyup.enter="handleSearch"
           >
@@ -213,7 +213,8 @@ function changePage(page: number) {
         </div>
 
         <div v-else-if="products.length === 0" class="empty-state">
-          Không tìm thấy sản phẩm nào khớp với bộ lọc của bạn.
+          <div class="empty-icon">🔍</div>
+          <p class="empty-text">Không tìm thấy sản phẩm nào khớp với yêu cầu của bạn.</p>
         </div>
 
         <div v-else>
@@ -222,13 +223,13 @@ function changePage(page: number) {
           </div>
 
           <!-- Pagination Footer -->
-          <div class="pagination-container">
+          <div class="pagination-container" v-if="totalPages > 1">
             <button
               :disabled="currentPage === 1"
               class="btn btn-secondary btn-pag"
               @click="changePage(currentPage - 1)"
             >
-              Trước
+              &larr; Trang trước
             </button>
             <span class="pag-info">Trang {{ currentPage }} / {{ totalPages }}</span>
             <button
@@ -236,7 +237,7 @@ function changePage(page: number) {
               class="btn btn-secondary btn-pag"
               @click="changePage(currentPage + 1)"
             >
-              Sau
+              Trang sau &rarr;
             </button>
           </div>
         </div>
@@ -248,61 +249,72 @@ function changePage(page: number) {
 <style scoped>
 .list-layout {
   display: flex;
-  gap: 2rem;
-  margin-top: 1rem;
+  gap: 1.75rem;
+  margin-top: 0.5rem;
 }
 
 /* Sidebar */
 .sidebar-filters {
-  width: 280px;
-  padding: 1.5rem;
+  width: 270px;
+  padding: 1.35rem;
   align-self: flex-start;
   flex-shrink: 0;
+  border-radius: 14px;
 }
 
 .filter-header {
-  font-size: 1.1rem;
-  font-weight: 700;
-  margin-bottom: 1.5rem;
-  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.25rem;
+  color: var(--text-main);
   border-bottom: 1px solid var(--border-color);
   padding-bottom: 0.75rem;
 }
 
 .filter-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.select-input {
+  cursor: pointer;
 }
 
 .price-range-inputs {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
+  gap: 0.4rem;
+  margin-bottom: 0.65rem;
 }
 
 .price-input {
   flex: 1;
   text-align: center;
+  padding: 0.55rem 0.5rem;
+  font-size: 0.875rem;
 }
 
 .price-sep {
-  color: var(--text-muted);
+  color: var(--text-dim);
+  font-weight: 700;
 }
 
 .btn-apply-price {
-  font-size: 0.85rem;
-  padding: 0.5rem 1rem;
+  font-size: 0.825rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: 8px;
 }
 
 /* Main Section */
 .products-main {
   flex: 1;
+  min-width: 0;
 }
 
 .search-bar-container {
   display: flex;
-  gap: 0.75rem;
-  margin-bottom: 2rem;
+  gap: 0.65rem;
+  margin-bottom: 1.75rem;
 }
 
 .search-input {
@@ -311,12 +323,26 @@ function changePage(page: number) {
 
 .btn-search {
   flex-shrink: 0;
+  padding: 0.7rem 1.35rem;
 }
 
 .empty-state {
   text-align: center;
   color: var(--text-muted);
-  padding: 4rem 0;
+  padding: 4rem 1.5rem;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+}
+
+.empty-icon {
+  font-size: 2.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.empty-text {
+  font-size: 0.95rem;
+  font-weight: 500;
 }
 
 /* Pagination */
@@ -324,20 +350,21 @@ function changePage(page: number) {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1.5rem;
-  margin-top: 3rem;
-  margin-bottom: 2rem;
+  gap: 1.25rem;
+  margin-top: 2.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .btn-pag {
-  padding: 0.5rem 1rem;
-  font-size: 0.9rem;
+  padding: 0.55rem 1rem;
+  font-size: 0.85rem;
+  border-radius: 8px;
 }
 
 .pag-info {
-  font-size: 0.95rem;
+  font-size: 0.875rem;
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .w-full {
@@ -346,7 +373,7 @@ function changePage(page: number) {
 
 .btn-filter-toggle-mobile {
   display: none;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 @media (max-width: 768px) {
@@ -359,8 +386,8 @@ function changePage(page: number) {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 44px;
-    font-size: 0.95rem;
+    height: 42px;
+    font-size: 0.9rem;
   }
 
   .sidebar-filters {
@@ -376,7 +403,7 @@ function changePage(page: number) {
   }
 
   .search-bar-container {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.25rem;
   }
 }
 </style>

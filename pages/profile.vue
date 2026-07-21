@@ -10,7 +10,7 @@ const authStore = useAuthStore()
 
 <template>
   <div class="profile-page container">
-    <h1 class="h1-title mb-8">
+    <h1 class="h1-title mb-6">
       Thông tin cá nhân
     </h1>
 
@@ -45,7 +45,7 @@ const authStore = useAuthStore()
         <div class="detail-row">
           <span class="detail-label">Trạng thái tài khoản:</span>
           <span class="detail-value">
-            <span class="badge badge-active">Đang hoạt động</span>
+            <span class="badge badge-active">Hoạt động</span>
           </span>
         </div>
       </div>
@@ -54,91 +54,100 @@ const authStore = useAuthStore()
 </template>
 
 <style scoped>
-.mb-8 {
-  margin-bottom: 2rem;
+.mb-6 {
+  margin-bottom: 1.75rem;
 }
 
 .profile-card {
-  max-width: 600px;
+  max-width: 540px;
   margin: 0 auto;
-  padding: 2.5rem;
+  padding: 2.25rem 2rem;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
 }
 
 .profile-header {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-  margin-bottom: 2.5rem;
+  gap: 1.25rem;
+  margin-bottom: 1.75rem;
   border-bottom: 1px solid var(--border-color);
-  padding-bottom: 1.5rem;
+  padding-bottom: 1.35rem;
 }
 
 .profile-avatar {
-  width: 70px;
-  height: 70px;
+  width: 64px;
+  height: 64px;
   background-color: var(--primary);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
-  font-weight: 700;
-  color: white;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #ffffff;
+  flex-shrink: 0;
 }
 
 .profile-name {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #fff;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
+  margin-bottom: 0.15rem;
 }
 
 .profile-role {
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 500;
 }
 
 .profile-details-grid {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 0.75rem;
 }
 
 .detail-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.5rem 0;
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border-color);
 }
 
 .detail-label {
   color: var(--text-muted);
-  font-weight: 500;
-  font-size: 0.95rem;
+  font-weight: 600;
+  font-size: 0.875rem;
 }
 
 .detail-value {
-  color: #fff;
-  font-weight: 600;
-  font-size: 0.95rem;
+  color: var(--text-main);
+  font-weight: 700;
+  font-size: 0.9rem;
 }
 
 @media (max-width: 576px) {
   .profile-card {
-    padding: 1.5rem;
+    padding: 1.5rem 1.25rem;
   }
 
   .profile-header {
     flex-direction: column;
     text-align: center;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1.25rem;
+    gap: 0.85rem;
+    margin-bottom: 1.35rem;
+    padding-bottom: 1.15rem;
   }
 
   .detail-row {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.25rem;
+    gap: 0.2rem;
   }
 
   .detail-value {
