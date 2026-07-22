@@ -6,7 +6,9 @@
     "build": "nuxt build",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "deploy": "npm run build && npx wrangler pages deploy"
+    "deploy": "npm run build && npx wrangler pages deploy",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push"
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",

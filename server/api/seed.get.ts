@@ -1,7 +1,5 @@
-import { sql } from 'drizzle-orm'
 import { createError, defineEventHandler, getQuery } from 'h3'
 import { db, schema } from 'hub:db'
-import { schema as rawSchema } from '../plugins/db'
 import * as helpers from '../utils/helpers'
 
 export default defineEventHandler(async (event) => {
@@ -22,14 +20,6 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const queries = rawSchema
-      .split(';')
-      .map(q => q.trim())
-      .filter(q => q.length > 0)
-    for (const query of queries) {
-      await db.run(sql.raw(query))
-    }
-
     await db.delete(schema.roles)
     await db.delete(schema.accounts)
     await db.delete(schema.productCategories)

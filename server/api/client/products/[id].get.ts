@@ -4,6 +4,12 @@ import { db, schema } from 'hub:db'
 
 export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, 'id')
+  if (!id) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'ID sản phẩm không hợp lệ.',
+    })
+  }
 
   const rows = await db.select({
     product: schema.products,
@@ -26,14 +32,16 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const p: any = {
+  const priceNew = Math.round(row.product.price! * (1 - (row.product.discountPercentage! || 0) / 100))
+
+  const productData = {
     ...row.product,
     product_category_id: row.category || null,
+    priceNew,
   }
-  p.priceNew = Math.round(p.price * (1 - p.discountPercentage / 100))
 
   return {
     success: true,
-    product: p,
+    product: productData,
   }
 })
