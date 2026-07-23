@@ -1,7 +1,6 @@
 import { and, eq } from 'drizzle-orm'
 import { createError, defineEventHandler, getHeader, parseCookies } from 'h3'
 import { db, schema } from 'hub:db'
-import { kv } from 'hub:kv'
 import { getJwtSecret } from '../utils/helpers'
 import { verifyJwt } from '../utils/jwt'
 
@@ -18,14 +17,6 @@ export default defineEventHandler(async (event) => {
   if (!token) {
     const cookies = parseCookies(event)
     token = cookies.token || ''
-  }
-
-  // 1.5. Check if the token is blacklisted in Cloudflare KV
-  if (token) {
-    const isBlacklisted = await kv.has(`blacklist:token:${token}`)
-    if (isBlacklisted) {
-      token = ''
-    }
   }
 
   // 2. Decode token and inject user/admin context

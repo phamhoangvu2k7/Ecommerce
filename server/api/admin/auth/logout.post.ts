@@ -1,24 +1,30 @@
+import { eq } from 'drizzle-orm'
 import { defineEventHandler, deleteCookie, getHeader, parseCookies } from 'h3'
-import { kv } from 'hub:kv'
+import { db, schema } from 'hub:db'
 
 export default defineEventHandler(async (event) => {
-  let token = ''
-  const authHeader = getHeader(event, 'authorization')
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    token = authHeader.substring(7)
+  let refreshToken = ''
+  const cookies = parseCookies(event)
+  refreshToken = cookies.refreshToken || ''
+
+  if (!refreshToken) {
+    const authHeader = getHeader(event, 'authorization')
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      refreshToken = authHeader.substring(7)
+    }
   }
 
-  if (!token) {
-    const cookies = parseCookies(event)
-    token = cookies.token || ''
+  if (refreshToken) {
+    // Revoke Refresh Token in SQLite database
+    await db.update(schema.refreshTokens)
+      .set({ isRevoked: 1 })
+      .where(eq(schema.refreshTokens.token, refreshToken))
   }
 
-  if (token) {
-    // Add token to blacklist with 1 day TTL (matching cookie/JWT maxAge)
-    await kv.set(`blacklist:token:${token}`, true, { ttl: 86400 })
-  }
-
+  // Clear authentication cookies
   deleteCookie(event, 'token')
+  deleteCookie(event, 'refreshToken')
+
   return {
     success: true,
     message: 'Đăng xuất thành công',

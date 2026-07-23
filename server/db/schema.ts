@@ -138,3 +138,14 @@ export const orders = sqliteTable('orders', {
   createdAt: text('createdAt').default(sql`(datetime('now', 'localtime'))`),
   updatedAt: text('updatedAt').default(sql`(datetime('now', 'localtime'))`),
 })
+
+// 8. Refresh Tokens
+export const refreshTokens = sqliteTable('refresh_tokens', {
+  id: text('id').primaryKey(),
+  user_id: text('user_id'),
+  account_id: text('account_id'),
+  token: text('token').notNull().unique(),
+  expiresAt: text('expiresAt').notNull(),
+  isRevoked: integer('isRevoked').default(0),
+  createdAt: text('createdAt').default(sql`(datetime('now', 'localtime'))`),
+})

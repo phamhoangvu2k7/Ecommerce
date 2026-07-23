@@ -2,7 +2,7 @@ import { and, eq } from 'drizzle-orm'
 import { createError, defineEventHandler, readBody, setCookie } from 'h3'
 import { db, schema } from 'hub:db'
 import { comparePassword, getJwtSecret } from '../../../utils/helpers'
-import { signJwt } from '../../../utils/jwt'
+import { signAccessToken, signRefreshToken } from '../../../utils/jwt'
 import { LoginValidation } from '../../../utils/validation'
 
 export default defineEventHandler(async (event) => {
@@ -63,24 +63,40 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // Generate JWT token
-  const token = await signJwt(
-    { id: account.id, role: 'admin' },
-    getJwtSecret(),
-    { expiresIn: '1d' },
-  )
+  // Issue Dual Tokens (Access Token 15m + Refresh Token 7d)
+  const token = await signAccessToken({ id: account.id, role: 'admin' }, getJwtSecret())
+  const refreshToken = await signRefreshToken({ id: account.id, role: 'admin' }, getJwtSecret())
 
-  // Set HTTP-only Cookie
+  // Store Refresh Token record in SQLite
+  const refreshTokenId = crypto.randomUUID()
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+  await db.insert(schema.refreshTokens).values({
+    id: refreshTokenId,
+    account_id: account.id,
+    token: refreshToken,
+    expiresAt,
+    isRevoked: 0,
+  })
+
+  // Set Cookies
   setCookie(event, 'token', token, {
     httpOnly: true,
     // eslint-disable-next-line node/prefer-global/process
     secure: process.env.NODE_ENV === 'production',
-    maxAge: 60 * 60 * 24, // 1 day
+    maxAge: 60 * 15, // 15 minutes
+  })
+
+  setCookie(event, 'refreshToken', refreshToken, {
+    httpOnly: true,
+    // eslint-disable-next-line node/prefer-global/process
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 60 * 60 * 24 * 7, // 7 days
   })
 
   return {
     success: true,
     token,
+    refreshToken,
     user: {
       id: account.id,
       fullName: account.fullName,

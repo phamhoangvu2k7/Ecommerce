@@ -44,3 +44,23 @@ export async function verifyJwt<T = JWTPayload>(token: string, secret: string): 
     throw new Error(msg)
   }
 }
+
+/**
+ * Signs a short-lived Access Token (15 minutes by default)
+ */
+export async function signAccessToken(
+  payload: Record<string, unknown>,
+  secret: string,
+): Promise<string> {
+  return signJwt(payload, secret, { expiresIn: '15m' })
+}
+
+/**
+ * Signs a long-lived Refresh Token (7 days by default)
+ */
+export async function signRefreshToken(
+  payload: Record<string, unknown>,
+  secret: string,
+): Promise<string> {
+  return signJwt(payload, secret, { expiresIn: '7d' })
+}
