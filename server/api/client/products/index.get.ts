@@ -1,5 +1,6 @@
 import { defineEventHandler, getQuery } from 'h3'
 import { kv } from 'hub:kv'
+import { generateCacheKey } from '../../../utils/cache'
 import { ProductService } from '../../../utils/services'
 
 export default defineEventHandler(async (event) => {
@@ -8,12 +9,7 @@ export default defineEventHandler(async (event) => {
   // Only cache if there's no search query 'q' (search is dynamic)
   const shouldCache = !query.q
 
-  // Format safe key for Windows filesystem (avoid quotes `"`, `{}` in KV keys)
-  const queryPairs = Object.keys(query)
-    .sort()
-    .map(k => `${k}_${String(query[k]).replace(/[^\w-]/g, '')}`)
-    .join('_')
-  const cacheKey = queryPairs ? `cache:products:list:${queryPairs}` : 'cache:products:list:default'
+  const cacheKey = generateCacheKey('products:list', query)
 
   if (shouldCache) {
     const cachedData = await kv.get(cacheKey)

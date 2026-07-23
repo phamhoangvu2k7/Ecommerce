@@ -1,8 +1,8 @@
 import { and, eq } from 'drizzle-orm'
 import { createError, defineEventHandler, readBody } from 'h3'
 import { db, schema } from 'hub:db'
-import { hashPassword } from '../../../utils/helpers.ts'
-import { RegisterValidation } from '../../../utils/validation.ts'
+import { hashPassword } from '../../../utils/helpers'
+import { RegisterValidation } from '../../../utils/validation'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -46,7 +46,7 @@ export default defineEventHandler(async (event) => {
   await db.insert(schema.carts).values({
     id: cartId,
     user_id: userId,
-    products: '[]',
+    products: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   })

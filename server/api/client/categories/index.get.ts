@@ -1,6 +1,6 @@
 import { defineEventHandler } from 'h3'
 import { kv } from 'hub:kv'
-import { ProductService } from '../../../utils/services.ts'
+import { ProductService } from '../../../utils/services'
 
 export default defineEventHandler(async () => {
   const cacheKey = 'cache:categories'
