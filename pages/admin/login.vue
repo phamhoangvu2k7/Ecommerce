@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useAuthStore } from '~/stores/auth.ts'
+import { useAuthStore } from '~/stores/auth'
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -36,7 +36,7 @@ async function handleLogin() {
       router.push('/admin/dashboard')
     }
     else {
-      errorMsg.value = data.statusMessage || 'Đăng nhập thất bại.'
+      errorMsg.value = data.message || data.statusMessage || 'Đăng nhập thất bại.'
     }
   }
   catch (err: any) {

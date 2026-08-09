@@ -11,9 +11,11 @@ export default defineEventHandler(async (event) => {
   // Validate input
   const parsed = LoginValidation.safeParse(body)
   if (!parsed.success) {
+    const errorMsg = parsed.error.errors.map(e => e.message).join(', ')
     throw createError({
       statusCode: 400,
-      statusMessage: parsed.error.errors.map(e => e.message).join(', '),
+      statusMessage: errorMsg,
+      message: errorMsg,
     })
   }
 
@@ -28,6 +30,7 @@ export default defineEventHandler(async (event) => {
     throw createError({
       statusCode: 400,
       statusMessage: 'Email không tồn tại trong hệ thống',
+      message: 'Email không tồn tại trong hệ thống',
     })
   }
 
@@ -35,6 +38,7 @@ export default defineEventHandler(async (event) => {
     throw createError({
       statusCode: 400,
       statusMessage: 'Mật khẩu không chính xác',
+      message: 'Mật khẩu không chính xác',
     })
   }
 
@@ -42,6 +46,7 @@ export default defineEventHandler(async (event) => {
     throw createError({
       statusCode: 400,
       statusMessage: 'Tài khoản của bạn đã bị khóa',
+      message: 'Tài khoản của bạn đã bị khóa',
     })
   }
 
