@@ -1,6 +1,5 @@
-import { and, eq } from 'drizzle-orm'
 import { createError, defineEventHandler, getRouterParam } from 'h3'
-import { db, schema } from 'hub:db'
+import { ProductService } from '../../../services/product.service'
 
 export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, 'id')
@@ -11,20 +10,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const rows = await db.select({
-    product: schema.products,
-    category: schema.productCategories,
-  })
-    .from(schema.products)
-    .leftJoin(schema.productCategories, eq(schema.products.product_category_id, schema.productCategories.id))
-    .where(and(
-      eq(schema.products.id, id),
-      eq(schema.products.status, 'active'),
-      eq(schema.products.deleted, 0),
-    ))
-    .limit(1)
-
-  const row = rows[0]
+  const row = await ProductService.getProductById(id)
   if (!row) {
     throw createError({
       statusCode: 404,
@@ -45,3 +31,4 @@ export default defineEventHandler(async (event) => {
     product: productData,
   }
 })
+

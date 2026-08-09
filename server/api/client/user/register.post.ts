@@ -1,7 +1,5 @@
-import { and, eq } from 'drizzle-orm'
 import { createError, defineEventHandler, readBody } from 'h3'
-import { db, schema } from 'hub:db'
-import { hashPassword } from '../../../utils/helpers'
+import { UserService } from '../../../services/user.service'
 import { RegisterValidation } from '../../../utils/validation'
 
 export default defineEventHandler(async (event) => {
@@ -14,45 +12,18 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const { fullName, email, password, phone } = parsed.data
-
-  const existingUsers = await db.select()
-    .from(schema.users)
-    .where(and(eq(schema.users.email, email), eq(schema.users.deleted, 0)))
-    .limit(1)
-  const existingUser = existingUsers[0]
-  if (existingUser) {
+  try {
+    await UserService.register(parsed.data)
+    return {
+      success: true,
+      message: 'Đăng ký tài khoản thành công.',
+    }
+  }
+  catch (err: any) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Email này đã được đăng ký sử dụng.',
+      statusMessage: err.message || 'Đăng ký thất bại.',
     })
   }
-
-  const userId = crypto.randomUUID()
-  await db.insert(schema.users).values({
-    id: userId,
-    fullName,
-    email,
-    password: hashPassword(password),
-    phone,
-    status: 'active',
-    deleted: 0,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  })
-
-  // Initialize an empty cart for this user
-  const cartId = crypto.randomUUID()
-  await db.insert(schema.carts).values({
-    id: cartId,
-    user_id: userId,
-    products: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  })
-
-  return {
-    success: true,
-    message: 'Đăng ký tài khoản thành công.',
-  }
 })
+
