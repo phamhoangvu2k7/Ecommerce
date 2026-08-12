@@ -34,7 +34,8 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  if (!comparePassword(password, account.password)) {
+  const isValidPassword = await comparePassword(password, account.password)
+  if (!isValidPassword) {
     throw createError({
       statusCode: 400,
       statusMessage: 'Mật khẩu không chính xác',

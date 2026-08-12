@@ -1,7 +1,7 @@
 import { and, eq } from 'drizzle-orm'
 import { createError, defineEventHandler, readBody } from 'h3'
 import { db, schema } from 'hub:db'
-import { hashPassword } from '../../../utils/helpers.ts'
+import { hashPassword } from '../../../utils/helpers'
 
 export default defineEventHandler(async (event) => {
   const permissions = event.context.admin?.role_id?.permissions || []
@@ -54,7 +54,7 @@ export default defineEventHandler(async (event) => {
     if (body.fullName !== undefined)
       updateData.fullName = body.fullName
     if (body.password)
-      updateData.password = hashPassword(body.password)
+      updateData.password = await hashPassword(body.password)
     if (body.role_id !== undefined)
       updateData.role_id = body.role_id || null
     if (body.phone !== undefined)

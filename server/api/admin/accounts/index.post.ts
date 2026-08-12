@@ -1,7 +1,7 @@
 import { and, eq } from 'drizzle-orm'
 import { createError, defineEventHandler, readBody } from 'h3'
 import { db, schema } from 'hub:db'
-import { hashPassword } from '../../../utils/helpers.ts'
+import { hashPassword } from '../../../utils/helpers'
 
 export default defineEventHandler(async (event) => {
   const permissions = event.context.admin?.role_id?.permissions || []
@@ -34,11 +34,12 @@ export default defineEventHandler(async (event) => {
     }
 
     const accountId = crypto.randomUUID()
+    const hashedPassword = await hashPassword(body.password)
     const accountData = {
       id: accountId,
       fullName: body.fullName,
       email: body.email,
-      password: hashPassword(body.password),
+      password: hashedPassword,
       role_id: body.role_id || null,
       phone: body.phone || '',
       avatar: body.avatar || '',

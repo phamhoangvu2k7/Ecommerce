@@ -2,11 +2,11 @@ import { compareSync, hashSync } from 'bcrypt-edge'
 import { Resend } from 'resend'
 import { randomUUID } from 'uncrypto'
 
-export function hashPassword(password: string): string {
+export async function hashPassword(password: string): Promise<string> {
   return hashSync(password, 10)
 }
 
-export function comparePassword(password: string, hash: string): boolean {
+export async function comparePassword(password: string, hash: string): Promise<boolean> {
   return compareSync(password, hash)
 }
 
@@ -77,7 +77,7 @@ function getExtension(buffer: Buffer): string {
   return ''
 }
 
-export async function uploadToCloudinary(
+export async function uploadToR2(
   // eslint-disable-next-line node/prefer-global/buffer
   fileBuffer: Buffer,
   folder: string = 'products',

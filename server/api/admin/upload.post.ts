@@ -1,5 +1,5 @@
 import { createError, defineEventHandler, readMultipartFormData } from 'h3'
-import { prependImageDomain, stripImageDomain, uploadToCloudinary } from '../../utils/helpers.ts'
+import { prependImageDomain, stripImageDomain, uploadToR2 } from '../../utils/helpers'
 
 export default defineEventHandler(async (event) => {
   // Verify admin permissions (context set by global auth middleware)
@@ -31,7 +31,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     // Upload buffer to Cloudinary folder "products" (Cloudflare R2)
-    const rawUrl = await uploadToCloudinary(filePart.data, 'products', {
+    const rawUrl = await uploadToR2(filePart.data, 'products', {
       contentType: filePart.type,
       filename: filePart.filename,
     })

@@ -41,9 +41,10 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    const hashedPassword = await hashPassword(password)
     await db.update(schema.users)
       .set({
-        password: hashPassword(password),
+        password: hashedPassword,
         updatedAt: new Date().toISOString(),
       })
       .where(eq(schema.users.id, user.id))

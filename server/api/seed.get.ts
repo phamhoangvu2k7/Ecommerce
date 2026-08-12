@@ -59,11 +59,12 @@ export default defineEventHandler(async (event) => {
     // eslint-disable-next-line node/prefer-global/process
     const adminPassword = process.env.ADMIN_PASSWORD || 'admin123'
 
+    const hashedPassword = await helpers.hashPassword(adminPassword)
     await db.insert(schema.accounts).values({
       id: 'account-admin',
       fullName: 'Super Admin',
       email: adminEmail,
-      password: helpers.hashPassword(adminPassword),
+      password: hashedPassword,
       role_id: 'role-admin',
       phone: '0123456789',
       avatar: '',

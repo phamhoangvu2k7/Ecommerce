@@ -11,7 +11,8 @@ export const AdminService = {
       .limit(1)
 
     const account = accounts[0]
-    if (!account || !comparePassword(password, account.password)) {
+    const isValidPassword = account ? await comparePassword(password, account.password) : false
+    if (!account || !isValidPassword) {
       throw new Error('Email hoặc mật khẩu không chính xác.')
     }
 

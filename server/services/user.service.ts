@@ -20,11 +20,13 @@ export const UserService = {
     const userId = crypto.randomUUID()
     const now = new Date().toISOString()
 
+    const hashedPassword = await hashPassword(password)
+
     await db.insert(schema.users).values({
       id: userId,
       fullName,
       email,
-      password: hashPassword(password),
+      password: hashedPassword,
       phone,
       status: 'active',
       deleted: 0,
@@ -51,7 +53,8 @@ export const UserService = {
       .limit(1)
 
     const user = users[0]
-    if (!user || !comparePassword(password, user.password)) {
+    const isValidPassword = user ? await comparePassword(password, user.password) : false
+    if (!user || !isValidPassword) {
       throw new Error('Email hoặc mật khẩu không chính xác.')
     }
 
@@ -225,9 +228,10 @@ export const UserService = {
       throw new Error('Tài khoản người dùng không tồn tại.')
     }
 
+    const hashedPassword = await hashPassword(newPassword)
     await db.update(schema.users)
       .set({
-        password: hashPassword(newPassword),
+        password: hashedPassword,
         updatedAt: new Date().toISOString(),
       })
       .where(eq(schema.users.id, user.id))

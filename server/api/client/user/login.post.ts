@@ -30,7 +30,8 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  if (!comparePassword(password, user.password)) {
+  const isValidPassword = await comparePassword(password, user.password)
+  if (!isValidPassword) {
     throw createError({
       statusCode: 400,
       statusMessage: 'Email hoặc mật khẩu không chính xác.',
