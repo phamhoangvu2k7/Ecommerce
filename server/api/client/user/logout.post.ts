@@ -22,8 +22,8 @@ export default defineEventHandler(async (event) => {
   }
 
   // Clear authentication cookies
-  deleteCookie(event, 'token')
-  deleteCookie(event, 'refreshToken')
+  deleteCookie(event, 'token', { path: '/' })
+  deleteCookie(event, 'refreshToken', { path: '/' })
 
   return {
     success: true,

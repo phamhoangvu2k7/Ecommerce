@@ -100,7 +100,7 @@ function formatPrice(value: number) {
         <h1 class="product-title">
           {{ product.title }}
         </h1>
-        <p class="product-category" v-if="product.product_category_id?.title">
+        <p v-if="product.product_category_id?.title" class="product-category">
           Danh mục: <strong>{{ product.product_category_id?.title }}</strong>
         </p>
 

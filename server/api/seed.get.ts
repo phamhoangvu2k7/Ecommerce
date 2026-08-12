@@ -50,7 +50,7 @@ export default defineEventHandler(async (event) => {
       id: 'role-admin',
       title: 'Quản trị viên',
       description: 'Toàn quyền quản trị hệ thống',
-      permissions: JSON.stringify(adminPermissions) as any,
+      permissions: adminPermissions,
     })
 
     // Sử dụng biến môi trường (Environment Variables) hoặc fallback về mặc định

@@ -63,7 +63,14 @@ export const UserService = {
     }
 
     const secret = getJwtSecret()
-    const token = await signAccessToken({ id: user.id, role: 'client' }, secret)
+    const token = await signAccessToken({
+      id: user.id,
+      role: 'client',
+      fullName: user.fullName,
+      email: user.email,
+      phone: user.phone || '',
+      avatar: user.avatar || '',
+    }, secret)
     const refreshToken = await signRefreshToken({ id: user.id, role: 'client' }, secret)
 
     const refreshTokenId = crypto.randomUUID()

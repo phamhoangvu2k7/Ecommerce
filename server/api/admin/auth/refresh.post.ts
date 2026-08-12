@@ -83,12 +83,38 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  let permissions: string[] = []
+  if (account.role_id) {
+    const roles = await db.select()
+      .from(schema.roles)
+      .where(and(eq(schema.roles.id, account.role_id), eq(schema.roles.deleted, 0)))
+      .limit(1)
+    const role = roles[0]
+    if (role && Array.isArray(role.permissions)) {
+      permissions = role.permissions
+    }
+    else if (role && typeof role.permissions === 'string') {
+      try {
+        permissions = JSON.parse(role.permissions)
+      }
+      catch {}
+    }
+  }
+
   // Refresh Token Rotation (RTR): Revoke old refresh token & issue a new pair
   await db.update(schema.refreshTokens)
     .set({ isRevoked: 1 })
     .where(eq(schema.refreshTokens.id, tokenRecord.id))
 
-  const newAccessToken = await signAccessToken({ id: account.id, role: 'admin' }, getJwtSecret())
+  const newAccessToken = await signAccessToken({
+    id: account.id,
+    role: 'admin',
+    fullName: account.fullName,
+    email: account.email,
+    phone: account.phone || '',
+    avatar: account.avatar || '',
+    permissions,
+  }, getJwtSecret())
   const newRefreshToken = await signRefreshToken({ id: account.id, role: 'admin' }, getJwtSecret())
 
   const newRefreshTokenId = crypto.randomUUID()
@@ -106,6 +132,8 @@ export default defineEventHandler(async (event) => {
     httpOnly: true,
     // eslint-disable-next-line node/prefer-global/process
     secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
     maxAge: 60 * 15, // 15 minutes
   })
 
@@ -113,6 +141,8 @@ export default defineEventHandler(async (event) => {
     httpOnly: true,
     // eslint-disable-next-line node/prefer-global/process
     secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
     maxAge: 60 * 60 * 24 * 7, // 7 days
   })
 

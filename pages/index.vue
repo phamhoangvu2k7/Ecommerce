@@ -20,7 +20,6 @@ onMounted(async () => {
     loading.value = false
   }
 })
-
 </script>
 
 <template>
@@ -28,7 +27,9 @@ onMounted(async () => {
     <!-- Hero Section -->
     <section class="hero-section glass-panel fade-in-item">
       <div class="hero-content">
-        <div class="hero-pill">✨ Tuyển chọn sản phẩm chính hãng 2026</div>
+        <div class="hero-pill">
+          ✨ Tuyển chọn sản phẩm chính hãng 2026
+        </div>
         <h1 class="hero-title">
           Trải nghiệm Mua sắm Premium
         </h1>

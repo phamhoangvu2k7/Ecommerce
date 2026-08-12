@@ -88,7 +88,14 @@ export default defineEventHandler(async (event) => {
     .set({ isRevoked: 1 })
     .where(eq(schema.refreshTokens.id, tokenRecord.id))
 
-  const newAccessToken = await signAccessToken({ id: user.id, role: 'client' }, getJwtSecret())
+  const newAccessToken = await signAccessToken({
+    id: user.id,
+    role: 'client',
+    fullName: user.fullName,
+    email: user.email,
+    phone: user.phone || '',
+    avatar: user.avatar || '',
+  }, getJwtSecret())
   const newRefreshToken = await signRefreshToken({ id: user.id, role: 'client' }, getJwtSecret())
 
   const newRefreshTokenId = crypto.randomUUID()
@@ -106,6 +113,8 @@ export default defineEventHandler(async (event) => {
     httpOnly: true,
     // eslint-disable-next-line node/prefer-global/process
     secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
     maxAge: 60 * 15, // 15 minutes
   })
 
@@ -113,6 +122,8 @@ export default defineEventHandler(async (event) => {
     httpOnly: true,
     // eslint-disable-next-line node/prefer-global/process
     secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
     maxAge: 60 * 60 * 24 * 7, // 7 days
   })
 

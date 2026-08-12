@@ -37,8 +37,17 @@ export const AdminService = {
       }
     }
 
+    const permissions = role?.permissions || []
     const secret = getJwtSecret()
-    const token = await signAccessToken({ id: account.id, role: 'admin' }, secret)
+    const token = await signAccessToken({
+      id: account.id,
+      role: 'admin',
+      fullName: account.fullName,
+      email: account.email,
+      phone: account.phone || '',
+      avatar: account.avatar || '',
+      permissions,
+    }, secret)
     const refreshToken = await signRefreshToken({ id: account.id, role: 'admin' }, secret)
 
     const refreshTokenId = crypto.randomUUID()

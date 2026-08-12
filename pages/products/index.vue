@@ -213,8 +213,12 @@ function changePage(page: number) {
         </div>
 
         <div v-else-if="products.length === 0" class="empty-state">
-          <div class="empty-icon">🔍</div>
-          <p class="empty-text">Không tìm thấy sản phẩm nào khớp với yêu cầu của bạn.</p>
+          <div class="empty-icon">
+            🔍
+          </div>
+          <p class="empty-text">
+            Không tìm thấy sản phẩm nào khớp với yêu cầu của bạn.
+          </p>
         </div>
 
         <div v-else>
@@ -223,7 +227,7 @@ function changePage(page: number) {
           </div>
 
           <!-- Pagination Footer -->
-          <div class="pagination-container" v-if="totalPages > 1">
+          <div v-if="totalPages > 1" class="pagination-container">
             <button
               :disabled="currentPage === 1"
               class="btn btn-secondary btn-pag"

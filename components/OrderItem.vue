@@ -117,8 +117,12 @@ function getStatusClass(status: string) {
     <!-- Order Footer -->
     <div class="order-footer">
       <div class="shipping-info">
-        <p class="shipping-recipient">📍 {{ order.userInfo.fullName }} <span class="phone-tag">({{ order.userInfo.phone }})</span></p>
-        <p class="shipping-address">🏠 {{ order.userInfo.address }}</p>
+        <p class="shipping-recipient">
+          📍 {{ order.userInfo.fullName }} <span class="phone-tag">({{ order.userInfo.phone }})</span>
+        </p>
+        <p class="shipping-address">
+          🏠 {{ order.userInfo.address }}
+        </p>
       </div>
       <div class="order-action-total">
         <div class="order-total-price">

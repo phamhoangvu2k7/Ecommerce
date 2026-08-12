@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
       .orderBy(desc(schema.accounts.createdAt))
 
     const accounts = rows.map((row) => {
-      let role = row.role || null
+      const role = row.role || null
       if (role && typeof role.permissions === 'string') {
         try {
           role.permissions = JSON.parse(role.permissions)
@@ -42,7 +42,7 @@ export default defineEventHandler(async (event) => {
       accounts,
     }
   }
-  catch (err) {
+  catch {
     throw createError({
       statusCode: 500,
       statusMessage: 'Lỗi hệ thống khi tải danh sách tài khoản quản trị.',

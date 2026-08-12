@@ -35,7 +35,7 @@ function formatPrice(value: number) {
       </div>
     </div>
     <div class="product-details">
-      <div class="product-category" v-if="product.product_category_id?.title">
+      <div v-if="product.product_category_id?.title" class="product-category">
         {{ product.product_category_id?.title }}
       </div>
       <h3 class="product-title" :title="product.title">

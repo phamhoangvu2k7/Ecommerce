@@ -59,7 +59,14 @@ export default defineEventHandler(async (event) => {
   }
 
   // Issue Dual Tokens (Access Token 15m + Refresh Token 7d)
-  const token = await signAccessToken({ id: user.id, role: 'client' }, getJwtSecret())
+  const token = await signAccessToken({
+    id: user.id,
+    role: 'client',
+    fullName: user.fullName,
+    email: user.email,
+    phone: user.phone || '',
+    avatar: user.avatar || '',
+  }, getJwtSecret())
   const refreshToken = await signRefreshToken({ id: user.id, role: 'client' }, getJwtSecret())
 
   // Store Refresh Token record in SQLite
@@ -78,6 +85,8 @@ export default defineEventHandler(async (event) => {
     httpOnly: true,
     // eslint-disable-next-line node/prefer-global/process
     secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
     maxAge: 60 * 15, // 15 minutes
   })
 
@@ -85,6 +94,8 @@ export default defineEventHandler(async (event) => {
     httpOnly: true,
     // eslint-disable-next-line node/prefer-global/process
     secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
     maxAge: 60 * 60 * 24 * 7, // 7 days
   })
 

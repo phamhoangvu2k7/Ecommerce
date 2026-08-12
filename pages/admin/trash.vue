@@ -151,7 +151,9 @@ function formatPrice(value: number) {
               <td class="text-muted">
                 {{ product.product_category_id?.title || 'Không danh mục' }}
               </td>
-              <td class="font-bold">{{ formatPrice(product.price) }}</td>
+              <td class="font-bold">
+                {{ formatPrice(product.price) }}
+              </td>
               <td>
                 <button class="btn btn-primary btn-restore" @click="handleRestore('product', product.id)">
                   🔄 Khôi phục

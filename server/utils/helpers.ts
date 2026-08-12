@@ -1,13 +1,13 @@
-import { compareSync, hashSync } from 'bcrypt-edge'
+import bcrypt from 'bcryptjs'
 import { Resend } from 'resend'
 import { randomUUID } from 'uncrypto'
 
 export async function hashPassword(password: string): Promise<string> {
-  return hashSync(password, 10)
+  return await bcrypt.hash(password, 10)
 }
 
 export async function comparePassword(password: string, hash: string): Promise<boolean> {
-  return compareSync(password, hash)
+  return await bcrypt.compare(password, hash)
 }
 
 export function generateOTP(length: number = 6): string {

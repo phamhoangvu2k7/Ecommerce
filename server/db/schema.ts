@@ -26,7 +26,7 @@ export const roles = sqliteTable('roles', {
   id: text('id').primaryKey(),
   title: text('title').notNull(),
   description: text('description').default(''),
-  permissions: text('permissions').$type<string[]>().default([]),
+  permissions: text('permissions', { mode: 'json' }).$type<string[]>().default([]),
   deleted: integer('deleted').default(0),
   deletedAt: text('deletedAt'),
   deletedBy: text('deletedBy'),
@@ -117,7 +117,7 @@ export const products = sqliteTable('products', {
 export const carts = sqliteTable('carts', {
   id: text('id').primaryKey(),
   user_id: text('user_id'),
-  products: text('products').$type<CartProduct[]>().default([]),
+  products: text('products', { mode: 'json' }).$type<CartProduct[]>().default([]),
   createdAt: text('createdAt').default(sql`(datetime('now', 'localtime'))`),
   updatedAt: text('updatedAt').default(sql`(datetime('now', 'localtime'))`),
 })
@@ -127,8 +127,8 @@ export const orders = sqliteTable('orders', {
   id: text('id').primaryKey(),
   user_id: text('user_id'),
   cart_id: text('cart_id').notNull(),
-  userInfo: text('userInfo').$type<OrderUserInfo>().notNull(),
-  products: text('products').$type<OrderProduct[]>().default([]),
+  userInfo: text('userInfo', { mode: 'json' }).$type<OrderUserInfo>().notNull(),
+  products: text('products', { mode: 'json' }).$type<OrderProduct[]>().default([]),
   status: text('status').default('pending'),
   deleted: integer('deleted').default(0),
   deletedAt: text('deletedAt'),
