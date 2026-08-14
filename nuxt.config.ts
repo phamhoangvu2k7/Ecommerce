@@ -36,7 +36,7 @@ export default defineNuxtConfig({
   css: ['~/assets/css/style.css'],
   app: {
     head: {
-      title: 'Product Management Premium System',
+      title: 'Product Management System',
       htmlAttrs: {
         lang: 'vi',
       },

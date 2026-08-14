@@ -1,6 +1,7 @@
 import type { SQL } from 'drizzle-orm'
 import { and, asc, count, desc, eq, inArray, isNull, like } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
+import { kv } from 'hub:kv'
 
 export type Category = typeof schema.productCategories.$inferSelect
 export type CategoryNode = Category & { children: CategoryNode[] }
@@ -407,4 +408,18 @@ export const ProductService = {
         .where(eq(schema.productCategories.id, currentCategory.id))
     }
   },
+
+  // Xóa bộ nhớ đệm (cache) sản phẩm trong KV
+  async invalidateProductsCache() {
+    try {
+      const keys = await kv.keys('cache:products')
+      for (const key of keys) {
+        await kv.del(key)
+      }
+    }
+    catch (err) {
+      console.error('Error invalidating products cache:', err)
+    }
+  },
 }
+

@@ -14,7 +14,7 @@
   <img src="https://img.shields.io/badge/TypeScript-5.x-blue" alt="TypeScript version" />
 </p>
 
-A full-featured E-Commerce application built on top of **Nuxt 3** and **Nuxt Hub** using **TypeScript**. The system features a customer-facing store interface as well as an intuitive Admin Dashboard for catalog and store management. Data is stored in **SQLite (Cloudflare D1)**, product media assets are managed via **Nuxt Hub Blob (Cloudflare R2)**, and account recovery OTP emails are dispatched via the **Resend API** (or logged to the console in development mode).
+A full-featured E-Commerce application built on top of **Nuxt 3** and **Nuxt Hub** using **TypeScript**. The system features a customer-facing store interface as well as an intuitive Admin Dashboard for catalog and store management. Data is stored in **SQLite (Cloudflare D1)** via **Drizzle ORM**, product media assets are managed via **Nuxt Hub Blob (Cloudflare R2)**, and account recovery OTP emails are dispatched via the **Resend API** (or logged to the console in development mode).
 
 ---
 
@@ -33,12 +33,12 @@ https://github.com/user-attachments/assets/554ebff2-0e78-4b56-b3a6-c5e5e9245e93
 ## Key Features
 
 * **Responsive & Dark Mode UI**: Full cross-device compatibility (Desktop, Tablet, Mobile) with real-time Light/Dark mode toggling.
-* **Cart Synchronization**: Allows guest users to add items to a temporary cart, which seamlessly merges with their personal account cart upon logging in.
+* **Cart Synchronization**: Allows guest users to add items to a temporary cart (Cloudflare KV), which seamlessly merges with their personal account cart upon logging in.
 * **Inventory Stock Verification**: Validates real-time database stock counts prior to order placement to prevent overselling.
 * **Automatic Stock Restoration**: Automatically restores product inventory counts whenever an order is cancelled.
 * **Hierarchical Category Management**: Supports multi-level parent-child categories. Deletion is safely blocked if a category or its subcategories contain active products.
-* **Soft Delete Trash System**: Product and category deletions use soft deletion, enabling administrators to easily restore or permanently purge archived items.
-* **JWT Authentication & Security**: Passwords encrypted with `bcrypt-edge`. Role-based authorization and session management secured via JSON Web Tokens.
+* **Soft Delete Trash System**: Product and category deletions use soft deletion (`deleted = 1`), enabling administrators to easily restore or permanently purge archived items.
+* **JWT Authentication & Security**: Passwords encrypted with `bcryptjs`. Role-based authorization and session management secured via Dual JWT Tokens (Access Token 15m + Refresh Token 7d).
 * **Email OTP Verification**: Delivers 3-minute temporary OTP codes via Resend API (or console log in dev) for password reset workflows.
 
 ---
@@ -46,10 +46,10 @@ https://github.com/user-attachments/assets/554ebff2-0e78-4b56-b3a6-c5e5e9245e93
 ## Tech Stack
 
 ### Backend (Server)
-* **Framework**: Nuxt 3 Server Routes (Nitro v3 & h3 engine) integrated with **Nuxt Hub**.
+* **Framework**: Nuxt 3 Server Routes (Nitro & h3 engine) integrated with **Nuxt Hub**.
 * **Database & ORM**: **SQLite (Cloudflare D1)** with **Drizzle ORM** (via `hub:db`).
-* **KV Storage**: **Cloudflare KV** for fast key-value storage (OTP verification, caching).
-* **Password Hashing**: `bcrypt-edge` (fully compatible with Cloudflare Workers / Edge Runtime).
+* **KV Storage**: **Cloudflare KV** for fast key-value storage (OTP verification, guest cart).
+* **Password Hashing**: `bcryptjs` (asynchronous password hashing).
 * **Authentication**: JWT authentication powered by `jose`.
 * **Email Dispatch**: **Resend API** (with local dev console fallback).
 * **Validation**: Zod 3.x (strict input parsing for auth, products, and checkout payloads).
@@ -74,6 +74,7 @@ List of API endpoints organized by domain:
 | `POST` | `/api/client/user/login` | Log in to customer account |
 | `POST` | `/api/client/user/logout` | Log out from current session |
 | `GET` | `/api/client/user/me` | Retrieve current authenticated user profile |
+| `POST` | `/api/client/user/refresh` | Automatically refresh Access Token |
 | `POST` | `/api/client/user/forgot-password` | Request password reset OTP email |
 | `POST` | `/api/client/user/verify-otp` | Verify password reset OTP code |
 | `POST` | `/api/client/user/reset-password` | Reset password using verified token |
@@ -97,6 +98,7 @@ List of API endpoints organized by domain:
 | :--- | :--- | :--- |
 | **Authentication** | | |
 | `POST` | `/api/admin/auth/login` | Admin login |
+| `POST` | `/api/admin/auth/refresh` | Refresh Admin Access Token |
 | `POST` | `/api/admin/auth/logout` | Admin logout |
 | `GET` | `/api/admin/auth/me` | Get current admin user profile |
 | **Account Management** | | |
@@ -184,6 +186,19 @@ Once completed, mock products, categories, and initial admin accounts will be ge
 
 ---
 
+## Available NPM Scripts
+
+```bash
+npm run dev         # Start local Nuxt dev server with Nuxt Hub bindings
+npm run build       # Build production bundle for Cloudflare Pages
+npm run preview     # Preview production build locally
+npm run deploy      # Build & deploy application to Cloudflare Pages via Wrangler
+npm run db:generate # Generate Drizzle ORM migrations
+npm run db:push     # Push Drizzle schema changes directly to SQLite
+```
+
+---
+
 ## Project Structure
 
 ```text
@@ -194,7 +209,8 @@ Once completed, mock products, categories, and initial admin accounts will be ge
 │   │   └── seed.get.ts     # Database seed API route
 │   ├── middleware/         # Server-side JWT authentication & authorization middleware
 │   ├── plugins/            # Nitro server plugins (database initialization)
-│   └── utils/              # Server utilities (hashing, helpers, DB query builders)
+│   ├── services/           # Business logic & Database queries (Product, Cart, User, Admin)
+│   └── utils/              # Server utilities (hashing, JWT, image domain helpers)
 │
 ├── layouts/                # Vue layout wrappers (Admin Layout, Default Store Layout)
 ├── pages/                  # Nuxt pages (Home, Product details, Cart, Admin Dashboard, etc.)
@@ -203,8 +219,9 @@ Once completed, mock products, categories, and initial admin accounts will be ge
 ├── middleware/             # Frontend route guards
 ├── assets/                 # Global CSS styles and design tokens
 ├── app.vue                 # Main entry component
-├── nuxt.config.ts          # Nuxt 3 project configuration
-└── package.json            # Dependencies and scripts
+├── wrangler.toml           # Cloudflare Workers & Pages deployment configuration
+├── nuxt.config.ts          # Nuxt 3 & Nuxt Hub project configuration
+└── package.json            # Dependencies and npm scripts
 ```
 
 ---
