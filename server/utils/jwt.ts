@@ -21,7 +21,7 @@ export async function signJwt(
     jwtSigner.setExpirationTime(options.expiresIn)
   }
 
-  return await jwtSigner.sign(secretKey)
+  return jwtSigner.sign(secretKey)
 }
 
 /**

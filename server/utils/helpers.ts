@@ -3,11 +3,11 @@ import { Resend } from 'resend'
 import { randomUUID } from 'uncrypto'
 
 export async function hashPassword(password: string): Promise<string> {
-  return await bcrypt.hash(password, 10)
+  return bcrypt.hash(password, 10)
 }
 
 export async function comparePassword(password: string, hash: string): Promise<boolean> {
-  return await bcrypt.compare(password, hash)
+  return bcrypt.compare(password, hash)
 }
 
 export function generateOTP(length: number = 6): string {
@@ -17,10 +17,6 @@ export function generateOTP(length: number = 6): string {
     otp += digits[Math.floor(Math.random() * 10)]
   }
   return otp
-}
-
-export function escapeRegex(text: string): string {
-  return text.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')
 }
 
 export async function sendMail(to: string, subject: string, htmlContent: string) {

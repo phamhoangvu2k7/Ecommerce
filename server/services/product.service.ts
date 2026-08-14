@@ -35,39 +35,60 @@ export interface ClientProductQuery {
   price_max?: string | number
 }
 
+/**
+ * Hàm hỗ trợ ép kiểu tham số phân trang (page, limit) thành số nguyên hợp lệ.
+ */
+function parsePaginationNumber(value: string | number | undefined, defaultValue: number): number {
+  if (typeof value === 'number') {
+    return value > 0 ? value : defaultValue
+  }
+  if (!value) {
+    return defaultValue
+  }
+  const parsedValue = Number.parseInt(String(value), 10)
+  return Number.isNaN(parsedValue) || parsedValue < 1 ? defaultValue : parsedValue
+}
+
 export const ProductService = {
-  // Get products for Admin
+  // Lấy danh sách sản phẩm cho trang Quản trị (Admin)
   async getProductsAdmin(query: AdminProductQuery = {}) {
     const conditions: SQL[] = [eq(schema.products.deleted, 0)]
 
+    // Lọc theo trạng thái hoạt động ('active' hoặc 'inactive')
     if (query.status === 'active' || query.status === 'inactive') {
       conditions.push(eq(schema.products.status, query.status))
     }
 
+    // Lọc theo từ khóa tìm kiếm trong tiêu đề sản phẩm
     if (query.q) {
       conditions.push(like(schema.products.title, `%${query.q}%`))
     }
 
+    // Lọc theo danh mục sản phẩm cụ thể
     if (query.category_id) {
       conditions.push(eq(schema.products.product_category_id, query.category_id))
     }
 
     const whereClause = and(...conditions)
 
-    const limit = typeof query.limit === 'number' ? query.limit : Number.parseInt(String(query.limit || 10), 10) || 10
-    const page = typeof query.page === 'number' ? query.page : Number.parseInt(String(query.page || 1), 10) || 1
-    const skip = (page - 1) * limit
+    // Xử lý phân trang
+    const limit = parsePaginationNumber(query.limit, 10)
+    const page = parsePaginationNumber(query.page, 1)
+    const skipRows = (page - 1) * limit
 
+    // Xử lý sắp xếp dữ liệu
     let orderByClause: SQL[] = [desc(schema.products.position), desc(schema.products.createdAt)]
     if (query.sortKey && query.sortValue) {
-      const col = schema.products[query.sortKey as keyof Product]
-      if (col) {
-        const orderDir = String(query.sortValue).toLowerCase() === 'desc' || query.sortValue === -1 ? desc(col) : asc(col)
-        orderByClause = [orderDir]
+      const sortColumn = schema.products[query.sortKey as keyof Product]
+      if (sortColumn) {
+        const isDescending = String(query.sortValue).toLowerCase() === 'desc' || query.sortValue === -1
+        const sortDirection = isDescending ? desc(sortColumn) : asc(sortColumn)
+        orderByClause = [sortDirection]
       }
     }
 
-    const [countRes, rows] = await Promise.all([
+    // Lấy tổng số lượng và danh sách dữ liệu đồng thời
+    const [countResult, databaseRows] = await Promise.all([
       db.select({ value: count() }).from(schema.products).where(whereClause),
       db.select({
         product: schema.products,
@@ -78,28 +99,39 @@ export const ProductService = {
         .where(whereClause)
         .orderBy(...orderByClause)
         .limit(limit)
-        .offset(skip),
+        .offset(skipRows),
     ])
 
-    const total = countRes[0]?.value || 0
-    const products: ProductWithCategory[] = rows.map(row => ({
+    const totalProducts = countResult[0]?.value || 0
+    const products: ProductWithCategory[] = databaseRows.map(row => ({
       ...row.product,
       product_category_id: row.category || null,
     }))
 
-    return { products, total, page, limit, pages: Math.ceil(total / limit) }
+    return {
+      products,
+      total: totalProducts,
+      page,
+      limit,
+      pages: Math.ceil(totalProducts / limit),
+    }
   },
 
-  // Get products for Client
+  // Lấy danh sách sản phẩm cho trang Người dùng (Client)
   async getProductsClient(query: ClientProductQuery = {}) {
-    const conditions: SQL[] = [eq(schema.products.status, 'active'), eq(schema.products.deleted, 0)]
+    const conditions: SQL[] = [
+      eq(schema.products.status, 'active'),
+      eq(schema.products.deleted, 0),
+    ]
 
+    // Tìm kiếm theo từ khóa
     if (query.q) {
       conditions.push(like(schema.products.title, `%${query.q}%`))
     }
 
+    // Tìm kiếm theo đường dẫn danh mục (slug) bao gồm cả các danh mục con
     if (query.category_slug) {
-      const cats = await db.select()
+      const matchedCategories = await db.select()
         .from(schema.productCategories)
         .where(and(
           eq(schema.productCategories.slug, query.category_slug),
@@ -108,33 +140,39 @@ export const ProductService = {
         ))
         .limit(1)
 
-      const category = cats[0]
-      if (category) {
-        const subCategoryIds = await this.getChildCategoryIds(category.id)
-        conditions.push(inArray(schema.products.product_category_id, [category.id, ...subCategoryIds]))
+      const targetCategory = matchedCategories[0]
+      if (targetCategory) {
+        const childCategoryIds = await this.getChildCategoryIds(targetCategory.id)
+        const allCategoryIds = [targetCategory.id, ...childCategoryIds]
+        conditions.push(inArray(schema.products.product_category_id, allCategoryIds))
       }
       else {
-        return { products: [], total: 0, page: 1, limit: 10, pages: 0 }
+        return { products: [], total: 0, page: 1, limit: 12, pages: 0 }
       }
     }
 
     const whereClause = and(...conditions)
 
+    // Xử lý sắp xếp theo lựa chọn của người dùng
     let orderByClause: SQL[] = [desc(schema.products.position), desc(schema.products.createdAt)]
-    if (query.sort === 'price_asc')
+    if (query.sort === 'price_asc') {
       orderByClause = [asc(schema.products.price)]
-    else if (query.sort === 'price_desc')
+    }
+    else if (query.sort === 'price_desc') {
       orderByClause = [desc(schema.products.price)]
-    else if (query.sort === 'title_asc')
+    }
+    else if (query.sort === 'title_asc') {
       orderByClause = [asc(schema.products.title)]
-    else if (query.sort === 'title_desc')
+    }
+    else if (query.sort === 'title_desc') {
       orderByClause = [desc(schema.products.title)]
+    }
 
-    const limit = typeof query.limit === 'number' ? query.limit : Number.parseInt(String(query.limit || 12), 10) || 12
-    const page = typeof query.page === 'number' ? query.page : Number.parseInt(String(query.page || 1), 10) || 1
-    const skip = (page - 1) * limit
+    const limit = parsePaginationNumber(query.limit, 12)
+    const page = parsePaginationNumber(query.page, 1)
+    const skipRows = (page - 1) * limit
 
-    const rows = await db.select({
+    const databaseRows = await db.select({
       product: schema.products,
       category: schema.productCategories,
     })
@@ -143,150 +181,169 @@ export const ProductService = {
       .where(whereClause)
       .orderBy(...orderByClause)
 
-    const rawProducts: ProductWithCategory[] = rows.map(row => ({
+    const rawProducts: ProductWithCategory[] = databaseRows.map(row => ({
       ...row.product,
       product_category_id: row.category || null,
     }))
 
+    // Tính toán giá mới (sau khi áp dụng % giảm giá)
     const productsWithNewPrice: ProductWithCategory[] = rawProducts.map((product) => {
-      const price = product.price || 0
-      const discountPercentage = product.discountPercentage || 0
-      const priceNew = Number.parseFloat((price * (1 - discountPercentage / 100)).toFixed(2))
-      return { ...product, priceNew }
+      const originalPrice = product.price || 0
+      const discountPercent = product.discountPercentage || 0
+      const calculatedNewPrice = Number.parseFloat((originalPrice * (1 - discountPercent / 100)).toFixed(2))
+      return { ...product, priceNew: calculatedNewPrice }
     })
 
+    // Lọc theo khoảng giá tối thiểu và tối đa (nếu người dùng chọn)
     let filteredProducts = productsWithNewPrice
     if (query.price_min !== undefined && query.price_min !== '') {
-      const min = Number.parseFloat(String(query.price_min)) * 1000000
-      if (!Number.isNaN(min)) {
-        filteredProducts = filteredProducts.filter(p => (p.priceNew || 0) >= min)
-      }
-    }
-    if (query.price_max !== undefined && query.price_max !== '') {
-      const max = Number.parseFloat(String(query.price_max)) * 1000000
-      if (!Number.isNaN(max)) {
-        filteredProducts = filteredProducts.filter(p => (p.priceNew || 0) <= max)
+      const minPriceInVnd = Number.parseFloat(String(query.price_min)) * 1000000
+      if (!Number.isNaN(minPriceInVnd)) {
+        filteredProducts = filteredProducts.filter(product => (product.priceNew || 0) >= minPriceInVnd)
       }
     }
 
-    const total = filteredProducts.length
-    const paginatedProducts = filteredProducts.slice(skip, skip + limit)
+    if (query.price_max !== undefined && query.price_max !== '') {
+      const maxPriceInVnd = Number.parseFloat(String(query.price_max)) * 1000000
+      if (!Number.isNaN(maxPriceInVnd)) {
+        filteredProducts = filteredProducts.filter(product => (product.priceNew || 0) <= maxPriceInVnd)
+      }
+    }
+
+    const totalProducts = filteredProducts.length
+    const paginatedProducts = filteredProducts.slice(skipRows, skipRows + limit)
 
     return {
       products: paginatedProducts,
-      total,
+      total: totalProducts,
       page,
       limit,
-      pages: Math.ceil(total / limit),
+      pages: Math.ceil(totalProducts / limit),
     }
   },
 
-  async getProductById(id: string) {
-    const rows = await db.select({
+  // Lấy chi tiết 1 sản phẩm theo ID
+  async getProductById(productId: string) {
+    const databaseRows = await db.select({
       product: schema.products,
       category: schema.productCategories,
     })
       .from(schema.products)
       .leftJoin(schema.productCategories, eq(schema.products.product_category_id, schema.productCategories.id))
       .where(and(
-        eq(schema.products.id, id),
+        eq(schema.products.id, productId),
         eq(schema.products.status, 'active'),
         eq(schema.products.deleted, 0),
       ))
       .limit(1)
 
-    return rows[0] || null
+    return databaseRows[0] || null
   },
 
-  async getChildCategoryIds(parentId: string): Promise<string[]> {
-    const children = await db.select()
+  // Đệ quy lấy tất cả ID của danh mục con trực thuộc danh mục cha
+  async getChildCategoryIds(parentCategoryId: string): Promise<string[]> {
+    const childCategories = await db.select()
       .from(schema.productCategories)
       .where(and(
-        eq(schema.productCategories.parent_id, parentId),
+        eq(schema.productCategories.parent_id, parentCategoryId),
         eq(schema.productCategories.status, 'active'),
         eq(schema.productCategories.deleted, 0),
       ))
-    let ids: string[] = children.map(c => c.id)
-    for (const child of children) {
-      const subIds = await this.getChildCategoryIds(child.id)
-      ids = [...ids, ...subIds]
+
+    let accumulatedIds: string[] = childCategories.map(category => category.id)
+    for (const childCategory of childCategories) {
+      const subCategoryIds = await this.getChildCategoryIds(childCategory.id)
+      accumulatedIds = [...accumulatedIds, ...subCategoryIds]
     }
-    return ids
+    return accumulatedIds
   },
 
-  async deleteProduct(id: string, accountId: string) {
+  // Xóa sản phẩm vào thùng rác (Soft Delete)
+  async deleteProduct(productId: string, accountId: string) {
     return db.update(schema.products)
       .set({
         deleted: 1,
         deletedAt: new Date().toISOString(),
         deletedBy: accountId,
       })
-      .where(eq(schema.products.id, id))
+      .where(eq(schema.products.id, productId))
   },
 
-  async restoreProduct(id: string) {
-    const prods = await db.select()
+  // Khôi phục sản phẩm từ thùng rác
+  async restoreProduct(productId: string) {
+    const matchedProducts = await db.select()
       .from(schema.products)
-      .where(and(eq(schema.products.id, id), eq(schema.products.deleted, 1)))
+      .where(and(eq(schema.products.id, productId), eq(schema.products.deleted, 1)))
       .limit(1)
-    const product = prods[0]
-    if (!product)
-      throw new Error('Sản phẩm không tồn tại trong thùng rác')
 
-    if (product.product_category_id) {
-      const cats = await db.select()
+    const targetProduct = matchedProducts[0]
+    if (!targetProduct) {
+      throw new Error('Sản phẩm không tồn tại trong thùng rác')
+    }
+
+    if (targetProduct.product_category_id) {
+      const matchedCategories = await db.select()
         .from(schema.productCategories)
-        .where(and(eq(schema.productCategories.id, product.product_category_id), eq(schema.productCategories.deleted, 1)))
+        .where(and(eq(schema.productCategories.id, targetProduct.product_category_id), eq(schema.productCategories.deleted, 1)))
         .limit(1)
-      const category = cats[0]
-      if (category) {
-        await this.restoreCategory(category.id)
+
+      const targetCategory = matchedCategories[0]
+      if (targetCategory) {
+        await this.restoreCategory(targetCategory.id)
       }
     }
 
     return db.update(schema.products)
       .set({ deleted: 0, deletedAt: null, deletedBy: null })
-      .where(eq(schema.products.id, id))
+      .where(eq(schema.products.id, productId))
   },
 
+  // Lấy toàn bộ cây danh mục (Category Tree)
   async getCategoriesTree(filter: CategoryFilter = {}): Promise<CategoryNode[]> {
     const conditions: SQL[] = [eq(schema.productCategories.deleted, 0)]
     if (filter.status === 'active') {
       conditions.push(eq(schema.productCategories.status, 'active'))
     }
 
-    const categories = await db.select()
+    const allCategories = await db.select()
       .from(schema.productCategories)
       .where(and(...conditions))
       .orderBy(asc(schema.productCategories.position))
 
-    const buildTree = (parentId: string | null): CategoryNode[] => {
-      return categories
-        .filter(c => String(c.parent_id || '') === String(parentId || ''))
-        .map(c => ({
-          ...c,
-          children: buildTree(c.id),
-        }))
+    const buildTreeRecursive = (parentId: string | null): CategoryNode[] => {
+      const currentLevelCategories = allCategories.filter((category) => {
+        const currentParentId = String(category.parent_id || '')
+        const targetParentId = String(parentId || '')
+        return currentParentId === targetParentId
+      })
+
+      return currentLevelCategories.map(category => ({
+        ...category,
+        children: buildTreeRecursive(category.id),
+      }))
     }
 
-    return buildTree(null)
+    return buildTreeRecursive(null)
   },
 
-  async deleteCategory(id: string, accountId: string) {
-    const childCats = await db.select()
+  // Xóa danh mục (Kiểm tra ràng buộc xem còn danh mục con hay sản phẩm không)
+  async deleteCategory(categoryId: string, accountId: string) {
+    const childCategories = await db.select()
       .from(schema.productCategories)
-      .where(and(eq(schema.productCategories.parent_id, id), eq(schema.productCategories.deleted, 0)))
+      .where(and(eq(schema.productCategories.parent_id, categoryId), eq(schema.productCategories.deleted, 0)))
       .limit(1)
-    if (childCats.length > 0) {
-      throw new Error(`Không thể xóa danh mục này vì vẫn còn danh mục con: ${childCats[0].title}`)
+
+    if (childCategories.length > 0) {
+      throw new Error(`Không thể xóa danh mục này vì vẫn còn danh mục con: ${childCategories[0].title}`)
     }
 
-    const prods = await db.select()
+    const belongingProducts = await db.select()
       .from(schema.products)
-      .where(and(eq(schema.products.product_category_id, id), eq(schema.products.deleted, 0)))
+      .where(and(eq(schema.products.product_category_id, categoryId), eq(schema.products.deleted, 0)))
       .limit(1)
-    if (prods.length > 0) {
-      throw new Error(`Không thể xóa danh mục này vì vẫn còn sản phẩm thuộc về nó: ${prods[0].title}`)
+
+    if (belongingProducts.length > 0) {
+      throw new Error(`Không thể xóa danh mục này vì vẫn còn sản phẩm thuộc về nó: ${belongingProducts[0].title}`)
     }
 
     return db.update(schema.productCategories)
@@ -295,50 +352,59 @@ export const ProductService = {
         deletedAt: new Date().toISOString(),
         deletedBy: accountId,
       })
-      .where(eq(schema.productCategories.id, id))
+      .where(eq(schema.productCategories.id, categoryId))
   },
 
-  async restoreCategory(id: string) {
-    const cats = await db.select()
+  // Khôi phục danh mục từ thùng rác (Đồng thời khôi phục cả danh mục cha nếu có)
+  async restoreCategory(categoryId: string) {
+    const matchedCategories = await db.select()
       .from(schema.productCategories)
-      .where(and(eq(schema.productCategories.id, id), eq(schema.productCategories.deleted, 1)))
+      .where(and(eq(schema.productCategories.id, categoryId), eq(schema.productCategories.deleted, 1)))
       .limit(1)
-    const category = cats[0]
-    if (!category)
-      throw new Error('Danh mục không tồn tại trong thùng rác')
 
-    if (category.parent_id) {
-      const parentCats = await db.select()
+    const targetCategory = matchedCategories[0]
+    if (!targetCategory) {
+      throw new Error('Danh mục không tồn tại trong thùng rác')
+    }
+
+    if (targetCategory.parent_id) {
+      const parentCategories = await db.select()
         .from(schema.productCategories)
-        .where(and(eq(schema.productCategories.id, category.parent_id), eq(schema.productCategories.deleted, 1)))
+        .where(and(eq(schema.productCategories.id, targetCategory.parent_id), eq(schema.productCategories.deleted, 1)))
         .limit(1)
-      const parentCat = parentCats[0]
-      if (parentCat) {
-        await this.restoreCategory(parentCat.id)
+
+      const parentCategory = parentCategories[0]
+      if (parentCategory) {
+        await this.restoreCategory(parentCategory.id)
       }
     }
 
     return db.update(schema.productCategories)
       .set({ deleted: 0, deletedAt: null, deletedBy: null })
-      .where(eq(schema.productCategories.id, id))
+      .where(eq(schema.productCategories.id, categoryId))
   },
 
-  async updateCategoryPositions(parentId: string | null) {
+  // Cập nhật vị trí thứ tự sắp xếp của các danh mục cùng cấp
+  async updateCategoryPositions(parentCategoryId: string | null) {
     const conditions: SQL[] = [eq(schema.productCategories.deleted, 0)]
-    if (parentId)
-      conditions.push(eq(schema.productCategories.parent_id, parentId))
-    else
+    if (parentCategoryId) {
+      conditions.push(eq(schema.productCategories.parent_id, parentCategoryId))
+    }
+    else {
       conditions.push(isNull(schema.productCategories.parent_id))
+    }
 
-    const siblings = await db.select()
+    const siblingCategories = await db.select()
       .from(schema.productCategories)
       .where(and(...conditions))
       .orderBy(asc(schema.productCategories.position))
 
-    for (let i = 0; i < siblings.length; i++) {
+    for (let index = 0; index < siblingCategories.length; index++) {
+      const currentCategory = siblingCategories[index]
+      const newPosition = index + 1
       await db.update(schema.productCategories)
-        .set({ position: i + 1 })
-        .where(eq(schema.productCategories.id, siblings[i].id))
+        .set({ position: newPosition })
+        .where(eq(schema.productCategories.id, currentCategory.id))
     }
   },
 }
