@@ -30,12 +30,7 @@ onMounted(async () => {
 async function fetchCategories() {
   loading.value = true
   try {
-    const adminToken = localStorage.getItem('adminToken')
-    const headers: any = {}
-    if (adminToken)
-      headers.Authorization = `Bearer ${adminToken}`
-
-    const res = await fetch('/api/admin/categories', { headers })
+    const res = await useAdminFetch('/api/admin/categories')
     const data = await res.json()
     if (data.success) {
       categoryTree.value = data.tree
@@ -102,23 +97,18 @@ async function handleSaveCategory() {
   }
 
   try {
-    const adminToken = localStorage.getItem('adminToken')
-    const headers: any = { 'Content-Type': 'application/json' }
-    if (adminToken)
-      headers.Authorization = `Bearer ${adminToken}`
-
     let res
     if (isEditing.value && editingId.value) {
-      res = await fetch(`/api/admin/categories/${editingId.value}`, {
+      res = await useAdminFetch(`/api/admin/categories/${editingId.value}`, {
         method: 'PATCH',
-        headers,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
     }
     else {
-      res = await fetch('/api/admin/categories', {
+      res = await useAdminFetch('/api/admin/categories', {
         method: 'POST',
-        headers,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
     }
@@ -144,14 +134,8 @@ async function handleDeleteCategory(id: string) {
     return
 
   try {
-    const adminToken = localStorage.getItem('adminToken')
-    const headers: any = {}
-    if (adminToken)
-      headers.Authorization = `Bearer ${adminToken}`
-
-    const res = await fetch(`/api/admin/categories/${id}`, {
+    const res = await useAdminFetch(`/api/admin/categories/${id}`, {
       method: 'DELETE',
-      headers,
     })
     const data = await res.json()
     if (data.success) {

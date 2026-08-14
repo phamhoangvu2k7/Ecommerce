@@ -28,8 +28,11 @@ async function handleLogin() {
 
     const data = await res.json()
     if (data.success) {
-      // Save adminToken in localStorage
+      // Save tokens in localStorage
       localStorage.setItem('adminToken', data.token)
+      if (data.refreshToken) {
+        localStorage.setItem('adminRefreshToken', data.refreshToken)
+      }
       authStore.setAdmin(data.user)
 
       // Redirect to Dashboard
@@ -39,6 +42,7 @@ async function handleLogin() {
       errorMsg.value = data.message || data.statusMessage || 'Đăng nhập thất bại.'
     }
   }
+  // eslint-disable-next-line unused-imports/no-unused-vars
   catch (err: any) {
     errorMsg.value = 'Lỗi kết nối đến máy chủ.'
   }

@@ -37,14 +37,19 @@ export default defineEventHandler(async (event) => {
     await kv.del('cache:categories')
     await ProductService.invalidateProductsCache()
 
-    // Log activity
-    await db.insert(schema.auditLogs).values({
-      id: crypto.randomUUID(),
-      account_id: event.context.admin.id,
-      action: 'RESTORE_DATA',
-      details: `Khôi phục thành công ${type === 'product' ? 'sản phẩm' : 'danh mục'} (ID: ${id})`,
-      timestamp: new Date().toISOString(),
-    })
+    // Log activity safely
+    try {
+      await db.insert(schema.auditLogs).values({
+        id: crypto.randomUUID(),
+        account_id: event.context.admin.id,
+        action: 'RESTORE_DATA',
+        details: `Khôi phục thành công ${type === 'product' ? 'sản phẩm' : 'danh mục'} (ID: ${id})`,
+        timestamp: new Date().toISOString(),
+      })
+    }
+    catch (err) {
+      console.error('Failed to insert audit log:', err)
+    }
 
     return {
       success: true,

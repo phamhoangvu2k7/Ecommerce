@@ -149,3 +149,13 @@ export const refreshTokens = sqliteTable('refresh_tokens', {
   isRevoked: integer('isRevoked').default(0),
   createdAt: text('createdAt').default(sql`(datetime('now', 'localtime'))`),
 })
+
+// 9. Audit Logs
+export const auditLogs = sqliteTable('audit_logs', {
+  id: text('id').primaryKey(),
+  account_id: text('account_id'),
+  action: text('action').notNull(),
+  details: text('details').default(''),
+  timestamp: text('timestamp').default(sql`(datetime('now', 'localtime'))`),
+})
+

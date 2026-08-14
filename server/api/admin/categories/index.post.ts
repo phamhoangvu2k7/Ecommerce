@@ -2,8 +2,8 @@ import { and, desc, eq, isNull } from 'drizzle-orm'
 import { createError, defineEventHandler, readBody } from 'h3'
 import { db, schema } from 'hub:db'
 import { kv } from 'hub:kv'
-import { slugify } from '../../../utils/helpers.ts'
-import { ProductCategoryValidation } from '../../../utils/validation.ts'
+import { slugify } from '../../../utils/helpers'
+import { ProductCategoryValidation } from '../../../utils/validation'
 
 export default defineEventHandler(async (event) => {
   const permissions = event.context.admin?.role_id?.permissions || []
@@ -63,14 +63,19 @@ export default defineEventHandler(async (event) => {
   // Invalidate categories cache in KV
   await kv.del('cache:categories')
 
-  // Audit log
-  await db.insert(schema.auditLogs).values({
-    id: crypto.randomUUID(),
-    account_id: event.context.admin.id,
-    action: 'CREATE_CATEGORY',
-    details: `Tạo danh mục: ${categoryData.title} (ID: ${categoryId})`,
-    timestamp: new Date().toISOString(),
-  })
+  // Audit log safely
+  try {
+    await db.insert(schema.auditLogs).values({
+      id: crypto.randomUUID(),
+      account_id: event.context.admin.id,
+      action: 'CREATE_CATEGORY',
+      details: `Tạo danh mục: ${categoryData.title} (ID: ${categoryId})`,
+      timestamp: new Date().toISOString(),
+    })
+  }
+  catch (err) {
+    console.error('Failed to insert audit log:', err)
+  }
 
   return {
     success: true,

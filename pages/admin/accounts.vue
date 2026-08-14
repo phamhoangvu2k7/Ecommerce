@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useAuthStore } from '~/stores/auth.ts'
+import { useAuthStore } from '~/stores/auth'
 
 definePageMeta({
   layout: 'admin',
@@ -49,12 +49,7 @@ onMounted(async () => {
 
 async function fetchRoles() {
   try {
-    const adminToken = localStorage.getItem('adminToken')
-    const headers: any = {}
-    if (adminToken)
-      headers.Authorization = `Bearer ${adminToken}`
-
-    const res = await fetch('/api/admin/roles', { headers })
+    const res = await useAdminFetch('/api/admin/roles')
     const data = await res.json()
     if (data.success) {
       roles.value = data.roles.filter((r: any) => !r.deleted)
@@ -69,12 +64,7 @@ async function fetchAccounts() {
   loading.value = true
   errorMsg.value = ''
   try {
-    const adminToken = localStorage.getItem('adminToken')
-    const headers: any = {}
-    if (adminToken)
-      headers.Authorization = `Bearer ${adminToken}`
-
-    const res = await fetch('/api/admin/accounts', { headers })
+    const res = await useAdminFetch('/api/admin/accounts')
     const data = await res.json()
     if (data.success) {
       accounts.value = data.accounts.filter((a: Account) => !a.deleted)
@@ -142,23 +132,18 @@ async function handleSaveAccount() {
   }
 
   try {
-    const adminToken = localStorage.getItem('adminToken')
-    const headers: any = { 'Content-Type': 'application/json' }
-    if (adminToken)
-      headers.Authorization = `Bearer ${adminToken}`
-
     let res
     if (isEditing.value && editingId.value) {
-      res = await fetch(`/api/admin/accounts/${editingId.value}`, {
+      res = await useAdminFetch(`/api/admin/accounts/${editingId.value}`, {
         method: 'PATCH',
-        headers,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
     }
     else {
-      res = await fetch('/api/admin/accounts', {
+      res = await useAdminFetch('/api/admin/accounts', {
         method: 'POST',
-        headers,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
     }
@@ -190,14 +175,8 @@ async function handleDeleteAccount(account: Account) {
     return
 
   try {
-    const adminToken = localStorage.getItem('adminToken')
-    const headers: any = {}
-    if (adminToken)
-      headers.Authorization = `Bearer ${adminToken}`
-
-    const res = await fetch(`/api/admin/accounts/${account.id}`, {
+    const res = await useAdminFetch(`/api/admin/accounts/${account.id}`, {
       method: 'DELETE',
-      headers,
     })
     const data = await res.json()
     if (data.success) {

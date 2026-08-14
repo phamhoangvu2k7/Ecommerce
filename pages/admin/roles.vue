@@ -88,12 +88,7 @@ async function fetchRoles() {
   loading.value = true
   errorMsg.value = ''
   try {
-    const adminToken = localStorage.getItem('adminToken')
-    const headers: any = {}
-    if (adminToken)
-      headers.Authorization = `Bearer ${adminToken}`
-
-    const res = await fetch('/api/admin/roles', { headers })
+    const res = await useAdminFetch('/api/admin/roles')
     const data = await res.json()
     if (data.success) {
       roles.value = data.roles.filter((r: Role) => !r.deleted)
@@ -144,14 +139,9 @@ async function handleSavePermissions() {
   errorMsg.value = ''
 
   try {
-    const adminToken = localStorage.getItem('adminToken')
-    const headers: any = { 'Content-Type': 'application/json' }
-    if (adminToken)
-      headers.Authorization = `Bearer ${adminToken}`
-
-    const res = await fetch(`/api/admin/roles/${selectedRole.value.id}`, {
+    const res = await useAdminFetch(`/api/admin/roles/${selectedRole.value.id}`, {
       method: 'PATCH',
-      headers,
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         title: selectedRole.value.title,
         description: selectedRole.value.description,
@@ -182,14 +172,9 @@ async function handleCreateRole() {
     return
   }
   try {
-    const adminToken = localStorage.getItem('adminToken')
-    const headers: any = { 'Content-Type': 'application/json' }
-    if (adminToken)
-      headers.Authorization = `Bearer ${adminToken}`
-
-    const res = await fetch('/api/admin/roles', {
+    const res = await useAdminFetch('/api/admin/roles', {
       method: 'POST',
-      headers,
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         title: newRoleTitle.value,
         description: newRoleDesc.value,
@@ -229,14 +214,8 @@ async function handleDeleteRole() {
     return
 
   try {
-    const adminToken = localStorage.getItem('adminToken')
-    const headers: any = {}
-    if (adminToken)
-      headers.Authorization = `Bearer ${adminToken}`
-
-    const res = await fetch(`/api/admin/roles/${selectedRole.value.id}`, {
+    const res = await useAdminFetch(`/api/admin/roles/${selectedRole.value.id}`, {
       method: 'DELETE',
-      headers,
     })
     const data = await res.json()
     if (data.success) {

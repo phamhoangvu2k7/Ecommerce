@@ -10,12 +10,7 @@ const errorMsg = ref('')
 
 onMounted(async () => {
   try {
-    const adminToken = localStorage.getItem('adminToken')
-    const headers: any = {}
-    if (adminToken)
-      headers.Authorization = `Bearer ${adminToken}`
-
-    const res = await fetch('/api/admin/dashboard', { headers })
+    const res = await useAdminFetch('/api/admin/dashboard')
     const data = await res.json()
     if (data.success) {
       stats.value = data.data

@@ -21,12 +21,7 @@ onMounted(async () => {
 async function fetchTrash() {
   loading.value = true
   try {
-    const adminToken = localStorage.getItem('adminToken')
-    const headers: any = {}
-    if (adminToken)
-      headers.Authorization = `Bearer ${adminToken}`
-
-    const res = await fetch('/api/admin/trash', { headers })
+    const res = await useAdminFetch('/api/admin/trash')
     const data = await res.json()
     if (data.success) {
       deletedProducts.value = data.products
@@ -51,14 +46,9 @@ async function handleRestore(type: string, id: string) {
     return
 
   try {
-    const adminToken = localStorage.getItem('adminToken')
-    const headers: any = { 'Content-Type': 'application/json' }
-    if (adminToken)
-      headers.Authorization = `Bearer ${adminToken}`
-
-    const res = await fetch('/api/admin/trash/restore', {
+    const res = await useAdminFetch('/api/admin/trash/restore', {
       method: 'POST',
-      headers,
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ type, id }),
     })
     const data = await res.json()

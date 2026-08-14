@@ -61,14 +61,19 @@ export default defineEventHandler(async (event) => {
   // Invalidate products cache
   await ProductService.invalidateProductsCache()
 
-  // Log activity
-  await db.insert(schema.auditLogs).values({
-    id: crypto.randomUUID(),
-    account_id: event.context.admin.id,
-    action: 'CREATE_PRODUCT',
-    details: `Tạo sản phẩm mới: ${productData.title} (ID: ${productId})`,
-    timestamp: new Date().toISOString(),
-  })
+  // Log activity safely
+  try {
+    await db.insert(schema.auditLogs).values({
+      id: crypto.randomUUID(),
+      account_id: event.context.admin.id,
+      action: 'CREATE_PRODUCT',
+      details: `Tạo sản phẩm mới: ${productData.title} (ID: ${productId})`,
+      timestamp: new Date().toISOString(),
+    })
+  }
+  catch (err) {
+    console.error('Failed to insert audit log:', err)
+  }
 
   return {
     success: true,

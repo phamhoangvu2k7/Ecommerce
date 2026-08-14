@@ -43,12 +43,7 @@ onMounted(async () => {
 
 async function fetchCategories() {
   try {
-    const adminToken = localStorage.getItem('adminToken')
-    const headers: any = {}
-    if (adminToken)
-      headers.Authorization = `Bearer ${adminToken}`
-
-    const res = await fetch('/api/admin/categories', { headers })
+    const res = await useAdminFetch('/api/admin/categories')
     const data = await res.json()
     if (data.success) {
       categories.value = flattenTree(data.tree)
@@ -74,11 +69,6 @@ async function fetchProducts() {
   loading.value = true
   errorMsg.value = ''
   try {
-    const adminToken = localStorage.getItem('adminToken')
-    const headers: any = {}
-    if (adminToken)
-      headers.Authorization = `Bearer ${adminToken}`
-
     const params = new URLSearchParams()
     if (searchQuery.value)
       params.append('q', searchQuery.value)
@@ -87,7 +77,7 @@ async function fetchProducts() {
     params.append('page', String(currentPage.value))
     params.append('limit', '10')
 
-    const res = await fetch(`/api/admin/products?${params.toString()}`, { headers })
+    const res = await useAdminFetch(`/api/admin/products?${params.toString()}`)
     const data = await res.json()
     if (data.success) {
       products.value = data.data.products
@@ -98,6 +88,7 @@ async function fetchProducts() {
       errorMsg.value = data.message || data.statusMessage || 'Lỗi tải danh sách sản phẩm.'
     }
   }
+
   catch (err) {
     errorMsg.value = 'Lỗi kết nối máy chủ.'
   }
@@ -136,12 +127,7 @@ async function openEditModal(productId: string) {
   editingId.value = productId
 
   try {
-    const adminToken = localStorage.getItem('adminToken')
-    const headers: any = {}
-    if (adminToken)
-      headers.Authorization = `Bearer ${adminToken}`
-
-    const res = await fetch(`/api/admin/products/${productId}`, { headers })
+    const res = await useAdminFetch(`/api/admin/products/${productId}`)
     const data = await res.json()
     if (data.success) {
       const p = data.product
@@ -187,23 +173,18 @@ async function handleSaveProduct() {
   }
 
   try {
-    const adminToken = localStorage.getItem('adminToken')
-    const headers: any = { 'Content-Type': 'application/json' }
-    if (adminToken)
-      headers.Authorization = `Bearer ${adminToken}`
-
     let res
     if (isEditing.value && editingId.value) {
-      res = await fetch(`/api/admin/products/${editingId.value}`, {
+      res = await useAdminFetch(`/api/admin/products/${editingId.value}`, {
         method: 'PATCH',
-        headers,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
     }
     else {
-      res = await fetch('/api/admin/products', {
+      res = await useAdminFetch('/api/admin/products', {
         method: 'POST',
-        headers,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
     }
@@ -220,7 +201,8 @@ async function handleSaveProduct() {
       alert(data.message || data.statusMessage || 'Lỗi lưu sản phẩm.')
     }
   }
-  catch (err) {
+
+  catch (err: any) {
     alert('Có lỗi xảy ra khi lưu sản phẩm.')
   }
 }
@@ -230,14 +212,8 @@ async function handleDeleteProduct(productId: string) {
     return
 
   try {
-    const adminToken = localStorage.getItem('adminToken')
-    const headers: any = {}
-    if (adminToken)
-      headers.Authorization = `Bearer ${adminToken}`
-
-    const res = await fetch(`/api/admin/products/${productId}`, {
+    const res = await useAdminFetch(`/api/admin/products/${productId}`, {
       method: 'DELETE',
-      headers,
     })
     const data = await res.json()
     if (data.success) {
@@ -267,14 +243,8 @@ async function handleFileUpload(event: Event) {
 
   uploading.value = true
   try {
-    const adminToken = localStorage.getItem('adminToken')
-    const headers: any = {}
-    if (adminToken)
-      headers.Authorization = `Bearer ${adminToken}`
-
-    const res = await fetch('/api/admin/upload', {
+    const res = await useAdminFetch('/api/admin/upload', {
       method: 'POST',
-      headers,
       body: formData,
     })
     const data = await res.json()

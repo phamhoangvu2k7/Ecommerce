@@ -27,14 +27,19 @@ export default defineEventHandler(async (event) => {
     // Invalidate categories cache in KV
     await kv.del('cache:categories')
 
-    // Audit log
-    await db.insert(schema.auditLogs).values({
-      id: crypto.randomUUID(),
-      account_id: adminId,
-      action: 'DELETE_CATEGORY',
-      details: `Xóa mềm danh mục sản phẩm (ID: ${id})`,
-      timestamp: new Date().toISOString(),
-    })
+    // Audit log safely
+    try {
+      await db.insert(schema.auditLogs).values({
+        id: crypto.randomUUID(),
+        account_id: adminId,
+        action: 'DELETE_CATEGORY',
+        details: `Xóa mềm danh mục sản phẩm (ID: ${id})`,
+        timestamp: new Date().toISOString(),
+      })
+    }
+    catch (err) {
+      console.error('Failed to insert audit log:', err)
+    }
 
     return {
       success: true,

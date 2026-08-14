@@ -73,14 +73,19 @@ export default defineEventHandler(async (event) => {
     .limit(1)
   const updatedCategory = updatedCats[0]
 
-  // Log activity
-  await db.insert(schema.auditLogs).values({
-    id: crypto.randomUUID(),
-    account_id: event.context.admin.id,
-    action: 'UPDATE_CATEGORY',
-    details: `Cập nhật danh mục: ${updatedCategory?.title} (ID: ${id})`,
-    timestamp: new Date().toISOString(),
-  })
+  // Log activity safely
+  try {
+    await db.insert(schema.auditLogs).values({
+      id: crypto.randomUUID(),
+      account_id: event.context.admin.id,
+      action: 'UPDATE_CATEGORY',
+      details: `Cập nhật danh mục: ${updatedCategory?.title} (ID: ${id})`,
+      timestamp: new Date().toISOString(),
+    })
+  }
+  catch (err) {
+    console.error('Failed to insert audit log:', err)
+  }
 
   return {
     success: true,

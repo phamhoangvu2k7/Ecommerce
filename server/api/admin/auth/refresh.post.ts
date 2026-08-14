@@ -7,11 +7,12 @@ import { signAccessToken, signRefreshToken, verifyJwt } from '../../../utils/jwt
 export default defineEventHandler(async (event) => {
   let refreshToken = ''
 
-  // Read refresh token from Authorization header or Cookie or Body
-  const authHeader = getHeader(event, 'authorization')
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    refreshToken = authHeader.substring(7)
+  // Read refresh token from Body or Cookie or X-Refresh-Token header
+  try {
+    const body = await readBody(event)
+    refreshToken = body?.refreshToken || ''
   }
+  catch {}
 
   if (!refreshToken) {
     const cookies = parseCookies(event)
@@ -19,11 +20,10 @@ export default defineEventHandler(async (event) => {
   }
 
   if (!refreshToken) {
-    try {
-      const body = await readBody(event)
-      refreshToken = body?.refreshToken || ''
+    const xRefreshToken = getHeader(event, 'x-refresh-token')
+    if (xRefreshToken) {
+      refreshToken = xRefreshToken
     }
-    catch {}
   }
 
   if (!refreshToken) {
