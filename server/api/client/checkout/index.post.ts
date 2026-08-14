@@ -16,11 +16,18 @@ export default defineEventHandler(async (event) => {
   const { cartId, fullName, phone, address } = parsed.data
   const user = event.context.user
 
+  if (!user) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Vui lòng đăng nhập tài khoản để tiến hành thanh toán đơn hàng.',
+    })
+  }
+
   try {
     const order = await CheckoutService.processCheckout(
       cartId,
       { fullName, phone, address },
-      user ? user.id : null,
+      user.id,
     )
 
     // Clear guest cart cookie on successful checkout

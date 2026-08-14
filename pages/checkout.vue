@@ -18,6 +18,13 @@ const errorMsg = ref('')
 const successMsg = ref('')
 
 onMounted(async () => {
+  const token = localStorage.getItem('token')
+  if (!token) {
+    alert('Vui lòng đăng nhập tài khoản để tiến hành thanh toán đơn hàng.')
+    router.push('/login')
+    return
+  }
+
   await cartStore.fetchCart()
   if (cartStore.products.length === 0) {
     router.push('/cart')

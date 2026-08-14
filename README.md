@@ -33,12 +33,13 @@ https://github.com/user-attachments/assets/554ebff2-0e78-4b56-b3a6-c5e5e9245e93
 ## Key Features
 
 * **Responsive & Dark Mode UI**: Full cross-device compatibility (Desktop, Tablet, Mobile) with real-time Light/Dark mode toggling.
-* **Cart Synchronization**: Allows guest users to add items to a temporary cart (Cloudflare KV), which seamlessly merges with their personal account cart upon logging in.
+* **Cart Synchronization & Auth Checkout**: Allows guest users to add items to a temporary cart (Cloudflare KV), which seamlessly merges with their personal account cart upon logging in. Enforces customer authentication prior to order placement for order tracking and security.
 * **Inventory Stock Verification**: Validates real-time database stock counts prior to order placement to prevent overselling.
 * **Automatic Stock Restoration**: Automatically restores product inventory counts whenever an order is cancelled.
 * **Hierarchical Category Management**: Supports multi-level parent-child categories. Deletion is safely blocked if a category or its subcategories contain active products.
 * **Soft Delete Trash System**: Product and category deletions use soft deletion (`deleted = 1`), enabling administrators to easily restore or permanently purge archived items.
-* **JWT Authentication & Security**: Passwords encrypted with `bcryptjs`. Role-based authorization and session management secured via Dual JWT Tokens (Access Token 15m + Refresh Token 7d).
+* **JWT Authentication & Security**: Passwords encrypted with `bcryptjs`. Role-based authorization and session management secured via Dual JWT Tokens (Access Token 15m + Refresh Token 7d with Rotation).
+* **System Audit Logging**: Safely records administrative activities (create, update, soft-delete, restore) to an Audit Logs table.
 * **Email OTP Verification**: Delivers 3-minute temporary OTP codes via Resend API (or console log in dev) for password reset workflows.
 
 ---
@@ -320,12 +321,28 @@ erDiagram
         TEXT otp "Verification OTP code"
         TEXT expireAt "OTP expiration timestamp (3 minutes validity)"
     }
+    RefreshToken {
+        TEXT id PK
+        TEXT user_id "Owner User or Admin ID"
+        TEXT token "Refresh token string"
+        INTEGER isRevoked "Revocation status (0 or 1)"
+        TEXT expiresAt "Expiration timestamp"
+    }
+    AuditLog {
+        TEXT id PK
+        TEXT account_id "Admin Account ID"
+        TEXT action "Action code (e.g. CREATE_PRODUCT, DELETE_CATEGORY)"
+        TEXT details "Detailed activity log"
+        TEXT timestamp "Activity timestamp"
+    }
 
     Account }o--|| Role : "assigned role"
     Product }o--|| ProductCategory : "belongs to category"
     ProductCategory }o--|| ProductCategory : "parent-child hierarchy"
     Cart ||--o| User : "owned by"
     Order }o--|| User : "placed by"
+    RefreshToken }o--|| User : "issued for"
+    AuditLog }o--|| Account : "performed by"
 ```
 
 ---

@@ -59,6 +59,12 @@ function formatPrice(value: number) {
 }
 
 function proceedToCheckout() {
+  const token = localStorage.getItem('token')
+  if (!token) {
+    alert('Vui lòng đăng nhập tài khoản để tiến hành thanh toán đơn hàng.')
+    router.push('/login')
+    return
+  }
   router.push('/checkout')
 }
 </script>
