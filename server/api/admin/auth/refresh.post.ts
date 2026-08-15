@@ -113,7 +113,6 @@ export default defineEventHandler(async (event) => {
   // Set updated cookies
   setCookie(event, 'token', newAccessToken, {
     httpOnly: true,
-    // eslint-disable-next-line node/prefer-global/process
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
@@ -122,7 +121,6 @@ export default defineEventHandler(async (event) => {
 
   setCookie(event, 'refreshToken', newRefreshToken, {
     httpOnly: true,
-    // eslint-disable-next-line node/prefer-global/process
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',

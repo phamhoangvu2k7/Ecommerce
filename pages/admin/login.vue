@@ -42,8 +42,7 @@ async function handleLogin() {
       errorMsg.value = data.message || data.statusMessage || 'Đăng nhập thất bại.'
     }
   }
-  // eslint-disable-next-line unused-imports/no-unused-vars
-  catch (err: any) {
+  catch {
     errorMsg.value = 'Lỗi kết nối đến máy chủ.'
   }
   finally {

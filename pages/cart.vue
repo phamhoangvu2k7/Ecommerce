@@ -26,7 +26,6 @@ async function handleUpdateQty(
     await cartStore.updateQuantity(productId, newQty)
   }
   catch (err: any) {
-    // eslint-disable-next-line no-alert
     alert(err.message)
   }
   finally {
@@ -35,7 +34,6 @@ async function handleUpdateQty(
 }
 
 async function handleRemoveItem(productId: string) {
-  // eslint-disable-next-line no-alert
   if (!confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?'))
     return
   updatingId.value = productId
@@ -43,7 +41,6 @@ async function handleRemoveItem(productId: string) {
     await cartStore.removeFromCart(productId)
   }
   catch (err: any) {
-    // eslint-disable-next-line no-alert
     alert(err.message)
   }
   finally {

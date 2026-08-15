@@ -4,10 +4,8 @@ import * as helpers from '../utils/helpers'
 
 export default defineEventHandler(async (event) => {
   // 1. Kiểm tra bảo mật khi chạy ở môi trường Production
-  // eslint-disable-next-line node/prefer-global/process
   if (process.env.NODE_ENV === 'production') {
     const query = getQuery(event)
-    // eslint-disable-next-line node/prefer-global/process
     const seedSecret = process.env.SEED_SECRET
 
     // Nếu không cấu hình SEED_SECRET hoặc token truyền vào không khớp
@@ -53,10 +51,7 @@ export default defineEventHandler(async (event) => {
       permissions: adminPermissions,
     })
 
-    // Sử dụng biến môi trường (Environment Variables) hoặc fallback về mặc định
-    // eslint-disable-next-line node/prefer-global/process
     const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com'
-    // eslint-disable-next-line node/prefer-global/process
     const adminPassword = process.env.ADMIN_PASSWORD || 'admin123'
 
     const hashedPassword = await helpers.hashPassword(adminPassword)

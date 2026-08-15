@@ -43,8 +43,7 @@ export default defineEventHandler(async (event) => {
         }
       }
     }
-    // eslint-disable-next-line unused-imports/no-unused-vars
-    catch (err) {
+    catch {
       console.warn('[AuthMiddleware] JWT Token verification failed.')
     }
   }

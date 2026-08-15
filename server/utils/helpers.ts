@@ -20,10 +20,8 @@ export function generateOTP(length: number = 6): string {
 }
 
 export async function sendMail(to: string, subject: string, htmlContent: string) {
-  // eslint-disable-next-line node/prefer-global/process
-  const apiKey = process.env.RESEND_API_KEY
-  // eslint-disable-next-line node/prefer-global/process
-  const fromEmail = process.env.EMAIL_FROM || 'onboarding@resend.dev'
+  const { RESEND_API_KEY: apiKey, EMAIL_FROM } = process.env
+  const fromEmail = EMAIL_FROM || 'onboarding@resend.dev'
 
   // Nếu không có API Key, chuyển sang chế độ Mock log ở Console (Hỗ trợ chạy Offline/Local)
   if (!apiKey) {
@@ -54,7 +52,6 @@ export async function sendMail(to: string, subject: string, htmlContent: string)
   }
 }
 
-// eslint-disable-next-line node/prefer-global/buffer
 function getExtension(buffer: Buffer): string {
   if (buffer.length > 4) {
     if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) {
@@ -74,7 +71,6 @@ function getExtension(buffer: Buffer): string {
 }
 
 export async function uploadToR2(
-  // eslint-disable-next-line node/prefer-global/buffer
   fileBuffer: Buffer,
   folder: string = 'products',
   options?: { contentType?: string, filename?: string },
@@ -123,7 +119,7 @@ export function stripImageDomain(url: string | undefined | null): string {
       path = parsed.pathname
     }
   }
-  // eslint-disable-next-line unused-imports/no-unused-vars
+
   catch (e) {}
 
   if (path.startsWith('/blobs/')) {
@@ -152,7 +148,6 @@ export function prependImageDomain(path: string | undefined | null): string {
 }
 
 export function getJwtSecret(): string {
-  // eslint-disable-next-line node/prefer-global/process
   const secret = process.env.JWT_SECRET
   if (!secret) {
     throw new Error('[Security] JWT_SECRET environment variable is not defined!')

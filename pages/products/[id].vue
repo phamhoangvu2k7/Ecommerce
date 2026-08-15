@@ -28,8 +28,7 @@ onMounted(async () => {
       errorMsg.value = data.message || data.statusMessage || 'Lỗi tải chi tiết sản phẩm.'
     }
   }
-  // eslint-disable-next-line unused-imports/no-unused-vars
-  catch (err) {
+  catch {
     errorMsg.value = 'Không thể kết nối đến máy chủ.'
   }
   finally {

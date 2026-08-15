@@ -91,8 +91,7 @@ async function handleCheckout() {
       errorMsg.value = data.message || data.statusMessage || 'Lỗi đặt hàng, vui lòng kiểm tra tồn kho.'
     }
   }
-  // eslint-disable-next-line unused-imports/no-unused-vars
-  catch (err: any) {
+  catch {
     errorMsg.value = 'Có lỗi xảy ra trong quá trình đặt hàng.'
   }
   finally {
