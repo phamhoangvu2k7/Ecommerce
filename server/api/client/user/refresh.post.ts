@@ -1,35 +1,18 @@
 import { and, eq } from 'drizzle-orm'
-import { createError, defineEventHandler, getHeader, parseCookies, readBody, setCookie } from 'h3'
+import { createError, defineEventHandler, parseCookies, setCookie } from 'h3'
 import { db, schema } from 'hub:db'
 import { getJwtSecret } from '../../../utils/helpers'
 import { signAccessToken, signRefreshToken, verifyJwt } from '../../../utils/jwt'
 
 export default defineEventHandler(async (event) => {
-  let refreshToken = ''
-
-  // Read refresh token from Body or Cookie or X-Refresh-Token header
-  try {
-    const body = await readBody(event)
-    refreshToken = body?.refreshToken || ''
-  }
-  catch {}
-
-  if (!refreshToken) {
-    const cookies = parseCookies(event)
-    refreshToken = cookies.refreshToken || ''
-  }
-
-  if (!refreshToken) {
-    const xRefreshToken = getHeader(event, 'x-refresh-token')
-    if (xRefreshToken) {
-      refreshToken = xRefreshToken
-    }
-  }
+  // Read refresh token directly from httpOnly Cookie for Web
+  const cookies = parseCookies(event)
+  const refreshToken = cookies.refreshToken || ''
 
   if (!refreshToken) {
     throw createError({
       statusCode: 401,
-      statusMessage: 'Refresh token không tồn tại.',
+      statusMessage: 'Refresh token không tồn tại trong Cookie.',
     })
   }
 
