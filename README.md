@@ -130,6 +130,9 @@ List of API endpoints organized by domain:
 | **Dashboard & Media** | | |
 | `GET` | `/api/admin/dashboard` | Fetch dashboard metrics and statistics |
 | `POST` | `/api/admin/upload` | Upload image/file asset (Cloudflare Blob Storage) |
+| **Order Management** | | |
+| `GET` | `/api/admin/orders` | Fetch orders list (supports status filter) |
+| `PATCH` | `/api/admin/orders/:id/status` | Update order status & auto-restore stock on cancel |
 
 ### 3. Data Seeding API
 
