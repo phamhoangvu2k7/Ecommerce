@@ -54,6 +54,10 @@ function handleLogout() {
           <span class="menu-icon">📊</span>
           <span>Tổng quan</span>
         </NuxtLink>
+        <NuxtLink to="/admin/orders" class="menu-item">
+          <span class="menu-icon">🛒</span>
+          <span>Đơn hàng</span>
+        </NuxtLink>
         <NuxtLink to="/admin/products" class="menu-item">
           <span class="menu-icon">📦</span>
           <span>Sản phẩm</span>
