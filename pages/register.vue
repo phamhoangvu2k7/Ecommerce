@@ -84,7 +84,7 @@ async function handleRegister() {
 
         <div class="input-group">
           <label class="input-label">Mật khẩu * (Tối thiểu 6 ký tự)</label>
-          <input v-model="password" type="password" placeholder="Nhập mật khẩu bảo mật" class="premium-input" required minlength="6">
+          <PasswordInput v-model="password" placeholder="Nhập mật khẩu bảo mật" required minlength="6" />
         </div>
 
         <div class="input-group">

@@ -73,7 +73,7 @@ async function handleLogin() {
 
         <div class="input-group">
           <label class="input-label">Mật khẩu</label>
-          <input v-model="password" type="password" placeholder="Nhập mật khẩu" class="premium-input" required>
+          <PasswordInput v-model="password" placeholder="Nhập mật khẩu" required />
         </div>
 
         <button type="submit" :disabled="loading" class="btn btn-primary w-full mt-4">

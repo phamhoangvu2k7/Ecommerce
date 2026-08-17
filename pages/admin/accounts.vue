@@ -323,7 +323,7 @@ async function handleDeleteAccount(account: Account) {
             </div>
             <div class="input-group">
               <label class="input-label">Mật khẩu {{ isEditing ? '(để trống nếu giữ nguyên)' : '*' }}</label>
-              <input v-model="formPassword" type="password" class="premium-input" placeholder="••••••••" :required="!isEditing">
+              <PasswordInput v-model="formPassword" placeholder="••••••••" :required="!isEditing" />
             </div>
           </div>
 

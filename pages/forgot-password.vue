@@ -175,11 +175,11 @@ async function handleResetPassword() {
       <form v-if="step === 3" @submit.prevent="handleResetPassword">
         <div class="input-group">
           <label class="input-label">Mật khẩu mới</label>
-          <input v-model="newPassword" type="password" placeholder="Nhập mật khẩu mới" class="premium-input" required minlength="6">
+          <PasswordInput v-model="newPassword" placeholder="Nhập mật khẩu mới" required minlength="6" />
         </div>
         <div class="input-group">
           <label class="input-label">Xác nhận mật khẩu mới</label>
-          <input v-model="confirmPassword" type="password" placeholder="Nhập lại mật khẩu mới" class="premium-input" required minlength="6">
+          <PasswordInput v-model="confirmPassword" placeholder="Nhập lại mật khẩu mới" required minlength="6" />
         </div>
         <button type="submit" :disabled="loading" class="btn btn-primary w-full mt-3">
           {{ loading ? 'Đang cập nhật...' : 'Xác nhận Đổi mật khẩu' }}
