@@ -4,6 +4,11 @@ import { db, schema } from 'hub:db'
 import { getJwtSecret } from '../../../utils/helpers'
 import { signAccessToken, signRefreshToken, verifyJwt } from '../../../utils/jwt'
 
+interface RefreshTokenPayload {
+  id: string
+  role: string
+}
+
 export default defineEventHandler(async (event) => {
   // Read refresh token directly from httpOnly Cookie for Web
   const cookies = parseCookies(event)
@@ -17,9 +22,9 @@ export default defineEventHandler(async (event) => {
   }
 
   // Verify JWT signature
-  let decoded: any
+  let decoded: RefreshTokenPayload
   try {
-    decoded = await verifyJwt(refreshToken, getJwtSecret())
+    decoded = await verifyJwt<RefreshTokenPayload>(refreshToken, getJwtSecret())
   }
   catch {
     throw createError({

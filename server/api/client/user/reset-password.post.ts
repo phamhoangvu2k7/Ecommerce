@@ -4,6 +4,11 @@ import { db, schema } from 'hub:db'
 import { getJwtSecret, hashPassword } from '../../../utils/helpers'
 import { verifyJwt } from '../../../utils/jwt'
 
+interface ResetTokenPayload {
+  email: string
+  role: string
+}
+
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const { resetToken, password } = body
@@ -23,7 +28,7 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const decoded: any = await verifyJwt(resetToken, getJwtSecret())
+    const decoded = await verifyJwt<ResetTokenPayload>(resetToken, getJwtSecret())
     if (decoded.role !== 'reset-password') {
       throw new Error('Vai trò của mã khôi phục không hợp lệ.')
     }
