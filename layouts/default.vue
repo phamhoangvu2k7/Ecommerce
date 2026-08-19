@@ -95,6 +95,9 @@ function handleLogout() {
         <p>&copy; 2026 NitroStore Commerce &middot; Crafted with Hallmark Aesthetics</p>
       </div>
     </footer>
+
+    <!-- AI Chat Widget Component -->
+    <AiChatWidget />
   </div>
 </template>
 
