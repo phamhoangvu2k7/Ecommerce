@@ -1,5 +1,5 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
-import { createUIMessageStreamResponse, isStepCount, streamText, toUIMessageStream } from 'ai'
+import { convertToModelMessages, createUIMessageStreamResponse, isStepCount, streamText, toUIMessageStream } from 'ai'
 import { createError, defineEventHandler, readBody } from 'h3'
 import { aiTools } from '~/server/utils/aiTools'
 
@@ -42,11 +42,14 @@ Nhiệm vụ của bạn:
 `
 
   try {
+    // Chuyển đổi UIMessage từ Client sang ModelMessage chuẩn cho LLM (Cần có await)
+    const modelMessages = await convertToModelMessages(messages)
+
     // Trả về luồng dữ liệu streaming trực tiếp cho Client
     const result = streamText({
-      model: google('gemini-2.0-flash'),
+      model: google('gemini-2.5-flash'),
       system: systemPrompt,
-      messages,
+      messages: modelMessages,
       tools: aiTools,
       stopWhen: isStepCount(5), // Cho phép AI suy luận và gọi Tool liên tiếp tối đa 5 bước
     })
@@ -63,6 +66,7 @@ Nhiệm vụ của bạn:
     })
   }
 })
+
 
 
 
