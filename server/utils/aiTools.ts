@@ -1,19 +1,22 @@
 import { tool } from 'ai'
-import { and, eq, like, or } from 'drizzle-orm'
+import { and, eq, gt, gte, like, lte, or } from 'drizzle-orm'
 import { db } from 'hub:db'
 import { z } from 'zod'
 import { productCategories, products } from '~/server/db/schema'
 
 export const aiTools = {
-  // Tool 1: Tìm kiếm sản phẩm
+  // Tool 1: Tìm kiếm & Lọc sản phẩm (Theo từ khóa, danh mục, khoảng giá, còn hàng)
   searchProducts: tool({
-    description: 'Tìm kiếm danh sách sản phẩm theo từ khóa (tên hoặc mô tả) hoặc lọc theo danh mục.',
+    description: 'Tìm kiếm và lọc danh sách sản phẩm theo từ khóa (tên/mô tả), danh mục, khoảng giá tiền (giá tối thiểu / giá tối đa), hoặc tình trạng còn hàng.',
     inputSchema: z.object({
-      keyword: z.string().optional().describe('Từ khóa tìm kiếm sản phẩm'),
+      keyword: z.string().optional().describe('Từ khóa tìm kiếm tên hoặc mô tả sản phẩm'),
       categoryId: z.string().optional().describe('ID danh mục sản phẩm'),
-      limit: z.number().default(5).describe('Số lượng sản phẩm tối đa trả về'),
+      minPrice: z.number().optional().describe('Mức giá tối thiểu (VNĐ)'),
+      maxPrice: z.number().optional().describe('Mức giá tối đa (VNĐ)'),
+      inStockOnly: z.boolean().optional().describe('Đặt true nếu chỉ muốn tìm các sản phẩm còn hàng trong kho (stock > 0)'),
+      limit: z.number().default(5).describe('Số lượng sản phẩm tối đa trả về (mặc định 5)'),
     }),
-    execute: async ({ keyword, categoryId, limit }) => {
+    execute: async ({ keyword, categoryId, minPrice, maxPrice, inStockOnly, limit }) => {
       const conditions = [eq(products.deleted, 0), eq(products.status, 'active')]
 
       if (keyword) {
@@ -27,6 +30,18 @@ export const aiTools = {
 
       if (categoryId) {
         conditions.push(eq(products.product_category_id, categoryId))
+      }
+
+      if (minPrice !== undefined) {
+        conditions.push(gte(products.price, minPrice))
+      }
+
+      if (maxPrice !== undefined) {
+        conditions.push(lte(products.price, maxPrice))
+      }
+
+      if (inStockOnly) {
+        conditions.push(gt(products.stock, 0))
       }
 
       const items = await db
