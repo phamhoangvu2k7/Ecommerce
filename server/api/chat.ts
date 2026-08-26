@@ -2,7 +2,7 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { convertToModelMessages, createUIMessageStreamResponse, isStepCount, streamText, toUIMessageStream } from 'ai'
 import { createError, defineEventHandler, readBody } from 'h3'
-import { aiTools } from '~/server/utils/aiTools'
+import { aiTools } from '~/server/utils/aiTools.ts'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -15,15 +15,17 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Lấy API Keys từ runtimeConfig hoặc process.env
-  const config = useRuntimeConfig()
-  const geminiApiKey = config.geminiApiKey || process.env.GEMINI_API_KEY
-  const openrouterApiKey = config.openrouterApiKey || process.env.OPENROUTER_API_KEY
+  // Lấy API Keys tương thích cả máy Local và Cloudflare Pages Workers environment
+  const config = useRuntimeConfig(event)
+  const cfEnv = (event.context as any)?.cloudflare?.env || {}
+
+  const geminiApiKey = config.geminiApiKey || cfEnv.GEMINI_API_KEY || process.env.GEMINI_API_KEY
+  const openrouterApiKey = config.openrouterApiKey || cfEnv.OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY
 
   if (!geminiApiKey && !openrouterApiKey) {
     throw createError({
       statusCode: 500,
-      statusMessage: 'Chưa cấu hình GEMINI_API_KEY hoặc OPENROUTER_API_KEY trong file .env!',
+      statusMessage: 'Chưa cấu hình GEMINI_API_KEY hoặc OPENROUTER_API_KEY!',
     })
   }
 
@@ -59,7 +61,7 @@ Nhiệm vụ của bạn:
           stopWhen: isStepCount(5),
         })
 
-        // Read & inspect chunk đầu tiên của stream
+        // Read & inspect chunk đầu tiên của stream Gemini
         const reader = geminiResult.stream.getReader()
         const firstChunk = await reader.read()
 
@@ -68,7 +70,6 @@ Nhiệm vụ của bạn:
             ? firstChunk.value
             : JSON.stringify(firstChunk.value)
 
-          // Nếu chunk đầu chứa payload thông báo lỗi từ Gemini API (429 Rate Limit, 400 Bad Key, Quota Exceeded...)
           if (
             chunkStr.includes('"error"')
             || chunkStr.includes('RESOURCE_EXHAUSTED')
@@ -80,7 +81,6 @@ Nhiệm vụ của bạn:
           }
         }
 
-        // Tạo luồng kết hợp (combined stream) phát lại chunk đầu tiên và tiếp tục stream
         finalStream = new ReadableStream({
           async start(controller) {
             if (!firstChunk.done && firstChunk.value) {
@@ -101,26 +101,67 @@ Nhiệm vụ của bạn:
         })
       }
       catch (err: any) {
-        console.warn('⚠️ [AI Primary Warning] Gemini API gặp sự cố (Rate Limit/Invalid Key), tự động kích hoạt Fallback sang OpenRouter:', err?.message || err)
+        console.warn('⚠️ [AI Primary Warning] Gemini API gặp sự cố, tự động kích hoạt Fallback sang OpenRouter:', err?.message || err)
         primaryError = err
       }
     }
 
     // 2. Nếu Gemini không khả dụng hoặc sập/hết lượt, tự động chuyển sang OpenRouter
     if (!finalStream && openrouter) {
-      console.warn('🚀 [AI Fallback Active] Đang chuyển đổi sang OpenRouter Free Model...')
-      const openrouterResult = streamText({
-        model: openrouter('google/gemini-2.5-flash:free'),
-        system: systemPrompt,
-        messages: modelMessages,
-        tools: aiTools,
-        stopWhen: isStepCount(5),
-      })
-      finalStream = openrouterResult.stream
+      try {
+        console.warn('🚀 [AI Fallback Active] Đang chuyển đổi sang OpenRouter Free Router...')
+        const openrouterResult = streamText({
+          model: openrouter('openrouter/free'),
+          system: systemPrompt,
+          messages: modelMessages,
+          tools: aiTools,
+          stopWhen: isStepCount(5),
+        })
+
+        const reader = openrouterResult.stream.getReader()
+        const firstChunk = await reader.read()
+
+        if (!firstChunk.done && firstChunk.value) {
+          const chunkStr = typeof firstChunk.value === 'string'
+            ? firstChunk.value
+            : JSON.stringify(firstChunk.value)
+
+          if (
+            chunkStr.includes('"error"')
+            || chunkStr.includes('429')
+            || chunkStr.includes('API key')
+          ) {
+            throw new Error(`[OpenRouter Error Payload] ${chunkStr}`)
+          }
+        }
+
+        finalStream = new ReadableStream({
+          async start(controller) {
+            if (!firstChunk.done && firstChunk.value) {
+              controller.enqueue(firstChunk.value)
+            }
+            while (true) {
+              const { done, value } = await reader.read()
+              if (done) {
+                controller.close()
+                break
+              }
+              controller.enqueue(value)
+            }
+          },
+          cancel(reason) {
+            reader.cancel(reason)
+          },
+        })
+      }
+      catch (err: any) {
+        console.error('❌ [OpenRouter Fallback Error]', err?.message || err)
+        primaryError = err
+      }
     }
 
     if (!finalStream) {
-      const errMsg = primaryError?.message || 'Không thể kết nối đến bất kỳ AI Provider nào! Vui lòng kiểm tra API Key trong file .env.'
+      const errMsg = primaryError?.message || 'Không thể kết nối đến bất kỳ AI Provider nào! Vui lòng kiểm tra API Key trong file .env / Cloudflare Dashboard.'
       console.error('❌ [AI Chat Fatal Error]', errMsg)
       throw createError({
         statusCode: 500,
