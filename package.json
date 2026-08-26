@@ -14,6 +14,7 @@
     "@ai-sdk/google": "^4.0.45",
     "@ai-sdk/vue": "^4.0.68",
     "@libsql/client": "^0.17.4",
+    "@openrouter/ai-sdk-provider": "^3.0.0",
     "@react-email/render": "^2.1.0",
     "ai": "^7.0.68",
     "bcryptjs": "^3.0.3",

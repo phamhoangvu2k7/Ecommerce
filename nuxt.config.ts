@@ -3,6 +3,7 @@ import { defineNuxtConfig } from 'nuxt/config'
 export default defineNuxtConfig({
   runtimeConfig: {
     geminiApiKey: process.env.GEMINI_API_KEY || '',
+    openrouterApiKey: process.env.OPENROUTER_API_KEY || '',
   },
   modules: [
     '@nuxthub/core',
