@@ -1,11 +1,18 @@
 <script setup lang="ts">
 import type { UIMessage } from 'ai'
 import { useChat } from '@ai-sdk/vue'
+import { marked } from 'marked'
 import { computed, nextTick, ref, watch } from 'vue'
 
 const isOpen = ref(false)
 const input = ref('')
 const chatMessagesRef = ref<HTMLElement | null>(null)
+
+// Configure marked parser for clean GFM markdown rendering
+marked.setOptions({
+  gfm: true,
+  breaks: true,
+})
 
 // useChat() kết nối tự động tới /api/chat
 const { messages, status, error, sendMessage } = useChat()
@@ -29,18 +36,16 @@ function getMessageText(msg: UIMessage): string {
   return ''
 }
 
-// Simple lightweight markdown parser for bold, italic, line breaks & inline code
+// Markdown parser sử dụng marked cho giao diện đẹp mắt (bảng, danh sách, in đậm, code block)
 function renderFormattedText(text: string): string {
   if (!text)
     return ''
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/\n/g, '<br/>')
+  try {
+    return marked.parse(text) as string
+  }
+  catch {
+    return text
+  }
 }
 
 function handleFormSubmit() {
@@ -443,6 +448,77 @@ watch(
   opacity: 0.65;
   margin-bottom: 4px;
   font-weight: 600;
+}
+
+/* Rich Markdown Styling */
+.msg-text :deep(p) {
+  margin: 0 0 8px 0;
+  line-height: 1.55;
+}
+
+.msg-text :deep(p:last-child) {
+  margin-bottom: 0;
+}
+
+.msg-text :deep(strong) {
+  color: #60a5fa;
+  font-weight: 600;
+}
+
+.msg-text :deep(em) {
+  color: #cbd5e1;
+  font-style: italic;
+}
+
+.msg-text :deep(ul), .msg-text :deep(ol) {
+  margin: 6px 0 10px 0;
+  padding-left: 20px;
+}
+
+.msg-text :deep(li) {
+  margin-bottom: 4px;
+  line-height: 1.5;
+}
+
+.msg-text :deep(code) {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 2px 6px;
+  border-radius: 6px;
+  color: #f472b6;
+  font-family: monospace;
+  font-size: 0.85em;
+}
+
+.msg-text :deep(table) {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 10px 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 0.825rem;
+}
+
+.msg-text :deep(th) {
+  background: rgba(30, 41, 59, 0.95);
+  color: #60a5fa;
+  padding: 8px 10px;
+  font-weight: 600;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.msg-text :deep(td) {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(15, 23, 42, 0.4);
+  color: #e2e8f0;
+}
+
+.msg-text :deep(tr:last-child td) {
+  border-bottom: none;
 }
 
 .loading-bubble {

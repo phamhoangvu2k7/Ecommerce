@@ -33,7 +33,7 @@ https://github.com/user-attachments/assets/554ebff2-0e78-4b56-b3a6-c5e5e9245e93
 
 ## Key Features
 
-* **🤖 Real-time AI Sales Assistant**: Integrated AI Chatbot widget powered by **Google Gemini 2.5 Flash** (Primary) with automatic **OpenRouter Failover**, using **Vercel AI SDK (v7)**. Utilizes **Function Calling (Tools)** to query real-time product prices, stock, and categories directly from SQLite DB without hallucination.
+* **🤖 Real-time AI Sales Assistant**: Integrated AI Chatbot widget powered by **OpenRouter** (Primary: fast free models like `liquid/lfm-2.5-2.6b:free` & Claude) with **Google Gemini** (Fallback), using **Vercel AI SDK (v7)**. Utilizes **Function Calling (Tools)** to query real-time product prices, stock, and categories directly from SQLite DB without hallucination.
 * **Responsive & Dark Mode UI**: Full cross-device compatibility (Desktop, Tablet, Mobile) with real-time Light/Dark mode toggling.
 * **Cart Synchronization & Auth Checkout**: Allows guest users to add items to a temporary cart (Cloudflare KV), which seamlessly merges with their personal account cart upon logging in. Enforces customer authentication prior to order placement for order tracking and security.
 * **Inventory Stock Verification**: Validates real-time database stock counts prior to order placement to prevent overselling.
@@ -50,7 +50,7 @@ https://github.com/user-attachments/assets/554ebff2-0e78-4b56-b3a6-c5e5e9245e93
 
 ### Backend (Server)
 * **Framework**: Nuxt 3 Server Routes (Nitro & h3 engine) integrated with **Nuxt Hub**.
-* **AI & Agent Architecture**: **Vercel AI SDK (`ai@^7.0.68`, `@ai-sdk/google`, `@openrouter/ai-sdk-provider`, `@ai-sdk/vue`)** with **Google Gemini 2.5 Flash** (Primary) & **OpenRouter** (Auto Fallback) & Function Calling DB Tools.
+* **AI & Agent Architecture**: **Vercel AI SDK (`ai@^7.0.68`, `@ai-sdk/google`, `@openrouter/ai-sdk-provider`, `@ai-sdk/vue`)** with **OpenRouter** (Primary) & **Google Gemini** (Auto Fallback) & Function Calling DB Tools.
 * **Database & ORM**: **SQLite (Cloudflare D1)** with **Drizzle ORM** (via `hub:db`).
 * **KV Storage**: **Cloudflare KV** for fast key-value storage (OTP verification, guest cart).
 * **Password Hashing**: `bcryptjs` (asynchronous password hashing).
@@ -60,7 +60,7 @@ https://github.com/user-attachments/assets/554ebff2-0e78-4b56-b3a6-c5e5e9245e93
 
 ### Frontend (Client)
 * **Framework**: Nuxt 3 (Vue 3 Composition API).
-* **AI Chat Widget**: Floating Glassmorphic Chat Widget built with `@ai-sdk/vue` (`useChat()`), Markdown parsing, and real-time SSE streaming.
+* **AI Chat Widget**: Floating Glassmorphic Chat Widget built with `@ai-sdk/vue` (`useChat()`), `marked` Markdown rendering engine, and real-time SSE streaming.
 * **State Management**: Pinia 2.x.
 * **Styling**: Vanilla CSS (Modern CSS variables, responsive design, Dark/Light mode support).
 
