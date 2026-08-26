@@ -45,51 +45,98 @@ Nhiệm vụ của bạn:
   try {
     const modelMessages = await convertToModelMessages(messages)
 
-    let result
+    let finalStream: ReadableStream | null = null
     let primaryError: any = null
 
-    // Bước 1: Thử sử dụng Google Gemini API làm ưu tiên hàng đầu
+    // 1. Thử kết nối với Google Gemini làm ưu tiên hàng đầu
     if (google) {
       try {
-        result = streamText({
+        const geminiResult = streamText({
           model: google('gemini-2.5-flash'),
           system: systemPrompt,
           messages: modelMessages,
           tools: aiTools,
           stopWhen: isStepCount(5),
         })
+
+        // Read & inspect chunk đầu tiên của stream
+        const reader = geminiResult.stream.getReader()
+        const firstChunk = await reader.read()
+
+        if (!firstChunk.done && firstChunk.value) {
+          const chunkStr = typeof firstChunk.value === 'string'
+            ? firstChunk.value
+            : JSON.stringify(firstChunk.value)
+
+          // Nếu chunk đầu chứa payload thông báo lỗi từ Gemini API (429 Rate Limit, 400 Bad Key, Quota Exceeded...)
+          if (
+            chunkStr.includes('"error"')
+            || chunkStr.includes('RESOURCE_EXHAUSTED')
+            || chunkStr.includes('Quota exceeded')
+            || chunkStr.includes('429')
+            || chunkStr.includes('API key')
+          ) {
+            throw new Error(`[Gemini API Error Payload] ${chunkStr}`)
+          }
+        }
+
+        // Tạo luồng kết hợp (combined stream) phát lại chunk đầu tiên và tiếp tục stream
+        finalStream = new ReadableStream({
+          async start(controller) {
+            if (!firstChunk.done && firstChunk.value) {
+              controller.enqueue(firstChunk.value)
+            }
+            while (true) {
+              const { done, value } = await reader.read()
+              if (done) {
+                controller.close()
+                break
+              }
+              controller.enqueue(value)
+            }
+          },
+          cancel(reason) {
+            reader.cancel(reason)
+          },
+        })
       }
       catch (err: any) {
-        console.warn('[AI Primary Warning] Google Gemini khởi tạo không thành công, chuẩn bị fallback sang OpenRouter:', err?.message || err)
+        console.warn('⚠️ [AI Primary Warning] Gemini API gặp sự cố (Rate Limit/Invalid Key), tự động kích hoạt Fallback sang OpenRouter:', err?.message || err)
         primaryError = err
       }
     }
 
-    // Bước 2: Nếu Gemini không khả dụng hoặc bị lỗi, tự động chuyển sang OpenRouter
-    if (!result && openrouter) {
-      console.warn('[AI Fallback] Đang chuyển đổi sang OpenRouter Free Model (google/gemini-2.5-flash:free)...')
-      result = streamText({
+    // 2. Nếu Gemini không khả dụng hoặc sập/hết lượt, tự động chuyển sang OpenRouter
+    if (!finalStream && openrouter) {
+      console.warn('🚀 [AI Fallback Active] Đang chuyển đổi sang OpenRouter Free Model...')
+      const openrouterResult = streamText({
         model: openrouter('google/gemini-2.5-flash:free'),
         system: systemPrompt,
         messages: modelMessages,
         tools: aiTools,
         stopWhen: isStepCount(5),
       })
+      finalStream = openrouterResult.stream
     }
 
-    if (!result) {
-      throw primaryError || new Error('Không thể kết nối đến bất kỳ AI Provider nào (Gemini hoặc OpenRouter)!')
+    if (!finalStream) {
+      const errMsg = primaryError?.message || 'Không thể kết nối đến bất kỳ AI Provider nào! Vui lòng kiểm tra API Key trong file .env.'
+      console.error('❌ [AI Chat Fatal Error]', errMsg)
+      throw createError({
+        statusCode: 500,
+        statusMessage: errMsg,
+      })
     }
 
     return createUIMessageStreamResponse({
-      stream: toUIMessageStream({ stream: result.stream }),
+      stream: toUIMessageStream({ stream: finalStream }),
     })
   }
   catch (error: any) {
     console.error('[AI Chat Error]', error)
     throw createError({
-      statusCode: 500,
-      statusMessage: error?.message || 'Có lỗi xảy ra khi kết nối với AI Server!',
+      statusCode: error?.statusCode || 500,
+      statusMessage: error?.statusMessage || error?.message || 'Có lỗi xảy ra khi kết nối với AI Server!',
     })
   }
 })

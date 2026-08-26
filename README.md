@@ -33,7 +33,7 @@ https://github.com/user-attachments/assets/554ebff2-0e78-4b56-b3a6-c5e5e9245e93
 
 ## Key Features
 
-* **🤖 Real-time AI Sales Assistant**: Integrated AI Chatbot widget powered by **Google Gemini 2.5 Flash** and **Vercel AI SDK (v7)**. Utilizes **Function Calling (Tools)** to query real-time product prices, stock, and categories directly from SQLite DB without hallucination.
+* **🤖 Real-time AI Sales Assistant**: Integrated AI Chatbot widget powered by **Google Gemini 2.5 Flash** (Primary) with automatic **OpenRouter Failover**, using **Vercel AI SDK (v7)**. Utilizes **Function Calling (Tools)** to query real-time product prices, stock, and categories directly from SQLite DB without hallucination.
 * **Responsive & Dark Mode UI**: Full cross-device compatibility (Desktop, Tablet, Mobile) with real-time Light/Dark mode toggling.
 * **Cart Synchronization & Auth Checkout**: Allows guest users to add items to a temporary cart (Cloudflare KV), which seamlessly merges with their personal account cart upon logging in. Enforces customer authentication prior to order placement for order tracking and security.
 * **Inventory Stock Verification**: Validates real-time database stock counts prior to order placement to prevent overselling.
@@ -50,7 +50,7 @@ https://github.com/user-attachments/assets/554ebff2-0e78-4b56-b3a6-c5e5e9245e93
 
 ### Backend (Server)
 * **Framework**: Nuxt 3 Server Routes (Nitro & h3 engine) integrated with **Nuxt Hub**.
-* **AI & Agent Architecture**: **Vercel AI SDK (`ai@^7.0.68`, `@ai-sdk/google`, `@ai-sdk/vue`)** with **Google Gemini 2.5 Flash** & Function Calling DB Tools.
+* **AI & Agent Architecture**: **Vercel AI SDK (`ai@^7.0.68`, `@ai-sdk/google`, `@openrouter/ai-sdk-provider`, `@ai-sdk/vue`)** with **Google Gemini 2.5 Flash** (Primary) & **OpenRouter** (Auto Fallback) & Function Calling DB Tools.
 * **Database & ORM**: **SQLite (Cloudflare D1)** with **Drizzle ORM** (via `hub:db`).
 * **KV Storage**: **Cloudflare KV** for fast key-value storage (OTP verification, guest cart).
 * **Password Hashing**: `bcryptjs` (asynchronous password hashing).
@@ -174,8 +174,11 @@ Create a `.env` file in the root directory (alongside `nuxt.config.ts`) and supp
 # Secret key used for signing JWT tokens
 JWT_SECRET=your_random_secure_jwt_secret_key
 
-# Google Gemini API Key for AI Assistant Chatbot
+# Google Gemini API Key for AI Assistant Chatbot (Primary)
 GEMINI_API_KEY=your_gemini_api_key_here
+
+# OpenRouter API Key for AI Assistant Chatbot (Optional Fallback when Gemini is rate limited/exceeded)
+OPENROUTER_API_KEY=your_openrouter_api_key_here
 
 # Resend API Key for sending OTP emails (Optional: OTP will be printed in terminal if omitted)
 RESEND_API_KEY=re_xxxxxxxxxxxx
