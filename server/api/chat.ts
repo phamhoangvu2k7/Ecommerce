@@ -2,7 +2,7 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { convertToModelMessages, createUIMessageStreamResponse, isStepCount, streamText, toUIMessageStream } from 'ai'
 import { createError, defineEventHandler, readBody } from 'h3'
-import { aiTools } from '~/server/utils/aiTools.ts'
+import { aiTools } from '~/server/utils/aiTools'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Lấy API Keys tương thích cả máy Local và Cloudflare Pages Workers environment
+  // Lấy API Keys an toàn cho cả Local và Cloudflare Pages
   const config = useRuntimeConfig(event)
   const cfEnv = (event.context as any)?.cloudflare?.env || {}
 
@@ -50,7 +50,7 @@ Nhiệm vụ của bạn:
     let finalStream: ReadableStream | null = null
     let primaryError: any = null
 
-    // 1. Thử kết nối với Google Gemini làm ưu tiên hàng đầu
+    // 1. Thử kết nối với Google Gemini API chính
     if (google) {
       try {
         const geminiResult = streamText({
@@ -101,62 +101,74 @@ Nhiệm vụ của bạn:
         })
       }
       catch (err: any) {
-        console.warn('⚠️ [AI Primary Warning] Gemini API gặp sự cố, tự động kích hoạt Fallback sang OpenRouter:', err?.message || err)
+        console.warn('⚠️ [AI Primary Warning] Gemini API gặp sự cố (Rate Limit/Quota), kích hoạt Fallback Chain OpenRouter:', err?.message || err)
         primaryError = err
       }
     }
 
-    // 2. Nếu Gemini không khả dụng hoặc sập/hết lượt, tự động chuyển sang OpenRouter
+    // 2. Nếu Gemini không khả dụng/hết quota, chạy chuỗi danh sách model dự phòng trên OpenRouter (Multi-Model Fallback Chain)
     if (!finalStream && openrouter) {
-      try {
-        console.warn('🚀 [AI Fallback Active] Đang chuyển đổi sang OpenRouter Free Router...')
-        const openrouterResult = streamText({
-          model: openrouter('openrouter/free'),
-          system: systemPrompt,
-          messages: modelMessages,
-          tools: aiTools,
-          stopWhen: isStepCount(5),
-        })
+      const fallbackModels = [
+        'google/gemini-2.5-flash:free',
+        'google/gemini-2.0-flash-lite-001:free',
+        'meta-llama/llama-3.3-70b-instruct:free',
+        'qwen/qwen-2.5-72b-instruct:free',
+      ]
 
-        const reader = openrouterResult.stream.getReader()
-        const firstChunk = await reader.read()
+      for (const modelId of fallbackModels) {
+        try {
+          console.warn(`🚀 [AI Fallback] Đang thử kết nối OpenRouter Model: ${modelId}...`)
+          const openrouterResult = streamText({
+            model: openrouter(modelId),
+            system: systemPrompt,
+            messages: modelMessages,
+            tools: aiTools,
+            stopWhen: isStepCount(5),
+          })
 
-        if (!firstChunk.done && firstChunk.value) {
-          const chunkStr = typeof firstChunk.value === 'string'
-            ? firstChunk.value
-            : JSON.stringify(firstChunk.value)
+          const reader = openrouterResult.stream.getReader()
+          const firstChunk = await reader.read()
 
-          if (
-            chunkStr.includes('"error"')
-            || chunkStr.includes('429')
-            || chunkStr.includes('API key')
-          ) {
-            throw new Error(`[OpenRouter Error Payload] ${chunkStr}`)
+          if (!firstChunk.done && firstChunk.value) {
+            const chunkStr = typeof firstChunk.value === 'string'
+              ? firstChunk.value
+              : JSON.stringify(firstChunk.value)
+
+            if (
+              chunkStr.includes('"error"')
+              || chunkStr.includes('429')
+              || chunkStr.includes('API key')
+              || chunkStr.includes('rate_limit')
+            ) {
+              throw new Error(`[OpenRouter Error on ${modelId}] ${chunkStr}`)
+            }
           }
-        }
 
-        finalStream = new ReadableStream({
-          async start(controller) {
-            if (!firstChunk.done && firstChunk.value) {
-              controller.enqueue(firstChunk.value)
-            }
-            while (true) {
-              const { done, value } = await reader.read()
-              if (done) {
-                controller.close()
-                break
+          finalStream = new ReadableStream({
+            async start(controller) {
+              if (!firstChunk.done && firstChunk.value) {
+                controller.enqueue(firstChunk.value)
               }
-              controller.enqueue(value)
-            }
-          },
-          cancel(reason) {
-            reader.cancel(reason)
-          },
-        })
-      }
-      catch (err: any) {
-        console.error('❌ [OpenRouter Fallback Error]', err?.message || err)
-        primaryError = err
+              while (true) {
+                const { done, value } = await reader.read()
+                if (done) {
+                  controller.close()
+                  break
+                }
+                controller.enqueue(value)
+              }
+            },
+            cancel(reason) {
+              reader.cancel(reason)
+            },
+          })
+
+          break // Thoát vòng lặp khi kết nối model thành công
+        }
+        catch (err: any) {
+          console.warn(`⚠️ [AI Fallback Warning] Model ${modelId} không khả dụng, thử model tiếp theo:`, err?.message || err)
+          primaryError = err
+        }
       }
     }
 
