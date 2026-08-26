@@ -1,4 +1,5 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
+import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { convertToModelMessages, createUIMessageStreamResponse, isStepCount, streamText, toUIMessageStream } from 'ai'
 import { createError, defineEventHandler, readBody } from 'h3'
 import { aiTools } from '~/server/utils/aiTools'
@@ -14,21 +15,21 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Lấy Gemini API Key từ runtimeConfig hoặc process.env
+  // Lấy API Keys từ runtimeConfig hoặc process.env
   const config = useRuntimeConfig()
-  const apiKey = config.geminiApiKey || process.env.GEMINI_API_KEY
+  const geminiApiKey = config.geminiApiKey || process.env.GEMINI_API_KEY
+  const openrouterApiKey = config.openrouterApiKey || process.env.OPENROUTER_API_KEY
 
-  if (!apiKey) {
+  if (!geminiApiKey && !openrouterApiKey) {
     throw createError({
       statusCode: 500,
-      statusMessage: 'Chưa cấu hình GEMINI_API_KEY trong file .env!',
+      statusMessage: 'Chưa cấu hình GEMINI_API_KEY hoặc OPENROUTER_API_KEY trong file .env!',
     })
   }
 
-  // Khởi tạo Google Provider với API Key
-  const google = createGoogleGenerativeAI({
-    apiKey,
-  })
+  // Khởi tạo các provider
+  const google = geminiApiKey ? createGoogleGenerativeAI({ apiKey: geminiApiKey }) : null
+  const openrouter = openrouterApiKey ? createOpenRouter({ apiKey: openrouterApiKey }) : null
 
   // System Prompt định hướng cho AI làm Trợ lý bán hàng thông minh
   const systemPrompt = `
@@ -42,17 +43,43 @@ Nhiệm vụ của bạn:
 `
 
   try {
-    // Chuyển đổi UIMessage từ Client sang ModelMessage chuẩn cho LLM (Cần có await)
     const modelMessages = await convertToModelMessages(messages)
 
-    // Trả về luồng dữ liệu streaming trực tiếp cho Client
-    const result = streamText({
-      model: google('gemini-2.5-flash'),
-      system: systemPrompt,
-      messages: modelMessages,
-      tools: aiTools,
-      stopWhen: isStepCount(5), // Cho phép AI suy luận và gọi Tool liên tiếp tối đa 5 bước
-    })
+    let result
+    let primaryError: any = null
+
+    // Bước 1: Thử sử dụng Google Gemini API làm ưu tiên hàng đầu
+    if (google) {
+      try {
+        result = streamText({
+          model: google('gemini-2.5-flash'),
+          system: systemPrompt,
+          messages: modelMessages,
+          tools: aiTools,
+          stopWhen: isStepCount(5),
+        })
+      }
+      catch (err: any) {
+        console.warn('[AI Primary Warning] Google Gemini khởi tạo không thành công, chuẩn bị fallback sang OpenRouter:', err?.message || err)
+        primaryError = err
+      }
+    }
+
+    // Bước 2: Nếu Gemini không khả dụng hoặc bị lỗi, tự động chuyển sang OpenRouter
+    if (!result && openrouter) {
+      console.warn('[AI Fallback] Đang chuyển đổi sang OpenRouter Free Model (google/gemini-2.5-flash:free)...')
+      result = streamText({
+        model: openrouter('google/gemini-2.5-flash:free'),
+        system: systemPrompt,
+        messages: modelMessages,
+        tools: aiTools,
+        stopWhen: isStepCount(5),
+      })
+    }
+
+    if (!result) {
+      throw primaryError || new Error('Không thể kết nối đến bất kỳ AI Provider nào (Gemini hoặc OpenRouter)!')
+    }
 
     return createUIMessageStreamResponse({
       stream: toUIMessageStream({ stream: result.stream }),
@@ -66,10 +93,3 @@ Nhiệm vụ của bạn:
     })
   }
 })
-
-
-
-
-
-
-
