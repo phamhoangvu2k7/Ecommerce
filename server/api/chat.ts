@@ -14,7 +14,8 @@ function isErrorStreamPart(value: unknown): value is StreamPartWithError {
 }
 
 function getErrorMessage(err: unknown): string {
-  if (err instanceof Error) return err.message
+  if (err instanceof Error)
+    return err.message
   if (typeof err === 'object' && err !== null && 'message' in err) {
     return String((err as Record<string, unknown>).message)
   }
@@ -24,10 +25,66 @@ function getErrorMessage(err: unknown): string {
 function getErrorStatusCode(err: unknown): number | null {
   if (typeof err === 'object' && err !== null) {
     const obj = err as Record<string, unknown>
-    if (typeof obj.status === 'number') return obj.status
-    if (typeof obj.statusCode === 'number') return obj.statusCode
+    if (typeof obj.status === 'number')
+      return obj.status
+    if (typeof obj.statusCode === 'number')
+      return obj.statusCode
   }
   return null
+}
+
+// Helper: Giới hạn thời gian chờ (12s) để cho phép các Model lớn (Gemini 1.5 Pro / 70B+) suy luận kỹ và gọi Tool chính xác nhất
+async function fetchFirstValidChunkWithTimeout(iterator: AsyncIterator<any>, timeoutMs = 12000) {
+  const bufferedChunks: any[] = []
+  let timer: ReturnType<typeof setTimeout>
+
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`Timeout (${timeoutMs}ms) khi chờ token từ AI!`)), timeoutMs)
+  })
+
+  try {
+    while (true) {
+      const nextPromise = iterator.next()
+      const { done, value } = await Promise.race([nextPromise, timeoutPromise])
+
+      if (done)
+        break
+
+      bufferedChunks.push(value)
+
+      if (isErrorStreamPart(value)) {
+        clearTimeout(timer!)
+        const errObj = (value as any).error || (value as any).errorText || 'Model trả về lỗi stream'
+        throw typeof errObj === 'string' ? new Error(errObj) : errObj
+      }
+
+      // Nếu gặp chunk dữ liệu thực sự (không phải event start/start-step)
+      const chunkType = value?.type
+      if (chunkType && chunkType !== 'start' && chunkType !== 'start-step') {
+        clearTimeout(timer!)
+        return { bufferedChunks, lastDone: done }
+      }
+    }
+    clearTimeout(timer!)
+    return { bufferedChunks, lastDone: true }
+  }
+  catch (err) {
+    clearTimeout(timer!)
+    throw err
+  }
+}
+
+function normalizeMessages(rawMessages: any[]) {
+  return rawMessages.map((msg) => {
+    if (msg && typeof msg === 'object' && !msg.parts) {
+      const text = typeof msg.content === 'string' ? msg.content : (msg.text || '')
+      return {
+        ...msg,
+        parts: [{ type: 'text', text }],
+      }
+    }
+    return msg
+  })
 }
 
 export default defineEventHandler(async (event) => {
@@ -76,51 +133,71 @@ Nhiệm vụ của bạn:
 `
 
   try {
-    const modelMessages = await convertToModelMessages(messages)
+    const modelMessages = await convertToModelMessages(normalizeMessages(messages))
     let activeStream: ReadableStream | null = null
     let primaryError: unknown = null
 
-    // 1. ƯU TIÊN KẾT NỐI OPENROUTER TRƯỚC (Tránh hoàn toàn dính Quota 429 từ Gemini Free Tier)
+    // Danh sách các Candidate Models ưu tiên hàng đầu về độ CHÍNH XÁC & khả năng gọi Tool chuẩn xác
+    const candidates: Array<{ provider: 'openrouter' | 'google', modelId: string }> = []
+
+    // 1. ƯU TIÊN HÀNG ĐẦU: Google Gemini (Khả năng suy luận & gọi Tool CSDL chuẩn xác 100%)
+    if (google) {
+      candidates.push(
+        { provider: 'google', modelId: 'gemini-1.5-pro' },
+        { provider: 'google', modelId: 'gemini-1.5-flash' },
+        { provider: 'google', modelId: 'gemini-2.0-flash' },
+      )
+    }
+
+    // 2. DỰ PHÒNG: Các Model thông minh nhất từ OpenRouter
     if (openrouter) {
-      const openRouterModels = [
-        'liquid/lfm-2.5-2.6b:free', // ⚡ Model 100% Miễn Phí, phản hồi siêu nhanh ~1.2s & hỗ trợ Tool cực chuẩn
-        'nvidia/nemotron-3-ultra-550b-a55b:free', // 🛡️ Model Miễn Phí dự phòng
-      ]
+      candidates.push(
+        { provider: 'openrouter', modelId: 'nvidia/nemotron-3.5-lightning:free' },
+        { provider: 'openrouter', modelId: 'google/gemma-4-26b-a4b-it:free' },
+        { provider: 'openrouter', modelId: 'minimax/minimax-m3:free' },
+        { provider: 'openrouter', modelId: 'liquid/lfm-2.5-2.6b:free' },
+      )
+    }
 
-      for (const modelId of openRouterModels) {
-        try {
-          const openrouterResult = streamText({
-            model: openrouter(modelId),
-            system: systemPrompt,
-            messages: modelMessages,
-            tools: aiTools,
-            stopWhen: isStepCount(5),
-            maxRetries: 1,
-          })
+    // Vòng lặp Failover thông minh với Timeout Guard 5.5 giây cho mỗi model
+    for (const item of candidates) {
+      try {
+        const modelInstance = item.provider === 'openrouter'
+          ? openrouter!(item.modelId)
+          : google!(item.modelId)
 
-          const iterator = openrouterResult.fullStream[Symbol.asyncIterator]()
-          const first = await iterator.next()
+        const result = streamText({
+          model: modelInstance,
+          system: systemPrompt,
+          messages: modelMessages,
+          tools: aiTools,
+          stopWhen: isStepCount(5),
+          maxRetries: 0,
+        })
 
-          if (!first.done && first.value && isErrorStreamPart(first.value)) {
-            throw first.value.error || new Error(`OpenRouter Error on ${modelId}`)
-          }
+        const iterator = result.fullStream[Symbol.asyncIterator]()
+        // Chờ dữ liệu thực sự (đã qua kiểm tra lỗi) với Timeout 12s cho phép suy luận chính xác
+        const { bufferedChunks, lastDone } = await fetchFirstValidChunkWithTimeout(iterator, 12000)
 
-          activeStream = new ReadableStream({
-            async start(controller) {
-              if (!first.done && first.value) {
-                controller.enqueue(first.value)
-              }
-              while (true) {
-                try {
-                  const { done, value } = await iterator.next()
-                  if (done) {
-                    controller.close()
-                    break
-                  }
-                  controller.enqueue(value)
+        activeStream = new ReadableStream({
+          async start(controller) {
+            // Đẩy toàn bộ chunk đã được buffer trước đó
+            for (const chunk of bufferedChunks) {
+              controller.enqueue(chunk)
+            }
+            if (lastDone) {
+              controller.close()
+              return
+            }
+            while (true) {
+              try {
+                const { done, value } = await iterator.next()
+                if (done) {
+                  controller.close()
+                  break
                 }
-                catch (streamErr: unknown) {
-                  console.error('⚠️ [AI Stream Mid-flight Error]:', getErrorMessage(streamErr))
+                if (isErrorStreamPart(value)) {
+                  console.error('⚠️ [Stream Mid-flight Error Chunk]:', value)
                   controller.enqueue({
                     type: 'text-delta',
                     id: 'error-chunk',
@@ -129,89 +206,42 @@ Nhiệm vụ của bạn:
                   controller.close()
                   break
                 }
+                controller.enqueue(value)
               }
-            },
-          })
-          break
-        }
-        catch (err: unknown) {
-          console.warn(`⚠️ [AI OpenRouter Warning] Model ${modelId} không khả dụng, thử model tiếp theo:`, getErrorMessage(err))
-          primaryError = err
-        }
+              catch (streamErr: unknown) {
+                console.error('⚠️ [AI Stream Mid-flight Exception]:', getErrorMessage(streamErr))
+                controller.enqueue({
+                  type: 'text-delta',
+                  id: 'error-chunk',
+                  delta: '\n\n⚠️ *(Kết nối với AI bị gián đoạn. Vui lòng gửi lại câu hỏi!)*',
+                })
+                controller.close()
+                break
+              }
+            }
+          },
+        })
+
+        break
       }
-    }
+      catch (err: unknown) {
+        console.warn(`⚠️ [AI Failover Guard] ${item.provider}:${item.modelId} không phản hồi / lỗi:`, getErrorMessage(err))
+        primaryError = err
 
-    // 2. Dự phòng với Google Gemini nếu OpenRouter gặp sự cố
-    if (!activeStream && google) {
-      const geminiModels = ['gemini-2.5-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash']
-
-      for (const modelId of geminiModels) {
-        try {
-          const geminiResult = streamText({
-            model: google(modelId),
-            system: systemPrompt,
-            messages: modelMessages,
-            tools: aiTools,
-            stopWhen: isStepCount(5),
-            maxRetries: 0,
-          })
-
-          const iterator = geminiResult.fullStream[Symbol.asyncIterator]()
-          const first = await iterator.next()
-
-          if (!first.done && first.value && isErrorStreamPart(first.value)) {
-            throw first.value.error || new Error(`Gemini API Error on ${modelId}`)
-          }
-
-          activeStream = new ReadableStream({
-            async start(controller) {
-              if (!first.done && first.value) {
-                controller.enqueue(first.value)
-              }
-              while (true) {
-                try {
-                  const { done, value } = await iterator.next()
-                  if (done) {
-                    controller.close()
-                    break
-                  }
-                  controller.enqueue(value)
-                }
-                catch (streamErr: unknown) {
-                  console.error('⚠️ [AI Gemini Stream Error]:', getErrorMessage(streamErr))
-                  controller.enqueue({
-                    type: 'text-delta',
-                    id: 'error-chunk',
-                    delta: '\n\n⚠️ *(Kết nối Gemini bị gián đoạn. Vui lòng thử lại!)*',
-                  })
-                  controller.close()
-                  break
-                }
-              }
-            },
-          })
-          break
-        }
-        catch (err: unknown) {
-          console.warn(`⚠️ [AI Gemini Warning] Model ${modelId} gặp sự cố:`, getErrorMessage(err))
-          primaryError = err
-
-          const errMsg = getErrorMessage(err).toLowerCase()
-          const errCode = getErrorStatusCode(err)
-          if (errCode === 429 || errMsg.includes('quota') || errMsg.includes('rate limit')) {
-            console.warn('⚡ [AI Gemini] Gemini API Key đã dính Quota Exceeded (429).')
-            break
-          }
+        const errMsg = getErrorMessage(err).toLowerCase()
+        const errCode = getErrorStatusCode(err)
+        if (errCode === 429 || errMsg.includes('quota') || errMsg.includes('rate limit')) {
+          console.warn(`⚡ [AI Failover Guard] ${item.provider}:${item.modelId} gặp lỗi Quota (429), chuyển model tiếp theo...`)
         }
       }
     }
 
     if (!activeStream) {
-      const errMsg = getErrorMessage(primaryError) || 'Không thể kết nối đến bất kỳ AI Provider nào do hết Quota / Rate Limit!'
+      const errMsg = getErrorMessage(primaryError) || 'Không thể kết nối đến bất kỳ AI Provider nào do hết Quota hoặc Timeout!'
       console.error('❌ [AI Chat Fatal Error]', errMsg)
       throw createError({
-        statusCode: 429,
-        statusMessage: errMsg,
+        statusCode: 504,
+        statusMessage: 'Hệ thống AI đang phản hồi chậm hoặc tạm thời quá tải. Vui lòng thử lại sau giây lát!',
       })
     }
 
