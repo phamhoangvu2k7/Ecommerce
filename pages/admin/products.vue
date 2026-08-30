@@ -138,17 +138,16 @@ async function handleBatchStatusChange(status: string) {
   if (selectedIds.value.length === 0)
     return
   try {
-    const res = await useAdminFetch('/api/admin/products/change-multi', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ids: selectedIds.value, status }),
-    })
-    const data = await res.json()
-    if (data.success) {
-      successMsg.value = `Đã cập nhật trạng thái ${selectedIds.value.length} sản phẩm!`
-      await fetchProducts()
-      setTimeout(() => (successMsg.value = ''), 3000)
+    for (const id of selectedIds.value) {
+      await useAdminFetch(`/api/admin/products/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      })
     }
+    successMsg.value = `Đã cập nhật trạng thái ${selectedIds.value.length} sản phẩm!`
+    await fetchProducts()
+    setTimeout(() => (successMsg.value = ''), 3000)
   }
   catch {
     alert('Lỗi cập nhật hàng loạt.')
@@ -161,17 +160,14 @@ async function handleBatchDelete() {
   if (!confirm(`Bạn có chắc muốn đưa ${selectedIds.value.length} sản phẩm vào thùng rác?`))
     return
   try {
-    const res = await useAdminFetch('/api/admin/products/delete-multi', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ids: selectedIds.value }),
-    })
-    const data = await res.json()
-    if (data.success) {
-      successMsg.value = `Đã chuyển ${selectedIds.value.length} sản phẩm vào Thùng rác!`
-      await fetchProducts()
-      setTimeout(() => (successMsg.value = ''), 3000)
+    for (const id of selectedIds.value) {
+      await useAdminFetch(`/api/admin/products/${id}`, {
+        method: 'DELETE',
+      })
     }
+    successMsg.value = `Đã chuyển ${selectedIds.value.length} sản phẩm vào Thùng rác!`
+    await fetchProducts()
+    setTimeout(() => (successMsg.value = ''), 3000)
   }
   catch {
     alert('Lỗi xóa hàng loạt.')

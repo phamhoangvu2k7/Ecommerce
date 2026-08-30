@@ -13,3 +13,5 @@ skill.md
 .vscode
 .wrangler
 TODO.md
+pentest_tools/
+.agents/
