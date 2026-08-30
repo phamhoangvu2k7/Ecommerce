@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { RouterLink } from 'vue-router'
+import { ref } from 'vue'
 import { resolveImageUrl } from '~/composables/useImageUrl'
+import { useCartStore } from '~/stores/cart'
 
-defineProps<{
+const props = defineProps<{
   product: {
     id: string
     title: string
@@ -10,37 +11,99 @@ defineProps<{
     discountPercentage?: number
     price: number
     priceNew?: number
+    rating?: number
+    featured?: boolean
     product_category_id?: {
       title: string
     }
   }
 }>()
 
+const cartStore = useCartStore()
+const isAdding = ref(false)
+const addedSuccess = ref(false)
+
 function formatPrice(value: number) {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value)
+}
+
+async function handleQuickAddToCart(e: Event) {
+  e.preventDefault()
+  e.stopPropagation()
+
+  try {
+    isAdding.value = true
+    await cartStore.addToCart(props.product.id, 1)
+    addedSuccess.value = true
+    setTimeout(() => {
+      addedSuccess.value = false
+    }, 2000)
+  }
+  catch (err) {
+    console.error('Quick add to cart failed:', err)
+  }
+  finally {
+    isAdding.value = false
+  }
 }
 </script>
 
 <template>
-  <div class="premium-card product-card">
+  <div class="premium-card product-card cursor-pointer group">
+    <!-- Image container -->
     <div class="product-image-container">
-      <img
-        :src="resolveImageUrl(product.thumbnail)"
-        :alt="product.title"
-        class="product-img"
-        loading="lazy"
-      >
-      <div v-if="product.discountPercentage && product.discountPercentage > 0" class="discount-badge">
-        -{{ product.discountPercentage }}%
+      <NuxtLink :to="`/products/${product.id}`" class="block w-full h-full">
+        <img
+          :src="resolveImageUrl(product.thumbnail)"
+          :alt="product.title"
+          class="product-img"
+          loading="lazy"
+        >
+      </NuxtLink>
+
+      <!-- Badges -->
+      <div class="badges-row">
+        <span v-if="product.discountPercentage && product.discountPercentage > 0" class="discount-badge">
+          -{{ product.discountPercentage }}%
+        </span>
+        <span v-if="product.featured" class="hot-badge">
+          HOT
+        </span>
       </div>
+
+      <!-- Quick Add Overlay button -->
+      <button
+        class="quick-add-btn"
+        :class="{ 'btn-success': addedSuccess }"
+        :disabled="isAdding"
+        title="Thêm nhanh vào giỏ hàng"
+        @click="handleQuickAddToCart"
+      >
+        <SvgIcon v-if="addedSuccess" name="check" :size="18" color="#ffffff" />
+        <SvgIcon v-else name="cart" :size="18" />
+        <span>{{ addedSuccess ? 'Đã thêm!' : (isAdding ? 'Đang thêm...' : 'Thêm vào giỏ') }}</span>
+      </button>
     </div>
+
+    <!-- Product details -->
     <div class="product-details">
       <div v-if="product.product_category_id?.title" class="product-category">
         {{ product.product_category_id?.title }}
       </div>
-      <h3 class="product-title" :title="product.title">
-        {{ product.title }}
-      </h3>
+
+      <!-- Rating stars -->
+      <div class="star-rating">
+        <div class="stars">
+          <SvgIcon v-for="i in 5" :key="i" name="star" :size="13" color="#f59e0b" />
+        </div>
+        <span class="rating-val">4.8</span>
+      </div>
+
+      <NuxtLink :to="`/products/${product.id}`">
+        <h3 class="product-title" :title="product.title">
+          {{ product.title }}
+        </h3>
+      </NuxtLink>
 
       <div class="product-prices">
         <span class="price-new">
@@ -52,9 +115,10 @@ function formatPrice(value: number) {
       </div>
 
       <div class="product-actions">
-        <RouterLink :to="`/products/${product.id}`" class="btn btn-secondary w-full product-btn">
-          Xem chi tiết
-        </RouterLink>
+        <NuxtLink :to="`/products/${product.id}`" class="btn btn-secondary w-full product-btn">
+          <span>Xem chi tiết</span>
+          <SvgIcon name="arrow-right" :size="15" />
+        </NuxtLink>
       </div>
     </div>
   </div>
@@ -65,14 +129,25 @@ function formatPrice(value: number) {
   display: flex;
   flex-direction: column;
   height: 100%;
+  padding: 1rem;
+  border-radius: var(--radius-lg);
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition-normal);
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--border-color-hover);
+  box-shadow: var(--shadow-lg);
 }
 
 .product-image-container {
-  height: 210px;
+  height: 220px;
   position: relative;
   overflow: hidden;
-  border-radius: 10px;
-  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-md);
+  background-color: rgba(0, 0, 0, 0.15);
   border: 1px solid var(--border-color);
   display: flex;
   align-items: center;
@@ -80,30 +155,84 @@ function formatPrice(value: number) {
   padding: 0.75rem;
 }
 
+[data-theme="light"] .product-image-container {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
 .product-img {
-  max-width: 100%;
-  max-height: 100%;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform var(--transition-slow);
 }
 
 .product-card:hover .product-img {
-  transform: scale(1.06);
+  transform: scale(1.08);
+}
+
+.badges-row {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
 }
 
 .discount-badge {
-  position: absolute;
-  top: 10px;
-  right: 10px;
   background-color: var(--danger);
   color: #ffffff;
-  font-size: 0.75rem;
+  font-size: 0.725rem;
+  font-weight: 800;
+  padding: 0.25rem 0.55rem;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+}
+
+.hot-badge {
+  background-color: var(--accent);
+  color: #ffffff;
+  font-size: 0.725rem;
+  font-weight: 800;
+  padding: 0.25rem 0.55rem;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Quick Add Button Overlay */
+.quick-add-btn {
+  position: absolute;
+  bottom: -45px;
+  left: 10px;
+  right: 10px;
+  height: 38px;
+  background-color: var(--primary);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.825rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
-  padding: 0.2rem 0.5rem;
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  box-shadow: 0 4px 12px hsl(var(--hsl-primary-500) / 0.35);
+  transition: all var(--transition-normal);
+  opacity: 0;
+}
+
+.product-card:hover .quick-add-btn {
+  bottom: 10px;
+  opacity: 1;
+}
+
+.quick-add-btn:hover {
+  background-color: var(--primary-hover);
+}
+
+.btn-success {
+  background-color: var(--accent) !important;
 }
 
 .product-details {
@@ -114,18 +243,36 @@ function formatPrice(value: number) {
 }
 
 .product-category {
-  font-size: 0.775rem;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-dim);
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.2rem;
+}
+
+.star-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.4rem;
+}
+
+.stars {
+  display: flex;
+  align-items: center;
+  gap: 0.1rem;
+}
+
+.rating-val {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
 }
 
 .product-title {
-  font-size: 1.025rem;
+  font-size: 0.975rem;
   font-weight: 700;
-  letter-spacing: -0.015em;
   color: var(--text-main);
   margin-bottom: 0.75rem;
   display: -webkit-box;
@@ -133,6 +280,11 @@ function formatPrice(value: number) {
   -webkit-box-orient: vertical;
   overflow: hidden;
   line-height: 1.35;
+  transition: color var(--transition-fast);
+}
+
+.product-card:hover .product-title {
+  color: var(--primary);
 }
 
 .product-prices {
@@ -147,22 +299,19 @@ function formatPrice(value: number) {
   font-size: 1.15rem;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: var(--text-main);
+  color: var(--accent);
 }
 
 .price-old {
   font-size: 0.85rem;
   font-weight: 500;
   text-decoration: line-through;
-  color: var(--text-muted);
-}
-
-.w-full {
-  width: 100%;
+  color: var(--text-dim);
 }
 
 .product-btn {
-  border-radius: 8px;
-  font-size: 0.875rem;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  padding: 0.5rem;
 }
 </style>

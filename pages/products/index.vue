@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed, onMounted, ref, watch } from 'vue'
 import ProductCard from '~/components/ProductCard.vue'
 import SkeletonCard from '~/components/SkeletonCard.vue'
 
@@ -17,6 +18,7 @@ const searchQuery = ref((route.query.q as string) || '')
 const selectedCategory = ref((route.query.category as string) || '')
 const priceMin = ref((route.query.price_min as string) || '')
 const priceMax = ref((route.query.price_max as string) || '')
+const selectedRating = ref((route.query.rating as string) || '')
 const sortOrder = ref((route.query.sort as string) || 'position_desc')
 const currentPage = ref(parseInt(route.query.page as string) || 1)
 const showMobileFilters = ref(false)
@@ -65,7 +67,7 @@ async function fetchProducts() {
     if (sortOrder.value)
       params.append('sort', sortOrder.value)
     params.append('page', String(currentPage.value))
-    params.append('limit', '9')
+    params.append('limit', '12')
 
     const res = await fetch(`/api/client/products?${params.toString()}`)
     const data = await res.json()
@@ -83,7 +85,6 @@ async function fetchProducts() {
   }
 }
 
-// Watch filters and trigger query
 watch([selectedCategory, sortOrder, currentPage], () => {
   updateQueryParams()
   fetchProducts()
@@ -101,6 +102,24 @@ function handlePriceFilter() {
   fetchProducts()
 }
 
+function applyPricePreset(min: string, max: string) {
+  priceMin.value = min
+  priceMax.value = max
+  handlePriceFilter()
+}
+
+function clearAllFilters() {
+  searchQuery.value = ''
+  selectedCategory.value = ''
+  priceMin.value = ''
+  priceMax.value = ''
+  selectedRating.value = ''
+  sortOrder.value = 'position_desc'
+  currentPage.value = 1
+  updateQueryParams()
+  fetchProducts()
+}
+
 function updateQueryParams() {
   const query: any = {}
   if (searchQuery.value)
@@ -111,6 +130,8 @@ function updateQueryParams() {
     query.price_min = priceMin.value
   if (priceMax.value)
     query.price_max = priceMax.value
+  if (selectedRating.value)
+    query.rating = selectedRating.value
   if (sortOrder.value)
     query.sort = sortOrder.value
   query.page = String(currentPage.value)
@@ -122,17 +143,49 @@ function changePage(page: number) {
   if (page < 1 || page > totalPages.value)
     return
   currentPage.value = page
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
+
+const activeFiltersCount = computed(() => {
+  let count = 0
+  if (selectedCategory.value)
+    count++
+  if (priceMin.value || priceMax.value)
+    count++
+  if (selectedRating.value)
+    count++
+  if (searchQuery.value)
+    count++
+  return count
+})
 </script>
 
 <template>
   <div class="product-list-page container">
+    <!-- Breadcrumb & Header -->
+    <div class="catalog-header mb-6">
+      <h1 class="catalog-title">
+        Danh Mục Sản Phẩm
+      </h1>
+      <p class="catalog-sub">
+        Hiển thị {{ totalProducts }} sản phẩm chính hãng sẵn sàng giao ngay
+      </p>
+    </div>
+
     <div class="list-layout">
       <!-- Sidebar Filters -->
       <aside class="sidebar-filters glass-panel" :class="{ 'mobile-show': showMobileFilters }">
-        <h3 class="filter-header">
-          Bộ lọc tìm kiếm
-        </h3>
+        <div class="filter-header-row">
+          <div class="flex items-center gap-2">
+            <SvgIcon name="filter" :size="18" color="var(--primary)" />
+            <h3 class="filter-header-title">
+              Bộ Lọc Thông Minh
+            </h3>
+          </div>
+          <button v-if="activeFiltersCount > 0" class="btn-clear-link" @click="clearAllFilters">
+            Xóa tất cả
+          </button>
+        </div>
 
         <!-- Categories Filter -->
         <div class="filter-group">
@@ -150,28 +203,56 @@ function changePage(page: number) {
         <!-- Price Range Filter -->
         <div class="filter-group">
           <label class="input-label">Khoảng giá (VNĐ)</label>
+
+          <!-- Price Presets Chips -->
+          <div class="preset-chips">
+            <button class="preset-chip" @click="applyPricePreset('', '5000000')">
+              &lt; 5tr
+            </button>
+            <button class="preset-chip" @click="applyPricePreset('5000000', '15000000')">
+              5tr - 15tr
+            </button>
+            <button class="preset-chip" @click="applyPricePreset('15000000', '')">
+              &gt; 15tr
+            </button>
+          </div>
+
           <div class="price-range-inputs">
             <input v-model="priceMin" type="number" placeholder="Từ" class="premium-input price-input">
             <span class="price-sep">&ndash;</span>
             <input v-model="priceMax" type="number" placeholder="Đến" class="premium-input price-input">
           </div>
           <button class="btn btn-secondary btn-apply-price w-full" @click="handlePriceFilter">
-            Áp dụng giá
+            Áp dụng khoảng giá
           </button>
+        </div>
+
+        <!-- Rating Filter -->
+        <div class="filter-group">
+          <label class="input-label">Đánh giá sản phẩm</label>
+          <div class="rating-options">
+            <label class="rating-option cursor-pointer">
+              <input v-model="selectedRating" type="radio" value="4" @change="handleSearch">
+              <div class="stars flex gap-1">
+                <SvgIcon v-for="i in 4" :key="i" name="star" :size="14" color="#f59e0b" />
+              </div>
+              <span class="rating-text">Từ 4 sao trở lên</span>
+            </label>
+          </div>
         </div>
 
         <!-- Sorting -->
         <div class="filter-group">
-          <label class="input-label">Sắp xếp theo</label>
+          <label class="input-label">Sắp xếp ưu tiên</label>
           <select v-model="sortOrder" class="premium-input select-input">
             <option value="position_desc">
               Nổi bật nhất
             </option>
             <option value="price_asc">
-              Giá tăng dần
+              Giá: Thấp đến Cao
             </option>
             <option value="price_desc">
-              Giá giảm dần
+              Giá: Cao đến Thấp
             </option>
             <option value="title_asc">
               Tên A-Z
@@ -183,42 +264,76 @@ function changePage(page: number) {
         </div>
       </aside>
 
-      <!-- Main Section -->
+      <!-- Main Products Grid Container -->
       <div class="products-main">
-        <!-- Mobile Filter Toggle Button -->
+        <!-- Mobile Filter Toggle Bar -->
         <button
-          class="btn btn-secondary btn-filter-toggle-mobile w-full"
+          class="btn btn-secondary btn-filter-toggle-mobile w-full mb-4"
           @click="showMobileFilters = !showMobileFilters"
         >
-          {{ showMobileFilters ? '✕ Đóng bộ lọc' : '🔍 Bộ lọc & Sắp xếp' }}
+          <SvgIcon :name="showMobileFilters ? 'x' : 'filter'" :size="18" />
+          <span>{{ showMobileFilters ? 'Đóng bộ lọc' : 'Lọc & Sắp xếp sản phẩm' }}</span>
         </button>
 
-        <!-- Search bar -->
+        <!-- Search Bar Header -->
         <div class="search-bar-container">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Tìm kiếm theo tên sản phẩm..."
-            class="premium-input search-input"
-            @keyup.enter="handleSearch"
-          >
+          <div class="search-input-wrapper">
+            <SvgIcon name="search" :size="18" color="var(--text-dim)" class="search-icon" />
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Tìm kiếm theo tên sản phẩm, thương hiệu..."
+              class="premium-input search-input"
+              @keyup.enter="handleSearch"
+            >
+          </div>
           <button class="btn btn-primary btn-search" @click="handleSearch">
-            Tìm kiếm
+            <span>Tìm kiếm</span>
           </button>
         </div>
 
-        <!-- Results Grid -->
+        <!-- Active Filter Badges Bar -->
+        <div v-if="activeFiltersCount > 0" class="active-filters-bar mb-4">
+          <span class="active-label">Đang lọc:</span>
+
+          <span v-if="selectedCategory" class="filter-tag">
+            Category: {{ selectedCategory }}
+            <button class="tag-close" @click="selectedCategory = ''; fetchProducts()">&times;</button>
+          </span>
+
+          <span v-if="priceMin || priceMax" class="filter-tag">
+            Giá: {{ priceMin || 0 }}₫ &ndash; {{ priceMax || 'Max' }}₫
+            <button class="tag-close" @click="priceMin = ''; priceMax = ''; fetchProducts()">&times;</button>
+          </span>
+
+          <span v-if="searchQuery" class="filter-tag">
+            Từ khóa: "{{ searchQuery }}"
+            <button class="tag-close" @click="searchQuery = ''; fetchProducts()">&times;</button>
+          </span>
+
+          <button class="btn-clear-all-tags" @click="clearAllFilters">
+            Xóa hết
+          </button>
+        </div>
+
+        <!-- Products Grid -->
         <div v-if="loading" class="grid-products">
-          <SkeletonCard v-for="i in 6" :key="i" />
+          <SkeletonCard v-for="i in 8" :key="i" />
         </div>
 
         <div v-else-if="products.length === 0" class="empty-state">
-          <div class="empty-icon">
-            🔍
+          <div class="empty-icon-box mb-3">
+            <SvgIcon name="search" :size="36" color="var(--text-dim)" />
           </div>
+          <h3 class="empty-title">
+            Không tìm thấy sản phẩm nào
+          </h3>
           <p class="empty-text">
-            Không tìm thấy sản phẩm nào khớp với yêu cầu của bạn.
+            Thử thay đổi từ khóa hoặc bộ lọc khoảng giá của bạn.
           </p>
+          <button class="btn btn-secondary mt-4" @click="clearAllFilters">
+            Đặt lại bộ lọc
+          </button>
         </div>
 
         <div v-else>
@@ -233,15 +348,29 @@ function changePage(page: number) {
               class="btn btn-secondary btn-pag"
               @click="changePage(currentPage - 1)"
             >
-              &larr; Trang trước
+              <SvgIcon name="chevron-left" :size="16" />
+              <span>Trang trước</span>
             </button>
-            <span class="pag-info">Trang {{ currentPage }} / {{ totalPages }}</span>
+
+            <div class="pag-pages">
+              <button
+                v-for="p in totalPages"
+                :key="p"
+                class="pag-num"
+                :class="{ 'pag-num-active': p === currentPage }"
+                @click="changePage(p)"
+              >
+                {{ p }}
+              </button>
+            </div>
+
             <button
               :disabled="currentPage === totalPages"
               class="btn btn-secondary btn-pag"
               @click="changePage(currentPage + 1)"
             >
-              Trang sau &rarr;
+              <span>Trang sau</span>
+              <SvgIcon name="chevron-right" :size="16" />
             </button>
           </div>
         </div>
@@ -251,37 +380,94 @@ function changePage(page: number) {
 </template>
 
 <style scoped>
+.mb-6 { margin-bottom: 1.5rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.mt-4 { margin-top: 1rem; }
+
+.catalog-title {
+  font-family: var(--font-heading);
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text-main);
+}
+
+.catalog-sub {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
 .list-layout {
   display: flex;
   gap: 1.75rem;
-  margin-top: 0.5rem;
 }
 
 /* Sidebar */
 .sidebar-filters {
-  width: 270px;
-  padding: 1.35rem;
+  width: 280px;
+  padding: 1.5rem;
   align-self: flex-start;
   flex-shrink: 0;
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
 }
 
-.filter-header {
+.filter-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.85rem;
+  margin-bottom: 1.25rem;
+}
+
+.filter-header-title {
   font-size: 1.05rem;
   font-weight: 800;
   letter-spacing: -0.02em;
-  margin-bottom: 1.25rem;
   color: var(--text-main);
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 0.75rem;
+}
+
+.btn-clear-link {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .filter-group {
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.35rem;
 }
 
 .select-input {
   cursor: pointer;
+}
+
+.preset-chips {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.6rem;
+}
+
+.preset-chip {
+  flex: 1;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 0.3rem 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.preset-chip:hover {
+  background-color: var(--primary-glow);
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .price-range-inputs {
@@ -295,7 +481,7 @@ function changePage(page: number) {
   flex: 1;
   text-align: center;
   padding: 0.55rem 0.5rem;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
 }
 
 .price-sep {
@@ -306,10 +492,24 @@ function changePage(page: number) {
 .btn-apply-price {
   font-size: 0.825rem;
   padding: 0.55rem 0.85rem;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
 }
 
-/* Main Section */
+.rating-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.rating-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.825rem;
+  color: var(--text-muted);
+}
+
+/* Products Main */
 .products-main {
   flex: 1;
   min-width: 0;
@@ -318,16 +518,80 @@ function changePage(page: number) {
 .search-bar-container {
   display: flex;
   gap: 0.65rem;
-  margin-bottom: 1.75rem;
+  margin-bottom: 1.25rem;
 }
 
-.search-input {
+.search-input-wrapper {
+  position: relative;
   flex: 1;
 }
 
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.search-input {
+  padding-left: 2.35rem;
+}
+
 .btn-search {
+  padding: 0.65rem 1.35rem;
   flex-shrink: 0;
-  padding: 0.7rem 1.35rem;
+}
+
+/* Active Filters Bar */
+.active-filters-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  background-color: var(--bg-card);
+  padding: 0.65rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.active-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+
+.filter-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background-color: var(--primary-glow);
+  color: var(--primary);
+  border: 1px solid hsl(var(--hsl-primary-500) / 0.3);
+  font-size: 0.775rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-full);
+}
+
+.tag-close {
+  background: none;
+  border: none;
+  color: currentColor;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+
+.btn-clear-all-tags {
+  background: none;
+  border: none;
+  color: var(--danger);
+  font-size: 0.775rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-left: auto;
 }
 
 .empty-state {
@@ -336,17 +600,28 @@ function changePage(page: number) {
   padding: 4rem 1.5rem;
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
 }
 
-.empty-icon {
-  font-size: 2.25rem;
-  margin-bottom: 0.75rem;
+.empty-icon-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-full);
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.empty-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.25rem;
 }
 
 .empty-text {
-  font-size: 0.95rem;
-  font-weight: 500;
+  font-size: 0.9rem;
 }
 
 /* Pagination */
@@ -354,30 +629,43 @@ function changePage(page: number) {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1.25rem;
+  gap: 1rem;
   margin-top: 2.5rem;
   margin-bottom: 1.5rem;
 }
 
 .btn-pag {
-  padding: 0.55rem 1rem;
+  padding: 0.5rem 0.9rem;
   font-size: 0.85rem;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
 }
 
-.pag-info {
-  font-size: 0.875rem;
+.pag-pages {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.pag-num {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-card);
   color: var(--text-muted);
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
 }
 
-.w-full {
-  width: 100%;
+.pag-num-active, .pag-num:hover {
+  background-color: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
 }
 
 .btn-filter-toggle-mobile {
   display: none;
-  margin-bottom: 1.25rem;
 }
 
 @media (max-width: 768px) {
@@ -390,24 +678,17 @@ function changePage(page: number) {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 42px;
-    font-size: 0.9rem;
+    height: 44px;
   }
 
   .sidebar-filters {
     width: 100%;
     display: none;
-    align-self: stretch;
-    margin-bottom: 1rem;
   }
 
   .sidebar-filters.mobile-show {
     display: block;
-    animation: fadeIn 0.3s ease-out;
-  }
-
-  .search-bar-container {
-    margin-bottom: 1.25rem;
+    animation: fadeIn 0.25s ease-out;
   }
 }
 </style>

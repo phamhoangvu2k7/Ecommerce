@@ -54,7 +54,8 @@ function formatPrice(value: number) {
         </span>
       </div>
       <div v-if="item.stock <= 5" class="item-stock-warning">
-        ⚠️ Chỉ còn {{ item.stock }} sản phẩm trong kho
+        <SvgIcon name="clock" :size="13" color="var(--warning)" />
+        <span>Chỉ còn {{ item.stock }} sản phẩm trong kho</span>
       </div>
     </div>
 
@@ -67,7 +68,7 @@ function formatPrice(value: number) {
           aria-label="Giảm số lượng"
           @click="emit('update-qty', item.product_id, item.quantity, -1, item.stock)"
         >
-          -
+          <SvgIcon name="minus" :size="14" />
         </button>
         <span class="qty-display" aria-live="polite" :aria-label="`Số lượng ${item.quantity}`">{{ item.quantity }}</span>
         <button
@@ -76,7 +77,7 @@ function formatPrice(value: number) {
           aria-label="Tăng số lượng"
           @click="emit('update-qty', item.product_id, item.quantity, 1, item.stock)"
         >
-          +
+          <SvgIcon name="plus" :size="14" />
         </button>
       </div>
     </div>
@@ -92,7 +93,7 @@ function formatPrice(value: number) {
       title="Xóa sản phẩm"
       @click="emit('remove', item.product_id)"
     >
-      🗑️
+      <SvgIcon name="trash" :size="16" color="var(--danger)" />
     </button>
   </div>
 </template>
@@ -103,25 +104,29 @@ function formatPrice(value: number) {
   align-items: center;
   gap: 1.25rem;
   padding: 1.15rem 1.25rem;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
 }
 
 .item-img-wrapper {
-  width: 76px;
-  height: 76px;
+  width: 80px;
+  height: 80px;
   flex-shrink: 0;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: rgba(0, 0, 0, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0.35rem;
 }
 
+[data-theme="light"] .item-img-wrapper {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
 .item-img {
-  max-width: 100%;
-  max-height: 100%;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
 }
 
@@ -150,13 +155,13 @@ function formatPrice(value: number) {
 .price-new {
   font-weight: 800;
   font-size: 0.95rem;
-  color: var(--text-main);
+  color: var(--accent);
 }
 
 .price-old {
   font-size: 0.8rem;
   text-decoration: line-through;
-  color: var(--text-muted);
+  color: var(--text-dim);
 }
 
 .item-stock-warning {
@@ -164,32 +169,33 @@ function formatPrice(value: number) {
   font-size: 0.775rem;
   margin-top: 0.35rem;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 /* Qty Selector */
 .qty-selector {
   display: flex;
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   overflow: hidden;
-  background-color: rgba(0, 0, 0, 0.2);
-  height: 36px;
+  background-color: rgba(0, 0, 0, 0.15);
+  height: 38px;
   align-items: center;
 }
 
 .btn-qty {
-  width: 32px;
+  width: 34px;
   height: 100%;
   border: none;
   background: transparent;
   color: var(--text-main);
-  font-weight: 700;
-  font-size: 1rem;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background-color var(--transition-speed) ease;
+  transition: background-color var(--transition-fast);
 }
 
 .btn-qty:hover:not(:disabled) {
@@ -202,7 +208,7 @@ function formatPrice(value: number) {
 }
 
 .qty-display {
-  width: 38px;
+  width: 40px;
   text-align: center;
   font-weight: 700;
   color: var(--text-main);
@@ -218,18 +224,15 @@ function formatPrice(value: number) {
 }
 
 .btn-remove {
-  padding: 0.45rem 0.65rem;
-  font-size: 0.85rem;
-  border-radius: 8px;
+  padding: 0.5rem;
+  border-radius: var(--radius-md);
   flex-shrink: 0;
-  color: var(--danger);
   border-color: rgba(239, 68, 68, 0.2);
 }
 
 .btn-remove:hover {
   background-color: rgba(239, 68, 68, 0.12);
   border-color: rgba(239, 68, 68, 0.35);
-  color: var(--danger);
 }
 
 @media (max-width: 576px) {
@@ -247,7 +250,6 @@ function formatPrice(value: number) {
   .item-total-price {
     text-align: center;
     min-width: unset;
-    margin: 0.25rem 0;
   }
 
   .qty-selector {
@@ -256,7 +258,6 @@ function formatPrice(value: number) {
 
   .btn-remove {
     width: 100%;
-    margin: 0 auto;
   }
 }
 </style>

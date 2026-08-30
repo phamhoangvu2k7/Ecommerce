@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { resolveImageUrl } from '~/composables/useImageUrl'
 import { useCartStore } from '~/stores/cart'
 
@@ -12,6 +13,7 @@ const router = useRouter()
 const fullName = ref('')
 const phone = ref('')
 const address = ref('')
+const paymentMethod = ref('cod') // 'cod' or 'bank'
 
 const loading = ref(false)
 const errorMsg = ref('')
@@ -30,7 +32,6 @@ onMounted(async () => {
     router.push('/cart')
   }
 
-  // Pre-fill user data if logged in
   const savedUser = localStorage.getItem('user')
   if (savedUser) {
     const user = JSON.parse(savedUser)
@@ -74,21 +75,21 @@ async function handleCheckout() {
         fullName: fullName.value,
         phone: phone.value,
         address: address.value,
+        paymentMethod: paymentMethod.value,
       }),
     })
 
     const data = await res.json()
     if (data.success) {
-      successMsg.value = 'Đặt hàng thành công! Cảm ơn bạn đã tin tưởng.'
+      successMsg.value = 'Đặt hàng thành công! Đơn hàng của bạn đã được ghi nhận.'
       cartStore.clearCart()
 
-      // Navigate to orders or homepage after 3 seconds
       setTimeout(() => {
         router.push('/orders')
-      }, 3000)
+      }, 2500)
     }
     else {
-      errorMsg.value = data.message || data.statusMessage || 'Lỗi đặt hàng, vui lòng kiểm tra tồn kho.'
+      errorMsg.value = data.message || data.statusMessage || 'Lỗi đặt hàng, vui lòng kiểm tra lại.'
     }
   }
   catch {
@@ -106,66 +107,117 @@ function formatPrice(value: number) {
 
 <template>
   <div class="checkout-page container">
-    <h1 class="h1-title mb-6">
-      Thanh toán đơn hàng
-    </h1>
-
-    <div v-if="successMsg" class="alert alert-success max-w-xl mx-auto text-center py-6 fade-in-item">
-      <div class="success-icon">
-        🎉
+    <!-- Progress Steps Header -->
+    <div class="steps-progress-bar mb-8">
+      <div class="step-item">
+        <div class="step-icon">
+          <SvgIcon name="check" :size="16" />
+        </div>
+        <span class="step-title">Giỏ hàng</span>
       </div>
-      <p class="font-semibold text-lg text-main">
+      <div class="step-line active-line" />
+      <div class="step-item step-active">
+        <div class="step-icon">
+          2
+        </div>
+        <span class="step-title">Thanh toán</span>
+      </div>
+      <div class="step-line" />
+      <div class="step-item">
+        <div class="step-icon">
+          3
+        </div>
+        <span class="step-title">Hoàn tất</span>
+      </div>
+    </div>
+
+    <!-- Success Message -->
+    <div v-if="successMsg" class="alert alert-success max-w-xl mx-auto text-center py-8 fade-in-item">
+      <div class="success-icon-box mb-3">
+        <SvgIcon name="check" :size="36" color="#ffffff" />
+      </div>
+      <h2 class="font-semibold text-xl text-main mb-2">
         {{ successMsg }}
-      </p>
-      <p class="text-sm mt-2 text-dim">
-        Đang chuyển hướng về trang Đơn hàng cá nhân...
+      </h2>
+      <p class="text-sm text-dim">
+        Tự động chuyển hướng về lịch sử Đơn hàng sau vài giây...
       </p>
     </div>
 
+    <!-- Main Checkout Form -->
     <div v-else class="checkout-layout">
-      <!-- Shipping form -->
+      <!-- Shipping & Payment Form -->
       <div class="shipping-section glass-panel fade-in-item">
         <h3 class="section-title">
-          Thông tin giao hàng
+          1. Thông tin người nhận
         </h3>
 
-        <div v-if="errorMsg" class="alert alert-error">
+        <div v-if="errorMsg" class="alert alert-error mb-4">
           {{ errorMsg }}
         </div>
 
         <form @submit.prevent="handleCheckout">
           <div class="input-group">
-            <label class="input-label">Họ và tên người nhận</label>
-            <input v-model="fullName" type="text" placeholder="Nhập đầy đủ họ tên" class="premium-input" required>
+            <label class="input-label">Họ và tên người nhận *</label>
+            <input v-model="fullName" type="text" placeholder="Nguyễn Văn A" class="premium-input" required>
           </div>
 
           <div class="input-group">
-            <label class="input-label">Số điện thoại nhận hàng</label>
-            <input v-model="phone" type="tel" placeholder="Nhập số điện thoại liên lạc" class="premium-input" required>
+            <label class="input-label">Số điện thoại nhận hàng *</label>
+            <input v-model="phone" type="tel" placeholder="0901234567" class="premium-input" required>
           </div>
 
           <div class="input-group">
-            <label class="input-label">Địa chỉ nhận hàng</label>
+            <label class="input-label">Địa chỉ giao hàng chi tiết *</label>
             <textarea
               v-model="address"
-              placeholder="Ghi rõ số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố"
+              placeholder="Số nhà, tên đường, Phường/Xã, Quận/Huyện, Tỉnh/Thành phố..."
               class="premium-input text-area-input"
-              rows="4"
+              rows="3"
               required
             />
           </div>
 
-          <button type="submit" :disabled="loading" class="btn btn-primary btn-submit-checkout w-full mt-5">
-            {{ loading ? 'Đang xử lý đặt hàng...' : 'Xác nhận Đặt hàng (Thanh toán COD) 📦' }}
+          <h3 class="section-title mt-6">
+            2. Phương thức thanh toán
+          </h3>
+
+          <div class="payment-methods-grid mb-6">
+            <label class="payment-card cursor-pointer" :class="{ 'payment-selected': paymentMethod === 'cod' }">
+              <input v-model="paymentMethod" type="radio" value="cod" class="hidden-radio">
+              <div class="payment-icon">
+                <SvgIcon name="truck" :size="20" color="var(--primary)" />
+              </div>
+              <div>
+                <h4 class="payment-name">Thanh toán khi nhận hàng (COD)</h4>
+                <p class="payment-sub">Thanh toán tiền mặt cho shipper khi nhận gói hàng</p>
+              </div>
+            </label>
+
+            <label class="payment-card cursor-pointer" :class="{ 'payment-selected': paymentMethod === 'bank' }">
+              <input v-model="paymentMethod" type="radio" value="bank" class="hidden-radio">
+              <div class="payment-icon">
+                <SvgIcon name="zap" :size="20" color="var(--accent)" />
+              </div>
+              <div>
+                <h4 class="payment-name">Chuyển khoản Ngân hàng / QR</h4>
+                <p class="payment-sub">Quét mã QR VietQR nhận hàng siêu tốc</p>
+              </div>
+            </label>
+          </div>
+
+          <button type="submit" :disabled="loading" class="btn btn-accent btn-lg w-full">
+            <span>{{ loading ? 'Đang xử lý tạo đơn...' : 'Xác nhận Đặt Hàng Ngay' }}</span>
+            <SvgIcon name="arrow-right" :size="18" />
           </button>
         </form>
       </div>
 
-      <!-- Checkout Summary -->
+      <!-- Checkout Items Summary -->
       <aside class="summary-section fade-in-item">
         <div class="premium-card summary-card">
           <h3 class="section-title border-b">
-            Chi tiết sản phẩm
+            Sản phẩm đặt mua ({{ cartStore.products.length }})
           </h3>
 
           <div class="summary-items-list">
@@ -191,8 +243,8 @@ function formatPrice(value: number) {
               <span class="summary-val">{{ formatPrice(cartStore.totalAmount) }}</span>
             </div>
             <div class="summary-row">
-              <span>Giao hàng</span>
-              <span class="success-text">Miễn phí</span>
+              <span>Phí vận chuyển</span>
+              <span class="success-text">Miễn phí ⚡</span>
             </div>
             <div class="summary-divider" />
             <div class="summary-row total-row">
@@ -207,36 +259,81 @@ function formatPrice(value: number) {
 </template>
 
 <style scoped>
-.mb-6 {
-  margin-bottom: 1.75rem;
+.mb-8 { margin-bottom: 2.5rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mt-6 { margin-top: 1.5rem; }
+
+/* Steps */
+.steps-progress-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 600px;
+  margin: 0 auto 2.5rem;
 }
 
-.max-w-xl {
-  max-width: 34rem;
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  opacity: 0.5;
 }
 
-.mx-auto {
-  margin-left: auto;
-  margin-right: auto;
+.step-active {
+  opacity: 1;
 }
 
-.py-6 {
-  padding-top: 1.75rem;
-  padding-bottom: 1.75rem;
+.step-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background-color: var(--bg-card);
+  border: 2px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: var(--text-muted);
 }
 
-.success-icon {
-  font-size: 2.75rem;
-  margin-bottom: 0.5rem;
+.step-active .step-icon {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
+  box-shadow: 0 0 12px hsl(var(--hsl-primary-500) / 0.4);
 }
 
-.text-main {
+.step-title {
+  font-size: 0.9rem;
+  font-weight: 700;
   color: var(--text-main);
-  font-size: 1.1rem;
 }
 
-.text-dim {
-  color: var(--text-dim);
+.step-line {
+  flex: 1;
+  height: 2px;
+  background-color: var(--border-color);
+  margin: 0 1rem;
+  max-width: 80px;
+}
+
+.active-line {
+  background-color: var(--primary);
+}
+
+/* Success icon */
+.success-icon-box {
+  width: 64px;
+  height: 64px;
+  background-color: var(--accent);
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .checkout-layout {
@@ -253,25 +350,13 @@ function formatPrice(value: number) {
 .shipping-section {
   flex: 1.5;
   padding: 1.75rem;
-  border-radius: 16px;
-}
-
-.text-area-input {
-  resize: vertical;
-}
-
-.summary-section {
-  flex: 1;
-}
-
-.summary-card {
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
 }
 
 .section-title {
-  font-size: 1.1rem;
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
   font-weight: 800;
-  letter-spacing: -0.015em;
   color: var(--text-main);
   margin-bottom: 1.25rem;
 }
@@ -281,7 +366,71 @@ function formatPrice(value: number) {
   padding-bottom: 0.75rem;
 }
 
-/* Products in list */
+.text-area-input {
+  resize: vertical;
+}
+
+/* Payment Card Selector */
+.payment-methods-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.payment-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background-color: rgba(0, 0, 0, 0.1);
+  transition: all var(--transition-fast);
+}
+
+.payment-selected {
+  border-color: var(--primary);
+  background-color: var(--primary-glow);
+}
+
+.hidden-radio {
+  display: none;
+}
+
+.payment-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.payment-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.15rem;
+}
+
+.payment-sub {
+  font-size: 0.775rem;
+  color: var(--text-muted);
+}
+
+/* Summary Card */
+.summary-section {
+  flex: 1;
+}
+
+.summary-card {
+  border-radius: var(--radius-lg);
+  position: sticky;
+  top: 85px;
+}
+
 .summary-items-list {
   display: flex;
   flex-direction: column;
@@ -289,7 +438,6 @@ function formatPrice(value: number) {
   max-height: 250px;
   overflow-y: auto;
   margin-bottom: 1.25rem;
-  padding-right: 0.25rem;
 }
 
 .summary-item {
@@ -299,11 +447,11 @@ function formatPrice(value: number) {
 }
 
 .sum-img-box {
-  width: 44px;
-  height: 44px;
-  border-radius: 6px;
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border-color);
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: rgba(0, 0, 0, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -312,8 +460,8 @@ function formatPrice(value: number) {
 }
 
 .sum-item-img {
-  max-width: 100%;
-  max-height: 100%;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
 }
 
@@ -341,10 +489,9 @@ function formatPrice(value: number) {
 
 .sum-item-total {
   font-weight: 700;
-  color: var(--text-main);
+  color: var(--accent);
 }
 
-/* Pricing summary rows */
 .pricing-rows {
   border-top: 1px solid var(--border-color);
   padding-top: 1rem;
@@ -380,33 +527,9 @@ function formatPrice(value: number) {
 }
 
 .total-price {
-  font-size: 1.3rem;
+  font-size: 1.35rem;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: var(--text-main);
-}
-
-.btn-submit-checkout {
-  padding: 0.75rem;
-  font-size: 0.95rem;
-}
-
-.w-full {
-  width: 100%;
-}
-
-.mt-5 {
-  margin-top: 1.25rem;
-}
-
-@media (max-width: 576px) {
-  .shipping-section {
-    padding: 1.15rem;
-  }
-
-  .section-title {
-    font-size: 1.05rem;
-    margin-bottom: 0.9rem;
-  }
+  color: var(--accent);
 }
 </style>
