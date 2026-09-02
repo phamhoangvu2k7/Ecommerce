@@ -18,7 +18,6 @@ const searchQuery = ref((route.query.q as string) || '')
 const selectedCategory = ref((route.query.category as string) || '')
 const priceMin = ref((route.query.price_min as string) || '')
 const priceMax = ref((route.query.price_max as string) || '')
-const selectedRating = ref((route.query.rating as string) || '')
 const sortOrder = ref((route.query.sort as string) || 'position_desc')
 const currentPage = ref(parseInt(route.query.page as string) || 1)
 const showMobileFilters = ref(false)
@@ -113,7 +112,6 @@ function clearAllFilters() {
   selectedCategory.value = ''
   priceMin.value = ''
   priceMax.value = ''
-  selectedRating.value = ''
   sortOrder.value = 'position_desc'
   currentPage.value = 1
   updateQueryParams()
@@ -130,8 +128,6 @@ function updateQueryParams() {
     query.price_min = priceMin.value
   if (priceMax.value)
     query.price_max = priceMax.value
-  if (selectedRating.value)
-    query.rating = selectedRating.value
   if (sortOrder.value)
     query.sort = sortOrder.value
   query.page = String(currentPage.value)
@@ -151,8 +147,6 @@ const activeFiltersCount = computed(() => {
   if (selectedCategory.value)
     count++
   if (priceMin.value || priceMax.value)
-    count++
-  if (selectedRating.value)
     count++
   if (searchQuery.value)
     count++
@@ -225,20 +219,6 @@ const activeFiltersCount = computed(() => {
           <button class="btn btn-secondary btn-apply-price w-full" @click="handlePriceFilter">
             Áp dụng khoảng giá
           </button>
-        </div>
-
-        <!-- Rating Filter -->
-        <div class="filter-group">
-          <label class="input-label">Đánh giá sản phẩm</label>
-          <div class="rating-options">
-            <label class="rating-option cursor-pointer">
-              <input v-model="selectedRating" type="radio" value="4" @change="handleSearch">
-              <div class="stars flex gap-1">
-                <SvgIcon v-for="i in 4" :key="i" name="star" :size="14" color="#f59e0b" />
-              </div>
-              <span class="rating-text">Từ 4 sao trở lên</span>
-            </label>
-          </div>
         </div>
 
         <!-- Sorting -->
@@ -493,20 +473,6 @@ const activeFiltersCount = computed(() => {
   font-size: 0.825rem;
   padding: 0.55rem 0.85rem;
   border-radius: var(--radius-md);
-}
-
-.rating-options {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.rating-option {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.825rem;
-  color: var(--text-muted);
 }
 
 /* Products Main */

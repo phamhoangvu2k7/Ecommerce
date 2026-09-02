@@ -198,16 +198,16 @@ export const ProductService = {
     // Lọc theo khoảng giá tối thiểu và tối đa (nếu người dùng chọn)
     let filteredProducts = productsWithNewPrice
     if (query.price_min !== undefined && query.price_min !== '') {
-      const minPriceInVnd = Number.parseFloat(String(query.price_min)) * 1000000
+      const minPriceInVnd = Number.parseFloat(String(query.price_min))
       if (!Number.isNaN(minPriceInVnd)) {
-        filteredProducts = filteredProducts.filter(product => (product.priceNew || 0) >= minPriceInVnd)
+        filteredProducts = filteredProducts.filter(product => (product.priceNew ?? product.price ?? 0) >= minPriceInVnd)
       }
     }
 
     if (query.price_max !== undefined && query.price_max !== '') {
-      const maxPriceInVnd = Number.parseFloat(String(query.price_max)) * 1000000
+      const maxPriceInVnd = Number.parseFloat(String(query.price_max))
       if (!Number.isNaN(maxPriceInVnd)) {
-        filteredProducts = filteredProducts.filter(product => (product.priceNew || 0) <= maxPriceInVnd)
+        filteredProducts = filteredProducts.filter(product => (product.priceNew ?? product.price ?? 0) <= maxPriceInVnd)
       }
     }
 

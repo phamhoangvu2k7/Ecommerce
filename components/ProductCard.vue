@@ -11,7 +11,6 @@ const props = defineProps<{
     discountPercentage?: number
     price: number
     priceNew?: number
-    rating?: number
     featured?: boolean
     product_category_id?: {
       title: string
@@ -89,14 +88,6 @@ async function handleQuickAddToCart(e: Event) {
     <div class="product-details">
       <div v-if="product.product_category_id?.title" class="product-category">
         {{ product.product_category_id?.title }}
-      </div>
-
-      <!-- Rating stars -->
-      <div class="star-rating">
-        <div class="stars">
-          <SvgIcon v-for="i in 5" :key="i" name="star" :size="13" color="#f59e0b" />
-        </div>
-        <span class="rating-val">4.8</span>
       </div>
 
       <NuxtLink :to="`/products/${product.id}`">
@@ -249,25 +240,6 @@ async function handleQuickAddToCart(e: Event) {
   letter-spacing: 0.04em;
   color: var(--text-dim);
   margin-bottom: 0.2rem;
-}
-
-.star-rating {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  margin-bottom: 0.4rem;
-}
-
-.stars {
-  display: flex;
-  align-items: center;
-  gap: 0.1rem;
-}
-
-.rating-val {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--text-muted);
 }
 
 .product-title {

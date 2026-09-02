@@ -303,12 +303,12 @@ function handleLogout() {
   padding: 0.65rem 0;
 }
 
-.menu-item:hover, .router-link-active {
+.menu-item:hover, .menu-item.router-link-active {
   color: var(--text-main);
   background-color: rgba(255, 255, 255, 0.06);
 }
 
-.router-link-active {
+.menu-item.router-link-active {
   border-left: 3px solid var(--primary);
   background-color: var(--primary-glow);
   color: var(--primary) !important;

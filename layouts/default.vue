@@ -227,10 +227,22 @@ function handleLogout() {
   font-size: 1.35rem;
   font-weight: 800;
   letter-spacing: -0.03em;
-  color: var(--text-main);
+  color: var(--text-main) !important;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  background: transparent !important;
+  background-color: transparent !important;
+  padding: 0;
+  border-radius: 0;
+}
+
+.nav-logo:hover,
+.nav-logo.router-link-exact-active,
+.nav-logo.router-link-active {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: var(--text-main) !important;
 }
 
 .logo-badge {
@@ -247,6 +259,7 @@ function handleLogout() {
 .logo-text {
   font-family: var(--font-heading);
   font-weight: 800;
+  color: var(--text-main) !important;
 }
 
 .nav-links {
@@ -267,16 +280,16 @@ function handleLogout() {
   gap: 0.4rem;
 }
 
-.nav-link:hover, .router-link-exact-active {
+.nav-link:hover, .nav-link.router-link-exact-active {
   color: var(--text-main);
   background-color: rgba(255, 255, 255, 0.06);
 }
 
-[data-theme="light"] .nav-link:hover, [data-theme="light"] .router-link-exact-active {
+[data-theme="light"] .nav-link:hover, [data-theme="light"] .nav-link.router-link-exact-active {
   background-color: rgba(0, 0, 0, 0.05);
 }
 
-.router-link-exact-active {
+.nav-link.router-link-exact-active {
   color: var(--primary) !important;
 }
 
