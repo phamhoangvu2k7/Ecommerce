@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { eq, inArray } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
 import { kv } from 'hub:kv'
 
@@ -208,12 +208,17 @@ export const CartService = {
 
     const userCart = await this.getOrCreateCart(undefined, userId)
 
+    const productIds = [...new Set(guestProducts.map(i => i.product_id).filter(Boolean))] as string[]
+    if (productIds.length === 0)
+      return
+
+    const prods = await db.select()
+      .from(schema.products)
+      .where(inArray(schema.products.id, productIds))
+    const productMap = new Map(prods.map(p => [p.id, p]))
+
     for (const guestItem of guestProducts) {
-      const prods = await db.select()
-        .from(schema.products)
-        .where(eq(schema.products.id, guestItem.product_id))
-        .limit(1)
-      const product = prods[0]
+      const product = productMap.get(guestItem.product_id)
       if (!product || product.status !== 'active' || product.deleted === 1)
         continue
 

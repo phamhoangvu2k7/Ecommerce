@@ -12,7 +12,7 @@
   <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License MIT" />
   <img src="https://img.shields.io/badge/Node.js-%3E%3D20.0.0-green" alt="Node version" />
   <img src="https://img.shields.io/badge/TypeScript-5.x-blue" alt="TypeScript version" />
-  <img src="https://img.shields.io/badge/AI--Powered-Gemini_1.5_Pro_/_Flash-orange" alt="AI Powered" />
+  <img src="https://img.shields.io/badge/AI--Powered-Gemini_1.5_Pro_/_Flash_/_2.0_Flash-orange" alt="AI Powered" />
 </p>
 
 A full-featured E-Commerce application built on top of **Nuxt 3** and **Nuxt Hub** using **TypeScript**. The system features a customer-facing store interface, an **AI Sales Assistant Chatbot (RAG + Function Calling)**, as well as an intuitive Admin Dashboard for catalog and store management. Data is stored in **SQLite (Cloudflare D1)** via **Drizzle ORM**, product media assets are managed via **Nuxt Hub Blob (Cloudflare R2)**, and account recovery OTP emails are dispatched via the **Resend API**.
@@ -33,8 +33,9 @@ https://github.com/user-attachments/assets/554ebff2-0e78-4b56-b3a6-c5e5e9245e93
 
 ## Key Features
 
-* **🤖 Real-time AI Sales Assistant**: Integrated AI Chatbot widget powered by **Google Gemini (Primary: `gemini-1.5-pro`, `gemini-1.5-flash`)** with **OpenRouter** (`nvidia/nemotron-3.5-lightning:free`, `google/gemma-4-26b-a4b-it:free`, `minimax/minimax-m3:free`) as Auto Fallback, using **Vercel AI SDK (v7)**. Utilizes **Function Calling (Tools)** to query real-time product prices, stock, and categories directly from SQLite DB without hallucination.
+* **🤖 Real-time AI Sales Assistant**: Integrated AI Chatbot widget powered by **Google Gemini (Primary: `gemini-1.5-pro`, `gemini-1.5-flash`, `gemini-2.0-flash`)** with **OpenRouter** (`nvidia/nemotron-3.5-lightning:free`, `google/gemma-4-26b-a4b-it:free`, `minimax/minimax-m3:free`, `liquid/lfm-2.5-2.6b:free`) as Auto Fallback and 12s Timeout Guard, using **Vercel AI SDK (v7)**. Utilizes **Function Calling (Tools)** to query real-time product prices, stock, and categories directly from SQLite DB without hallucination.
 * **Responsive & Dark Mode UI**: Full cross-device compatibility (Desktop, Tablet, Mobile) with real-time Light/Dark mode toggling.
+* **Product Search & Precise Price Filtering**: Instant keyword search, category navigation, and exact VNĐ price range filtering (`price_min`, `price_max`) taking promotional prices (`priceNew`) into account.
 * **Cart Synchronization & Auth Checkout**: Allows guest users to add items to a temporary cart (Cloudflare KV), which seamlessly merges with their personal account cart upon logging in. Enforces customer authentication prior to order placement for order tracking and security.
 * **Inventory Stock Verification**: Validates real-time database stock counts prior to order placement to prevent overselling.
 * **Automatic Stock Restoration**: Automatically restores product inventory counts whenever an order is cancelled.
@@ -201,6 +202,20 @@ http://localhost:3000/api/seed
 Once completed, mock products, categories, and initial admin accounts will be generated.
 
 ---
+
+## Deployment
+
+To deploy the application to Cloudflare Pages:
+
+1. Authenticate with Cloudflare Wrangler (if not already logged in):
+```bash
+npx wrangler login
+```
+
+2. Build and deploy:
+```bash
+npm run deploy
+```
 
 ## Available NPM Scripts
 

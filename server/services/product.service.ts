@@ -241,22 +241,25 @@ export const ProductService = {
     return databaseRows[0] || null
   },
 
-  // Đệ quy lấy tất cả ID của danh mục con trực thuộc danh mục cha
+  // Lấy tất cả ID của danh mục con trực thuộc danh mục cha (truy vấn 1 lần duy nhất, tránh N+1)
   async getChildCategoryIds(parentCategoryId: string): Promise<string[]> {
-    const childCategories = await db.select()
+    const allCategories = await db.select()
       .from(schema.productCategories)
       .where(and(
-        eq(schema.productCategories.parent_id, parentCategoryId),
         eq(schema.productCategories.status, 'active'),
         eq(schema.productCategories.deleted, 0),
       ))
 
-    let accumulatedIds: string[] = childCategories.map(category => category.id)
-    for (const childCategory of childCategories) {
-      const subCategoryIds = await this.getChildCategoryIds(childCategory.id)
-      accumulatedIds = [...accumulatedIds, ...subCategoryIds]
+    const findChildren = (parentId: string): string[] => {
+      const children = allCategories.filter(category => String(category.parent_id || '') === String(parentId))
+      let ids: string[] = children.map(category => category.id)
+      for (const child of children) {
+        ids = [...ids, ...findChildren(child.id)]
+      }
+      return ids
     }
-    return accumulatedIds
+
+    return findChildren(parentCategoryId)
   },
 
   // Xóa sản phẩm vào thùng rác (Soft Delete)
@@ -403,9 +406,11 @@ export const ProductService = {
     for (let index = 0; index < siblingCategories.length; index++) {
       const currentCategory = siblingCategories[index]
       const newPosition = index + 1
-      await db.update(schema.productCategories)
-        .set({ position: newPosition })
-        .where(eq(schema.productCategories.id, currentCategory.id))
+      if (currentCategory.position !== newPosition) {
+        await db.update(schema.productCategories)
+          .set({ position: newPosition })
+          .where(eq(schema.productCategories.id, currentCategory.id))
+      }
     }
   },
 
@@ -422,4 +427,3 @@ export const ProductService = {
     }
   },
 }
-

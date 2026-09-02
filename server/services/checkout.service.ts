@@ -1,5 +1,5 @@
 import type { CartItem } from './cart.service'
-import { and, eq, gte } from 'drizzle-orm'
+import { and, eq, gte, inArray } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
 import { kv } from 'hub:kv'
 
@@ -59,13 +59,15 @@ export const CheckoutService = {
 
     const orderProducts: OrderProductItem[] = []
 
-    // 2. Validate stock & deduct inventory
+    // 2. Validate stock & deduct inventory (Batch fetch products to avoid N+1 select)
+    const productIds = [...new Set(cartProducts.map(item => item.product_id).filter(Boolean))] as string[]
+    const prods = await db.select()
+      .from(schema.products)
+      .where(inArray(schema.products.id, productIds))
+    const productMap = new Map(prods.map(p => [p.id, p]))
+
     for (const item of cartProducts) {
-      const prods = await db.select()
-        .from(schema.products)
-        .where(eq(schema.products.id, item.product_id))
-        .limit(1)
-      const product = prods[0]
+      const product = productMap.get(item.product_id)
       if (!product || product.status !== 'active' || product.deleted === 1) {
         throw new Error(`Sản phẩm ${product?.title || ''} đã ngừng bán`)
       }
