@@ -1,16 +1,8 @@
+import type { AuthJwtPayloadDTO } from '../dto/auth.dto'
 import { createError, defineEventHandler, getHeader, parseCookies } from 'h3'
+import { AuthJwtPayloadSchema } from '../dto/auth.dto'
 import { getJwtSecret } from '../utils/helpers'
 import { verifyJwt } from '../utils/jwt'
-
-interface AuthJwtPayload {
-  id: string
-  role: string
-  fullName?: string
-  email?: string
-  phone?: string
-  avatar?: string
-  permissions?: string[]
-}
 
 export default defineEventHandler(async (event) => {
   const path = event.path || ''
@@ -30,7 +22,8 @@ export default defineEventHandler(async (event) => {
   // 2. Decode token and inject user/admin context (Zero-DB Lookup Auth)
   if (token) {
     try {
-      const decoded = await verifyJwt<AuthJwtPayload>(token, getJwtSecret())
+      const rawDecoded = await verifyJwt(token, getJwtSecret())
+      const decoded: AuthJwtPayloadDTO = AuthJwtPayloadSchema.parse(rawDecoded)
       if (decoded.role === 'admin') {
         event.context.admin = {
           id: decoded.id,
